@@ -19,3 +19,10 @@ The yum-repo-server enables you to access repository management operations from 
 For instance you can dynamically create a repository when needed (e.G. after compiling sources), upload RPMs into it, generate metadata and then use it right away!
 Since consumers cannot differentiate between virtual and regular repositories, it is possible to change the repositories used by hosts dynamically in one simple operation (instead of fiddling on the file system level).
 As a consequence, the virtual repository system enables you to use one (virtual) repository for a group of hosts, and change the link as needed, e.G. when updating packages.
+
+
+## Getting started
+* Have a look in util/install_apache2_with_wsgi_ubuntu.sh . This shell script installs all required dependencies for the yum repo server to run. The default setup is to run yum-repo-server behind an apache server.
+* * If you are not running a Debian based system, have a look at the script anyway since it lists the dependencies you need to install.
+* Run the tests : //TODO
+* Try it out! Running ./manage.py runserver will start up a django developement server, featuring the yum-repo-server.
