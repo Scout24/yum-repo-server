@@ -18,3 +18,4 @@ The aim of this project is to provide a simple, straightforward and extensible i
 The yum-repo-server enables you to access repository management operations from other routines or automations, such as build servers or delivery chains.
 For instance you can dynamically create a repository when needed (e.G. after compiling sources), upload RPMs into it, generate metadata and then use it right away!
 Since consumers cannot differentiate between virtual and regular repositories, it is possible to change the repositories used by hosts dynamically in one simple operation (instead of fiddling on the file system level).
+As a consequence, the virtual repository system enables you to use one (virtual) repository for a group of hosts, and change the link as needed, e.G. when updating packages.
