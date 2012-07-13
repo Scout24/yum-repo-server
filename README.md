@@ -28,5 +28,5 @@ While creating a standalone YUM repository is easy, there was no easy way to man
 ## Getting started
 * Have a look in <code>util/install_apache2_with_wsgi_ubuntu.sh</code>. This shell script installs all required dependencies for the yum repo server to run. The default setup is to run yum-repo-server behind an apache server.
   * If you are not running a Debian based system, have a look at the script anyway since it lists the dependencies you need to install.
-* Run the tests : //TODO
-* Try it out! Running <code>./manage.py runserver</code> will start up a django developement server, featuring the yum-repo-server.
+* Run the tests : <code> python setup.py test</code>
+* Try it out! Running <code>python manage.py runserver</code> will start up a django developement server, featuring the yum-repo-server.
