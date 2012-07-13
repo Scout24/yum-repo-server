@@ -9,15 +9,18 @@ The yum-repo-server is a server that allows you to host and manage YUM repositor
 * Graphical web interface to browse repositories and their contents
 * Link system to create virtual repositories that can dynamically point to other repositories
 * Easily extensible due to good test coverage
+* Command line wrapper for more comfort, see [http://github.com/is24-herold/yum-repo-client]
 
 
 ## Aim
-The aim of this project is to provide a simple, straightforward and extensible implementation of a server that is able to manage YUM repositories. While creating a standalone YUM repository is easy, there is no easy way to manage many and at the time of writing no software fulfilling this purpose is available.
+The aim of this project is to provide a simple, straightforward and extensible implementation of a server that is able to manage YUM repositories. 
+While creating a standalone YUM repository is easy, there was no easy way to manage many such repositories at the time of writing.
 
 ## Benefits
-The yum-repo-server enables you to access repository management operations from other routines or automations, such as build servers or delivery chains.
+* The yum-repo-server enables you to access repository management operations from other routines or automations, such as build servers or delivery chains.
 For instance you can dynamically create a repository when needed (e.G. after compiling sources), upload RPMs into it, generate metadata and then use it right away!
-Since consumers cannot differentiate between virtual and regular repositories, it is possible to change the repositories used by hosts dynamically in one simple operation (instead of fiddling on the file system level).
+* The virtual repository system provides an additional layer of abstraction over repositories and allows you to create "fake" (virtual) repositories that forward any requests they obtain to a real repository.
+Since consumers cannot differentiate between virtual and regular repositories, it is possible to change the repositories used by hosts dynamically in one simple operation (instead of fiddling on the file system level in <code>/etc/yum/repos.d/</code> for instance).
 As a consequence, the virtual repository system enables you to use one (virtual) repository for a group of hosts, and change the link as needed, e.G. when updating packages.
 
 
