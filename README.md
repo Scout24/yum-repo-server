@@ -40,15 +40,7 @@ Have a look at updaterepo [https://github.com/is24-herold/updaterepo] if you nee
 At the core of the yum-repo-server is a directory that contains repository information and contents.
 This directory's location is stored in a setup.py file, like so :
 <code>
-REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos', 
-                'TEMP_DIR' : tempfile.gettempdir(),
-                'DAEMON_USER' : 'root',
-                'DAEMON_GROUP' : 'root',
-                'REPO_CACHE_DIR' : tempfile.gettempdir(),
-                'SCHEDULER_DAEMON_PIDFILE' : '/var/run/yum-repo-server/yum-repo-server.pid',
-                'SCHEDULER_DAEMON_LOGGING_CONF': '/etc/yum-repo-server/schedulerDaemonLogging.conf',
-                'SERVER_LOGGING_CONF': '/etc/yum-repo-server/serverLogging.conf',
-               }
+REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos', [shortened]  }
 </code>
 This makes it easy to backup or replicate your repository.
 
@@ -70,5 +62,7 @@ Creating a new repository involves sending a POST request with the name of the r
 This will create a new resource (the new repository) underneath the repository base, which means you can access your new repository at <code>$host/$repo_base/$new_repo_name</code>
 
 #### Upload to an existing repository
-As a consequence, uploading a RPM to an existing repository involves sending a POST request containing the RPM file in a form element called rpmFile. The request is send to <code>$host/$repo_base/$repo_name</code>, and creates a new resource underneath <code>$repo_name<code>. 
-The RPM can then be retrieved with a GET request sent to <code>$host/$repo_base/$repo_name/$rpm_architecture/$rpm_filename</code>.
+As a consequence, uploading a RPM to an existing repository involves sending a POST request containing the RPM file in a form element called rpmFile. The request is send to <code>$host/$repo_base/$repo_name</code>
+It creates a new resource underneath <code>$repo_name<code>. 
+The RPM can then be retrieved with a GET request sent to
+<code>$host/$repo_base/$repo_name/$rpm_architecture/$rpm_filename</code>.
