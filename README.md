@@ -52,10 +52,24 @@ This is handled by django and quite straightforward.
 ### Virtual repositories
 A virtual repository does look exactly like a regular repository for consumers, but it is actually an empty repository that contains a YAML file named <code>repo.yaml</code>. The file contains an entry with a relative path to a regular repository, and requests to the virtual repository are rerouted to the regular one.
 
+### Periodic metadata generation
+The metadata generation is located in a YAML file that lives in the repository it describes.
+The file looks like this :
+<code>
+generation_type : scheduled
+generation_interval : 40
+rpm_max_keep : 3
+</code>
+This will schedule a periodic createrepo that will be executed every 40 seconds.
+rpm_max_keep means there will also be a cleanup routine before the createrepo that will delete older
+RPMs when there are more than three RPMs with the same canonical name.
+You may omit rpm_max_keep to disable the cleanup routine and set generation_type to 'manual' or remove the file
+if you do not wish to have a periodic createrepo scheduled.
+
 ### API requests
 API requests are handled by piston and use a REST like format.
-For maximal comfort, use the yum-repo-client, see [http://github.com/is24-herold/yum-repo-client]
-Both examples below should give you a good understanding of how the requests look like.
+For maximal comfort, use the yum-repo-client, see [http://github.com/is24-herold/yum-repo-client].
+The examples below should give you a good understanding of how the requests look like.
 
 #### Repository creation
 Creating a new repository involves sending a POST request with the name of the repository in the body to <code>$host/$repo_base</code>. 
@@ -66,3 +80,6 @@ As a consequence, uploading a RPM to an existing repository involves sending a P
 It creates a new resource underneath <code>$repo_name</code>. 
 The RPM can then be retrieved with a GET request sent to
 <code>$host/$repo_base/$repo_name/$rpm_architecture/$rpm_filename</code>.
+
+#### Generating repository metadata
+Generating metadata involves a POST request to <code>$host/$repo_base/$repo_name/repodata</code> since it creates a new resource (the actual metadata files) underneath <code>repodata/</code>.
