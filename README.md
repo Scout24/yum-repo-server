@@ -63,6 +63,6 @@ This will create a new resource (the new repository) underneath the repository b
 
 #### Upload to an existing repository
 As a consequence, uploading a RPM to an existing repository involves sending a POST request containing the RPM file in a form element called rpmFile. The request is send to <code>$host/$repo_base/$repo_name</code>
-It creates a new resource underneath <code>$repo_name<code>. 
+It creates a new resource underneath <code>$repo_name</code>. 
 The RPM can then be retrieved with a GET request sent to
 <code>$host/$repo_base/$repo_name/$rpm_architecture/$rpm_filename</code>.
