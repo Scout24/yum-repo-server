@@ -45,7 +45,7 @@ REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos', [shortened]  }
 This makes it easy to backup or replicate your repository.
 
 ### Repository usage
-In a nutshell, when yum updates it sends HTTP requests to repositories it is aware of and queries repository metadata.
+In a nutshell, when yum checks for updates it sends HTTP GET requests to repositories it is aware of (usually through repository files in <code> /etc/yum/repos.d/</code> and queries repository metadata.
 If it decides a package has to be updated (or installed) it will then directly download the RPM package through a HTTP request.
 This is handled by django and quite straightforward.
 
