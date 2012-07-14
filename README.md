@@ -30,3 +30,45 @@ While creating a standalone YUM repository is easy, there was no easy way to man
 * Install it : <code>python setup.py install</code>
 * Run the tests : <code> python setup.py test</code>
 * Try it out! Running <code>python manage.py runserver</code> will start up a django developement server, featuring the yum-repo-server.
+
+## How it works
+### Technology
+The yum-repo-server relies on django and piston to handle browser and API requests made through HTTP. You need to put a HTTP web server in front of the yum-repo-server, apache with mod_wsgi will do fine. Most of the scheduling routines use the APScheduler (Advanced Python Scheduler). In order to generate repository metadata, the createrepo package is used.
+Have a look at updaterepo [https://github.com/is24-herold/updaterepo] if you need a more performant createrepo.
+
+### Repository location
+At the core of the yum-repo-server is a directory that contains repository information and contents.
+This directory's location is stored in a setup.py file, like so :
+<code>
+REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos', 
+                'TEMP_DIR' : tempfile.gettempdir(),
+                'DAEMON_USER' : 'root',
+                'DAEMON_GROUP' : 'root',
+                'REPO_CACHE_DIR' : tempfile.gettempdir(),
+                'SCHEDULER_DAEMON_PIDFILE' : '/var/run/yum-repo-server/yum-repo-server.pid',
+                'SCHEDULER_DAEMON_LOGGING_CONF': '/etc/yum-repo-server/schedulerDaemonLogging.conf',
+                'SERVER_LOGGING_CONF': '/etc/yum-repo-server/serverLogging.conf',
+               }
+</code>
+This makes it easy to backup or replicate your repository.
+
+### Repository usage
+In a nutshell, when yum updates it sends HTTP requests to repositories it is aware of and queries repository metadata.
+If it decides a package has to be updated (or installed) it will then directly download the RPM package through a HTTP request.
+This is handled by django and quite straightforward.
+
+### Virtual repositories
+A virtual repository does look exactly like a regular repository for consumers, but it is actually an empty repository that contains a YAML file named <code>repo.yaml</code>. The file contains an entry with a relative path to a regular repository, and requests to the virtual repository are rerouted to the regular one.
+
+### API requests
+API requests are handled by piston and use a REST like format.
+For maximal comfort, use the yum-repo-client, see [http://github.com/is24-herold/yum-repo-client]
+Both examples below should give you a good understanding of how the requests look like.
+
+#### Repository creation
+Creating a new repository involves sending a POST request with the name of the repository in the body to <code>$host/$repo_base</code>. 
+This will create a new resource (the new repository) underneath the repository base, which means you can access your new repository at <code>$host/$repo_base/$new_repo_name</code>
+
+#### Upload to an existing repository
+As a consequence, uploading a RPM to an existing repository involves sending a POST request containing the RPM file in a form element called rpmFile. The request is send to <code>$host/$repo_base/$repo_name</code>, and creates a new resource underneath <code>$repo_name<code>. 
+The RPM can then be retrieved with a GET request sent to <code>$host/$repo_base/$repo_name/$rpm_architecture/$rpm_filename</code>.
