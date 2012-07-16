@@ -33,7 +33,7 @@ _repocomplete()
     ### commands (options that can be used only once)
     oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm"
     ### options that can appear anywhere
-    opts="--hostname=${repohost} --port=80 --username=${username}"
+    opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
 
     ### check previous typed word and react accordingly
