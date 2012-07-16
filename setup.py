@@ -13,7 +13,19 @@ class completeClean(clean):
         if os.path.exists(dist_dir):
             shutil.rmtree(dist_dir)
 
+def find_in_parent(path, max_depth = 6):
+    depth = 0
+    p = path
+    while not os.path.exists(p):
+        if depth == max_depth:
+            raise Exception("Could not find path %s in %s" % (path, os.curdir))
+        p = '../' + p
+        
+    return p
+
 def get_data_files_for(top_level_dir, base_dir):
+    top_level_dir = find_in_parent(top_level_dir)
+    
     result = []
     for root, dirs, files in os.walk(top_level_dir):
         if '.svn' in root:
@@ -28,16 +40,6 @@ def get_data_files_for(top_level_dir, base_dir):
             result.append(entry)
             
     return result
-
-def find_in_parent(path, max_depth = 6):
-    depth = 0
-    p = path
-    while not os.path.exists(p):
-        if depth == max_depth:
-            raise Exception("Could not find path %s in %s" % (path, os.curdir))
-        p = '../' + p
-        
-    return p
 
 setup(
     name = "yum-repo-server",
