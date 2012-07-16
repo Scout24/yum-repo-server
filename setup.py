@@ -31,7 +31,7 @@ def get_data_files_for(top_level_dir, base_dir):
 
 setup(
     name = "yum-repo-server",
-    version = "1.0",
+    version = "1.1",
     author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke",
     author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de",
     description = ("The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API."),
