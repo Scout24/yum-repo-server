@@ -26,7 +26,7 @@ While creating a standalone YUM repository is easy, there was no easy way to man
 
 
 ## Getting started
-* Prerequisites : You will need the python modules setuptools, django, django-piston, PyYAML, teamcity-messages, apscheduler, libxml2, python-lxml in order to run the tests. Install them using pip or easy install.
+* Prerequisites : You will need the python modules <code>setuptools, django, django-piston, PyYAML, teamcity-messages, apscheduler, libxml2, python-lxml</code> in order to run the tests. Install them using <code>pip</code> or <code>easy-install</code>.
 * Build it : <code>python setup.py build</code>
 * Install it : <code>python setup.py install</code>
 * Run the tests : <code> python setup.py test</code>
