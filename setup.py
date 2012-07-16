@@ -29,6 +29,16 @@ def get_data_files_for(top_level_dir, base_dir):
             
     return result
 
+def find_in_parent(path, max_depth = 6):
+    depth = 0
+    p = path
+    while not os.path.exists(p):
+        if depth == max_depth:
+            raise Exception("Could not find path %s in %s" % (path, os.curdir))
+        p = '../' + p
+        
+    return p
+
 setup(
     name = "yum-repo-server",
     version = "1.0",
@@ -47,8 +57,8 @@ setup(
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     ],
-    data_files=[('/etc/init.d', ['src/main/etc/init.d/yum_repo_daemon'])] +
-        [('/etc/httpd/conf.d', ['src/main/etc/httpd/conf.d/yum-repo-server_wsgi_bindung.conf'])] +
+    data_files=[('/etc/init.d', [find_in_parent('src/main/etc/init.d/yum_repo_daemon')])] +
+        [('/etc/httpd/conf.d', [find_in_parent('src/main/etc/httpd/conf.d/yum-repo-server_wsgi_bindung.conf')])] +
         [('/opt/yum_repo_server', ['src/main/python/yum_repo_server/wsgi.py'])] +
         [('/opt/yum_repo_server/daemon', ['src/main/python/yum_repo_server/daemon/schedulerDaemon.py'])] +
         get_data_files_for('src/main/python/yum_repo_server/static', '/opt/yum_repo_server/static') +
