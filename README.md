@@ -26,12 +26,11 @@ While creating a standalone YUM repository is easy, there was no easy way to man
 
 
 ## Getting started
-* Prerequisites : You will need the python modules <code>setuptools, django, piston, PyYAML, teamcity-messages, apscheduler, libxml2, python-lxml</code> in order to run the tests. Install them using <code>pip</code> or <code>easy-install</code>.
-  *  piston and lxml are probably available for your distribution if pip or easy-install fail(On ubuntu : <code>sudo apt-get install python-django-piston python-lxml</code>)
 * Build it : <code>python setup.py build</code>
 * Install it : <code>python setup.py install</code>
 * Run the tests : <code> python setup.py test</code>
 * Try it out! Running <code>python manage.py runserver</code> will start up a django developement server, featuring the yum-repo-server.
+  * You will need to modify the value of REPO_DIR in src/main/python/yum_repo_server/settings.py (or create the directory /var/yum-repos if you want the default).
 
 ## How it works
 ### Technology
