@@ -48,7 +48,7 @@ def find_in_parent(path, max_depth = 6):
 
 setup(
     name = "yum-repo-client",
-    version = "1.0",
+    version = "1.1",
     author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke",
     author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de",
     description = ("The yum-repo-client is a command line interface for the yum repo server."),
