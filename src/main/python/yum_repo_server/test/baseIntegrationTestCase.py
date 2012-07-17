@@ -6,6 +6,7 @@ from yum_repo_server.test.liveserver import LiveServerTestCase
 from yum_repo_server.test.testconstants import Constants
 from yum_repo_client.repoclient import HttpClient
 import pycurl
+from yum_repo_server.test.integrationTestHelper import IntegrationTestHelper
 
 
 
@@ -18,6 +19,7 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         projectDir = self.determineAbsolutePathToProject()
         self.cleanupDirectory(projectDir + Constants.PATH_TO_STATIC_REPO_RELATIVE_TO_PROJECT_DIR)
         self.cleanupDirectory(projectDir + Constants.PATH_TO_VIRTUAL_REPO_RELATIVE_TO_PROJECT_DIR)
+        self.helper = IntegrationTestHelper(self.live_server_host, self.live_server_port)
 
     def upload_testfile(self, repo_name, path_to_file):
         self.repoclient().uploadRpm(repo_name, path_to_file)
@@ -84,18 +86,6 @@ class BaseIntegrationTestCase(LiveServerTestCase):
 
     def generate_metadata(self, reponame):
         self.repoclient().generateMetadata(reponame)
-
-
-    def doHttpGet(self, extPath):
-        try:
-            httpServ = httplib.HTTPConnection(self.live_server_host, self.live_server_port)
-            httpServ.request('GET', extPath)
-            response = httpServ.getresponse()
-            return response
-        except httplib.HTTPException:
-            print "ERROR! Looks like the server is not running on " + self.live_server_host
-            exit
-
 
     def doHttpPost(self, extPath, postdata='', headers = {}):
         try:

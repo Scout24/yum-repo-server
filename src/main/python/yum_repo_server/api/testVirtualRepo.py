@@ -66,7 +66,7 @@ class TestVirtualRepo(BaseIntegrationTestCase):
         
     def test_serve_directory_listing(self):
         self.assertCreateVirtualRepo()
-        response = self.doHttpGet('/repo/virtual/')
+        response = self.helper.do_http_get('/repo/virtual/')
         self.assertEqual(response.status, httplib.OK)
         
     def test_should_not_delete_files_in_virtual_repos(self):
@@ -85,12 +85,12 @@ class TestVirtualRepo(BaseIntegrationTestCase):
         static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
         response = self.repoclient().deleteVirtualRepo(virtual_reponame)
         self.assertEqual(response.status, httplib.NO_CONTENT)
-        response = self.doHttpGet('/repo/virtual/' + virtual_reponame)
+        response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame)
         self.assertEqual(response.status, httplib.NOT_FOUND)
         
     def test_should_provide_repo_info(self):
         static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
-        response = self.doHttpGet('/repo/virtual/' + virtual_reponame + '.json')
+        response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame + '.json')
         self.assertEqual(response.status, httplib.OK)
         content = response.read()
         self.assertEquals(content, '{"destination": "/static/' + static_reponame + '"}')
@@ -116,7 +116,7 @@ class TestVirtualRepo(BaseIntegrationTestCase):
 
     def assertRpmDownloadable(self, virtual_reponame):
         rpmURL = Constants.HTTP_PATH_VIRTUAL + '/' + virtual_reponame + '/' + Constants.TEST_RPM_DESTINATION_NAME
-        response = self.doHttpGet(rpmURL)
+        response = self.helper.do_http_get(rpmURL)
         self.assertEquals(response.status, httplib.OK)
         
 if __name__ == '__main__':

@@ -13,20 +13,20 @@ class TestCsvListing(BaseIntegrationTestCase):
     config = RepoConfigService()
     
     def test_static_listing_is_200_ok(self):
-        response = self.doHttpGet(Constants.HTTP_PATH_STATIC+".txt")
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt")
         self.assertEquals(httplib.OK,response.status)
         
     def test_virtual_listing_is_200_ok(self):
-        response = self.doHttpGet(Constants.HTTP_PATH_VIRTUAL+".txt")
+        response = self.helper.do_http_get(Constants.HTTP_PATH_VIRTUAL+".txt")
         self.assertEquals(httplib.OK,response.status)
         
     def test_does_not_list_invalid_repos(self):
-        response = self.doHttpGet(Constants.HTTP_PATH_VIRTUAL+"sldknlkdnlnsd.txt")
+        response = self.helper.do_http_get(Constants.HTTP_PATH_VIRTUAL+"sldknlkdnlnsd.txt")
         self.assertEquals(httplib.BAD_REQUEST,response.status)
         
     def test_static_listing_lists_repos(self):
         reponame = self.createNewRepoAndAssertValid()
-        response = self.doHttpGet(Constants.HTTP_PATH_STATIC+".txt")
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt")
         self.assertTrue(reponame in response.read())
         shutil.rmtree(self.config.getStaticRepoDir(reponame))
         
@@ -34,7 +34,7 @@ class TestCsvListing(BaseIntegrationTestCase):
         reponame = self.uniqueRepoName()
         virtualRepoPath = self.config.getVirtualRepoDir()+reponame
         os.makedirs(virtualRepoPath)
-        response = self.doHttpGet(Constants.HTTP_PATH_VIRTUAL+".txt")
+        response = self.helper.do_http_get(Constants.HTTP_PATH_VIRTUAL+".txt")
         self.assertTrue(reponame in response.read())
         shutil.rmtree(virtualRepoPath)
     
