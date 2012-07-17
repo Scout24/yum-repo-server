@@ -3,7 +3,7 @@ import unittest
 import os
 import shutil
 from yum_repo_client.repoclient import RepoException
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 
@@ -31,7 +31,7 @@ class TestCsvListing(BaseIntegrationTestCase):
         shutil.rmtree(self.config.getStaticRepoDir(reponame))
         
     def test_virtual_listing_lists_repos(self):
-        reponame = self.uniqueRepoName()
+        reponame = unique_repo_name()
         virtualRepoPath = self.config.getVirtualRepoDir()+reponame
         os.makedirs(virtualRepoPath)
         response = self.helper.do_http_get(Constants.HTTP_PATH_VIRTUAL+".txt")

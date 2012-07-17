@@ -1,4 +1,4 @@
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 import httplib
 import unittest

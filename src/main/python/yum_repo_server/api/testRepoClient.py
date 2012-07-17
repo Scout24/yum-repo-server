@@ -1,14 +1,14 @@
 import httplib
 
 from yum_repo_client.repoclient import RepoException
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_client.repoclient import CommandLineClient
 
 class TestRepoClient(BaseIntegrationTestCase):
     
     def test_create_repo(self):
-        reponame = self.uniqueRepoName();
+        reponame = unique_repo_name();
         self._execute(['create', reponame]);
         response = self.helper.do_http_get('/repo/' + reponame + '/')
         self.assertStatusCode(response, httplib.OK)
@@ -40,7 +40,7 @@ class TestRepoClient(BaseIntegrationTestCase):
         static_reponame = self.createNewRepoAndAssertValid()
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
         self.upload_testfile(static_reponame, testRPMFilePath)
-        virtual_reponame = self.uniqueRepoName()
+        virtual_reponame = unique_repo_name()
         self._execute(['linktostatic', virtual_reponame, static_reponame])
         response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame + '/' + Constants.TEST_RPM_DESTINATION_NAME)
         self.assertStatusCode(response, httplib.OK)
@@ -49,9 +49,9 @@ class TestRepoClient(BaseIntegrationTestCase):
         static_reponame = self.createNewRepoAndAssertValid()
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
         self.upload_testfile(static_reponame, testRPMFilePath)
-        virtual_reponame = self.uniqueRepoName()
+        virtual_reponame = unique_repo_name()
         self.create_virtual_repo_from_static_repo(virtual_reponame, static_reponame)
-        virtual_reponame2 = self.uniqueRepoName()
+        virtual_reponame2 = unique_repo_name()
         self._execute(['linktovirtual', virtual_reponame2, virtual_reponame])
         response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame2 + '/' + Constants.TEST_RPM_DESTINATION_NAME)
         self.assertStatusCode(response, httplib.OK)
@@ -60,7 +60,7 @@ class TestRepoClient(BaseIntegrationTestCase):
         static_reponame = self.createNewRepoAndAssertValid()
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
         self.upload_testfile(static_reponame, testRPMFilePath)
-        virtual_reponame = self.uniqueRepoName()
+        virtual_reponame = unique_repo_name()
         self.create_virtual_repo_from_static_repo(virtual_reponame, static_reponame)
         self._execute(['deletevirtual', virtual_reponame])
         response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame + '/')

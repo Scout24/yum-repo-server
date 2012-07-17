@@ -5,6 +5,7 @@ import time
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_server.daemon.scheduler import MetaDataGenerationScheduler
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.test import unique_repo_name
 
 
 class TestScheduler(BaseIntegrationTestCase):
@@ -18,7 +19,7 @@ generation_type: manual
 """
     
     def setUp(self):
-        self.newRepoName = self.uniqueRepoName()
+        self.newRepoName = unique_repo_name()
         self.createdRepoDir = self.configService.getStaticRepoDir(self.newRepoName)
         self.mockedscheduler = self.get_mocked_scheduler()
     

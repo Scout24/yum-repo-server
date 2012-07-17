@@ -1,6 +1,5 @@
 import httplib
 
-
 class IntegrationTestHelper():
     def __init__(self, host, port):
         self.host = host
