@@ -74,6 +74,7 @@ class RpmFile (object):
 
     def _load_header_fields(self):
         ts = rpm.TransactionSet()
+        ts.setVSFlags((rpm._RPMVSF_NOSIGNATURES|rpm._RPMVSF_NODIGESTS))
         f = open(self.file_name, 'r')
         try:
             self.hdr = ts.hdrFromFdno(f)
