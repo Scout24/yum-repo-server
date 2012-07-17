@@ -104,7 +104,6 @@ class FileInfo(object):
                 
 
 def directory_index(path, fullpath, add_virtual = False, show_virtuals = False):
-    print "directory index"
     t = loader.select_template(['static/directory_index.html',
            'static/directory_index'])
     unsorted_files = []
@@ -113,9 +112,10 @@ def directory_index(path, fullpath, add_virtual = False, show_virtuals = False):
             unsorted_files.append(FileInfo(f, fullpath))
             
     if add_virtual:
-	if not os.path.exists(RepoConfigService().getVirtualRepoDir()):
-	    os.makedirs(RepoConfigService().getVirtualRepoDir())
-        file_info = FileInfo('virtual', RepoConfigService().getRepoDir())
+	virtual_repodir = RepoConfigService().getVirtualRepoDir()
+        repodir=os.path.join(virtual_repodir,os.path.pardir)
+	relative_virtualdir=os.path.basename(os.path.normpath(virtual_repodir))
+        file_info = FileInfo(relative_virtualdir, repodir)
         if os.path.exists(file_info.fullpath):
             unsorted_files.append(file_info)
         

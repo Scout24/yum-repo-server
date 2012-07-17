@@ -30,10 +30,6 @@ class YumRepoHandler(BaseHandler):
             resp.content = 'The provided name is invalid. It must match this regular expression : ' + self.NAME_REGEX
             return resp
         
-        if not os.path.exists(self.repoConfigService.getStaticRepoDir()):
-            os.makedirs(self.repoConfigService.getStaticRepoDir())
-
-
         path = self.repoConfigService.getStaticRepoDir(name)
         if os.path.exists(path):
             resp = rc.DUPLICATE_ENTRY
@@ -52,8 +48,6 @@ class YumRepoHandler(BaseHandler):
 
     def read(self, request, text):
 	static_path = self.repoConfigService.getStaticRepoDir()
-	if not os.path.exists(static_path):
-	     os.makedirs(static_path)
         return serve(request, '/', static_path, True, True)
         
         
