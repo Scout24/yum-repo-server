@@ -85,7 +85,7 @@ class FileInfo(object):
         self.isDir = os.path.isdir(self.fullpath)
         if self.isDir:
             self.filename += '/'
-        else:
+        else :
             self.size = os.path.getsize(self.fullpath)
         
         self.mtime = time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(os.path.getctime(self.fullpath)))
@@ -104,6 +104,7 @@ class FileInfo(object):
                 
 
 def directory_index(path, fullpath, add_virtual = False, show_virtuals = False):
+    print "directory index"
     t = loader.select_template(['static/directory_index.html',
            'static/directory_index'])
     unsorted_files = []
@@ -112,6 +113,8 @@ def directory_index(path, fullpath, add_virtual = False, show_virtuals = False):
             unsorted_files.append(FileInfo(f, fullpath))
             
     if add_virtual:
+	if not os.path.exists(RepoConfigService().getVirtualRepoDir()):
+	    os.makedirs(RepoConfigService().getVirtualRepoDir())
         file_info = FileInfo('virtual', RepoConfigService().getRepoDir())
         if os.path.exists(file_info.fullpath):
             unsorted_files.append(file_info)
