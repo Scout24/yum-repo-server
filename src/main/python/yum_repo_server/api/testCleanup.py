@@ -2,7 +2,7 @@ import unittest
 import os
 import shutil
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_server.daemon.scheduler import MetaDataGenerationScheduler
 
