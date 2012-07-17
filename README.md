@@ -29,9 +29,9 @@ While creating a standalone YUM repository is easy, there was no easy way to man
 * Build it : <code>python setup.py build</code>
 * Install it : <code>python setup.py install</code>
 * Run the tests : <code> python setup.py test</code>
-* Try it out! Running <code>python manage.py runserver</code> will start up a django developement server (not for production!!), featuring the yum-repo-server.
-  * ATM you need to create the directory target/virtual in yum_repo_server for this to work.
-  * Use the included yum-repo-client for tryouts!
+* Try it out! Running <code>python manage.py runserver</code> will start up a django developement server (not for production!!) featuring the yum-repo-server.
+  * This development server is fully fledged and you can use it to determine if the yum-repo-server is what you want very quickly.
+  * Use the included yum-repo-client for more comfortable tryouts. (cd into client/ and install it with <code>./setup.py install</code>)
 
 ## Production use
 TODO
