@@ -12,7 +12,7 @@ class TestStaticRepo(BaseIntegrationTestCase):
         reponame = self.createNewRepoAndAssertValid()
         virtual_reponame = Constants.TESTREPO_PREFIX + reponame
         self.create_virtual_repo_from_static_repo(virtual_reponame, reponame)
-        response = self.doHttpGet(Constants.HTTP_PATH_STATIC + '/')
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '/')
         self.assertEquals(response.status, httplib.OK, "Returncode for http GET must be 200 OK, but was" + str(response.status))
         msg = response.read()
         self.assertTrue(reponame in msg, "Newly created repo should be listed on a GET")
@@ -100,7 +100,7 @@ class TestStaticRepo(BaseIntegrationTestCase):
     def test_base_directory_listing(self):
         repo_name = self.createNewRepoAndAssertValid()
         self.create_virtual_repo_from_static_repo(self.uniqueRepoName(), repo_name)
-        response = self.doHttpGet("/repo/")
+        response = self.helper.do_http_get("/repo/")
         self.assertStatusCode(response, httplib.OK)
         msg = response.read()
         self.assertTrue(repo_name in msg)
@@ -115,7 +115,7 @@ class TestStaticRepo(BaseIntegrationTestCase):
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
         self.repoclient().uploadRpm(reponame, testRPMFilePath)
         self.repoclient().generateMetadata(reponame)
-        response = self.doHttpGet("/repo/" + reponame + '/repodata/repomd.xml')
+        response = self.helper.do_http_get("/repo/" + reponame + '/repodata/repomd.xml')
         
         self.assertStatusCode(response, httplib.OK)
         
