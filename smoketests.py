@@ -24,6 +24,13 @@ class TestRemoteServer(unittest.TestCase):
         
         repo_name = unique_repo_name()
         repoclient.createStaticRepo(repo_name)
+        repoclient.uploadRpm(repo_name, 'src/test/resources/test-artifact.rpm')
+        
+        path_to_rpm = "/repo/%s/noarch/test-artifact-1.2-1.noarch.rpm" % (repo_name)
+        self.assertEquals(httplib.OK, helper.do_http_get(path_to_rpm).status)
+        
+        repoclient.generateMetadata(repo_name)
+        self.assertEquals(httplib.OK, helper.do_http_get('/repo/%s/repodata/repomd.xml' % repo_name).status)
 
 if __name__ == '__main__':
     unittest.main()
