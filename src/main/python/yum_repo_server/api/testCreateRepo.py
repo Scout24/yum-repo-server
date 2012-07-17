@@ -5,7 +5,7 @@ import yum_repo_server
 from  yum_repo_server.api import config
 import gzip
 from yum_repo_server.test.liveserver import LiveServerTestCase
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from lxml import etree
 

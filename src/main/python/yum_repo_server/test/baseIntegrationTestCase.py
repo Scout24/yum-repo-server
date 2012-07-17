@@ -3,7 +3,7 @@ import time
 import os, shutil
 import yum_repo_server
 from yum_repo_server.test.liveserver import LiveServerTestCase
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_client.repoclient import HttpClient
 import pycurl
 from yum_repo_server.test.integrationTestHelper import IntegrationTestHelper
@@ -28,7 +28,7 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         return yum_repo_server.settings.REPO_CONFIG.get('REPO_DIR')
 
     def createNewRepoAndAssertValid(self):
-        reponame = self.uniqueRepoName()
+        reponame = unique_repo_name()
         response = self.repoclient().createStaticRepo(reponame)
         msg = response.read()
         self.assertCreaterepoReplyValid(msg, reponame)
@@ -77,12 +77,6 @@ class BaseIntegrationTestCase(LiveServerTestCase):
     def isInString(self, substring, string):
         isSubstring = substring in string
         return isSubstring
-
-
-    def uniqueRepoName(self):
-        tstamp = int(time.time() * 1000)
-        uniquereponame = Constants.TESTREPO_PREFIX + tstamp.__str__()
-        return uniquereponame
 
     def generate_metadata(self, reponame):
         self.repoclient().generateMetadata(reponame)

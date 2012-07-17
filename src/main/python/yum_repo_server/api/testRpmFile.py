@@ -2,7 +2,7 @@ import os.path
 from yum_repo_server.rpm.rpmfile import RpmFile
 
 from django.test.testcases import TransactionTestCase
-from yum_repo_server.test.testconstants import Constants
+from yum_repo_server.test import Constants
 
 class TestStaticRepo(TransactionTestCase):
     
