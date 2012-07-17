@@ -51,7 +51,10 @@ class YumRepoHandler(BaseHandler):
         return resp
 
     def read(self, request, text):
-        return serve(request, '/', self.repoConfigService.getStaticRepoDir(), True, True)
+	static_path = self.repoConfigService.getStaticRepoDir()
+	if not os.path.exists(static_path):
+	     os.makedirs(static_path)
+        return serve(request, '/', static_path, True, True)
         
         
         
