@@ -145,7 +145,9 @@ class CommandLineClient(object):
 
         if self.options.username is not None:
             self._readPassword()
-            
+        if self.options.hostname is None:
+            print "ERROR: you must specify a hostname using --hostname=<hostname>"
+            return self.showHelp()
 
         operationMethod = self.operations[operation]
         return operationMethod(self)
@@ -267,7 +269,7 @@ class CommandLineClient(object):
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
         
-        --hostname=<hostname> : hostname of the yum repo server. Default: yum01.be.test.is24.loc 
+        --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
         --port=<port> : port of the yum repo server. Default 80
         --username=<username> : CC username to use basic authentication. You will be prompted for the password.
         """
@@ -324,6 +326,8 @@ class CommandLineClientOptionsExtractor(object):
                 f.close()
     
     username = None
+    hostname = None
+    port = None
     
     def _set_hostname(self, hostname):
         self.hostname = hostname
