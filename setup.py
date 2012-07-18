@@ -3,6 +3,7 @@ import os
 import shutil
 from setuptools import setup
 from distutils.command.clean import clean
+from distutils.cmd import Command
 
 class completeClean(clean):
     def run(self):
@@ -41,6 +42,27 @@ def get_data_files_for(top_level_dir, base_dir):
             
     return result
 
+class UpdateVersionFile(Command):
+    description = 'Updates the version file for the yum-repo-server.'
+    user_options = [
+        ('release=', None, "Optional release number, default is 1")
+    ]
+    
+    def initialize_options(self):
+        self.release = None
+    
+    def finalize_options(self):
+        if self.release == None:
+            self.release = 1
+    
+    def run(self):
+        version_file = open('src/main/python/yum_repo_server/version.py', 'w')
+        version_file.write('version=\'%s\'' % self._determine_version_string())
+        version_file.close()
+    
+    def _determine_version_string(self):
+        return '%s-%s' % (self.distribution.get_version(), self.release)
+
 setup(
     name = "yum-repo-server",
     version = "1.1",
@@ -67,6 +89,6 @@ setup(
         get_data_files_for('src/main/python/yum_repo_server/defaults', '/opt/yum_repo_server/defaults') +
         get_data_files_for('src/main/python/yum_repo_server/templates', '/opt/yum_repo_server/templates'),
     test_suite = "yum_repo_server.test.runtests.runtests",
-    cmdclass={'clean' : completeClean},
+    cmdclass={'clean' : completeClean, 'update_version_file' : UpdateVersionFile},
 )
 
