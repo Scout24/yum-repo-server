@@ -34,6 +34,11 @@ class TestRpmPropagation(BaseIntegrationTestCase):
         
         response = self.doHttpPost('/propagation/', post_data)
         self.assertEquals(httplib.BAD_REQUEST, response.status, 'expected statuscode 400 when destination does not exist.')
+
+        post_data = 'source=%s/noarch/test-artifact-1.2-1.noarch.rpm&destination=.' % first_repo
+        
+        response = self.doHttpPost('/propagation/', post_data)
+        self.assertEquals(httplib.BAD_REQUEST, response.status, 'expected statuscode 400 when destination does not exist.')
         
         
     def test_rpm_propagation_from_not_existing_repository(self):
