@@ -7,13 +7,12 @@ class TestRpmPropagation(BaseIntegrationTestCase):
         first_repo = self.createNewRepoAndAssertValid()
         second_repo = self.createNewRepoAndAssertValid()
         
-        source_rpm = '%s/noarch/test-artifact-1.2-1.noarch.rpm' % first_repo
         destination_rpm_url = '/repo/%s/noarch/test-artifact-1.2-1.noarch.rpm' % second_repo
         location_field = self.live_server_url + destination_rpm_url
         
         self.repoclient().uploadRpm(first_repo, 'src/test/resources/test-artifact.rpm')
         
-        response = self.repoclient().propagate_rpm(source_rpm, second_repo)
+        response = self.repoclient().propagate_rpm(first_repo, 'noarch/test-artifact-1.2-1.noarch.rpm', second_repo)
         
         self.assertEquals(location_field, response.getheader('Location'))
         self.assertEquals(httplib.OK, self.helper.do_http_get(destination_rpm_url).status, 'Could not get the rpm via the expected destination path.')

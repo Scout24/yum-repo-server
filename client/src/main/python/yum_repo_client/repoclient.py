@@ -61,11 +61,6 @@ class HttpClient(object):
         self.assertResponse(response, httplib.CREATED)
         return response
     
-    def propagate_rpm(self, source, destination):
-        response = self.doHttpPost('/propagation/', 'source=%s&destination=%s' % (source, destination))
-        self.assertResponse(response, httplib.CREATED)
-        return response
-    
     def createVirtualRepo(self, virtual_reponame, destination_reponame):
         post_data = 'name=' + virtual_reponame + "&destination=" + destination_reponame
         response = self.doHttpPost('/repo/virtual/', post_data)
@@ -83,7 +78,7 @@ class HttpClient(object):
         self.assertResponse(response, httplib.NO_CONTENT)
         return response
 
-    def propagateRpm(self,fromrepo,rpm_arch_slash_name,torepo):
+    def propagate_rpm(self,fromrepo,rpm_arch_slash_name,torepo):
         post_data = 'source='+fromrepo+"/"+rpm_arch_slash_name+"&destination="+torepo
         response = self.doHttpPost('/propagation/', post_data)
         self.assertResponse(response, httplib.CREATED)
@@ -181,7 +176,7 @@ class CommandLineClient(object):
             return 1
 
         try:
-            self.httpClient.propagateRpm(fromrepo, rpm_arch_slash_name, torepo)
+            self.httpClient.propagate_rpm(fromrepo, rpm_arch_slash_name, torepo)
             return 0
         except Exception, e:
             print e
