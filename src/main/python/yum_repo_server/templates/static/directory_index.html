@@ -29,7 +29,7 @@
         </li>
         {% endifnotequal %}
         {% for f in file_list %}
-        <li>
+        <li class="{{ f.filename|cut:'/'}}">
           <a href="{{ f.filename|urlencode }}">
             <span class="icon"><img src="/static/images/icons/{{ f.mimetype }}.gif" /></span>
             <span class="filename {% if f.isDir %}folder{% endif %}">
