@@ -92,4 +92,5 @@ Generating metadata involves a POST request to <code>$host/$repo_base/$repo_name
 
 #### Propagate a RPM from one repository to another
 You can propagate a RPM from a source repository to a destination repository on the same host by sending a POST request to <code>$host/propagation/</code> with parameter <code>source</code> and <code>destination</code>.
-<code>source</code> must be <code>$source-repo-name/$archituctre/artifact-name.rpm</code>. <code>destination</code> is just name of the target repository.
+<code>source</code> must be <code>$source-repo-name/$architecture/artifact-name.rpm</code>. <code>destination</code> is just name of the target repository.
+Propagation does not work with virtual repositories.
