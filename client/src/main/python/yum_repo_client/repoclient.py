@@ -84,7 +84,7 @@ class HttpClient(object):
         return response
 
     def propagateRpm(self,fromrepo,rpm_arch_slash_name,torepo):
-        post_data = 'source=/'+fromrepo+"/"+rpm_arch_slash_name+"&destination=/"+torepo
+        post_data = 'source='+fromrepo+"/"+rpm_arch_slash_name+"&destination="+torepo
         response = self.doHttpPost('/propagation/', post_data)
         self.assertResponse(response, httplib.CREATED)
         return response
