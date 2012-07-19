@@ -72,8 +72,12 @@ li span.size {
 	float: right;
 }
 
-li:HOVER {
+li:HOVER, li.virtual:HOVER {
 	background-color: #E6E6E6;
+}
+
+li.virtual {
+	background-color: #F6F6F6;
 }
 
 li span.icon {
