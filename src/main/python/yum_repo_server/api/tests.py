@@ -11,6 +11,7 @@ from test.testUpload import TestLegacyUpload
 from test.testCsvListing import TestCsvListing
 from test.testVirtualRepo import TestVirtualRepo
 from test.testRepoClient import TestRepoClient
+from yum_repo_server.api.test.testRpmPropagation import TestRpmPropagation
 from teamcity_test_runner_extension.teamcityTestRunner import ExtendedTeamcityTestRunner
 
 class TeamCityDjangoTestSuiteRunner(DjangoTestSuiteRunner):

@@ -8,6 +8,7 @@ from yum_repo_server.settings import REPO_CONFIG
 from yum_repo_server.api.handlers.csvListingHandler import CsvListingHandler
 from piston.resource import Resource
 from yum_repo_server.status import StatusHandler
+from yum_repo_server.api.handlers.rpmPropagationHandler import RpmPropagationHandler
 
 
 
@@ -16,6 +17,7 @@ logging.config.fileConfig(REPO_CONFIG['SERVER_LOGGING_CONF'], disable_existing_l
 
 repoCsvListingResource = Resource(handler=CsvListingHandler)
 statusHandlerResource = Resource(handler=StatusHandler)
+rpmPropagationHandler = Resource(handler=RpmPropagationHandler)
 
 
 # Uncomment the next two lines to enable the admin:
@@ -36,6 +38,7 @@ urlpatterns = patterns('',
     url(r'^$', lambda x: HttpResponseRedirect('/repo/')),
     url(r'^repo.txt',repoCsvListingResource),
     url(r'^repo/', include('yum_repo_server.api.urls')),
+    url(r'^propagation/', rpmPropagationHandler),
     url(r'^status$', statusHandlerResource),
     url(r'^static/(?P<path>.*)$', 'yum_repo_server.static.serve', { 
             'document_root': settings.STATIC_ROOT,

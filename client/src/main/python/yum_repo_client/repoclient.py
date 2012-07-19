@@ -60,6 +60,11 @@ class HttpClient(object):
         self.assertResponse(response, httplib.CREATED)
         return response
     
+    def propagate_rpm(self, source, destination):
+        response = self.doHttpPost('/propagation/', 'source=%s&destination=%s' % (source, destination))
+        self.assertResponse(response, httplib.CREATED)
+        return response
+    
     def createVirtualRepo(self, virtual_reponame, destination_reponame):
         post_data = 'name=' + virtual_reponame + "&destination=" + destination_reponame
         response = self.doHttpPost('/repo/virtual/', post_data)
