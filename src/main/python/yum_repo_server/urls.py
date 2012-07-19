@@ -38,7 +38,7 @@ urlpatterns = patterns('',
     url(r'^$', lambda x: HttpResponseRedirect('/repo/')),
     url(r'^repo.txt',repoCsvListingResource),
     url(r'^repo/', include('yum_repo_server.api.urls')),
-    url(r'^propagation/', rpmPropagationHandler),
+    url(r'^propagation/?', rpmPropagationHandler),
     url(r'^status$', statusHandlerResource),
     url(r'^static/(?P<path>.*)$', 'yum_repo_server.static.serve', { 
             'document_root': settings.STATIC_ROOT,
