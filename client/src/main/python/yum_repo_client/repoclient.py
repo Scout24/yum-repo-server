@@ -8,6 +8,7 @@ import getpass
 import string
 import base64
 import yaml
+import re
 
 class RepoException(Exception):
     def __init__(self, value):
@@ -80,6 +81,12 @@ class HttpClient(object):
     def deleteVirtualRepo(self, virtual_reponame):
         response = self.doHttpDelete('/repo/virtual/' + virtual_reponame)
         self.assertResponse(response, httplib.NO_CONTENT)
+        return response
+
+    def propagateRpm(self,fromrepo,rpm_arch_slash_name,torepo):
+        post_data = 'source='+fromrepo+"/"+rpm_arch_slash_name+"&destination="+torepo
+        response = self.doHttpPost('/propagation/', post_data)
+        self.assertResponse(response, httplib.CREATED)
         return response
 
     def doHttpPost(self, extPath, postdata='', headers=None):
@@ -156,6 +163,29 @@ class CommandLineClient(object):
 
         operationMethod = self.operations[operation]
         return operationMethod(self)
+
+    def propagateRpm(self):
+        if len(self.arguments) < 4:
+            print "ERROR: Please specify source, rpm and target repository."
+            return self.showHelp()
+        fromrepo=self.arguments[2]
+        rpm_arch_slash_name=self.arguments[3]
+        torepo=self.arguments[4]
+        
+        #quick sanity check
+        pattern=re.compile('[\w]+/[\w]+')
+        match=pattern.match(rpm_arch_slash_name)
+        if match is None:
+            print "ERROR : Your input, '"+rpm_arch_slash_name+"""' did not match the required pattern.
+        It should look like this : <rpm_arch>/<rpm_name>"""
+            return 1
+
+        try:
+            self.httpClient.propagateRpm(fromrepo, rpm_arch_slash_name, torepo)
+            return 0
+        except Exception, e:
+            print e
+            return 1
 
     def createStaticRepo(self):
         if len(self.arguments) < 3:
@@ -273,10 +303,11 @@ class CommandLineClient(object):
         linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
+        propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
         
         --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
-        --port=<port> : port of the yum repo server. Default 80
-        --username=<username> : CC username to use basic authentication. You will be prompted for the password.
+        --port=<port> : port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml
+        --username=<username> : username to use basic authentication. You will be prompted for the password.
         """
         return 1
 
@@ -289,6 +320,7 @@ class CommandLineClient(object):
                 'linktovirtual' : CommandLineClient.createLinkToVirtual,
                 'deletevirtual' : CommandLineClient.deleteVirtualRepo,
                 'deleterpm' : CommandLineClient.deleteRpms,
+                'propagate' : CommandLineClient.propagateRpm,
         }
 
 
