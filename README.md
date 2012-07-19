@@ -3,7 +3,7 @@
 The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API.
 
 ## Main features
-* RESTful api for repository management (including creation, metadata generation, RPM upload, ...)
+* RESTful api for repository management (including creation, metadata generation, RPM upload, RPM propagation,...)
 * Configurable scheduling system for periodic metadata generation on repositories with high activity
 * Repository cleanup routines
 * Graphical web interface to browse repositories and their contents
