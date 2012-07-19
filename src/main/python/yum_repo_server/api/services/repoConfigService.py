@@ -67,15 +67,17 @@ class RepoConfigService(object):
 
     def getStaticRepoDir(self, reponame=''):
         static_path=config.get_repo_dir() + '/static/'
-        repo_path=static_path+reponame
         if not os.path.exists(static_path): 
             os.makedirs(static_path)
+        
+        repo_path=static_path+reponame
         return repo_path
 
     def getVirtualRepoDir(self, reponame=''):
         virtual_path=config.get_repo_dir() + '/virtual/'
         if not os.path.exists(virtual_path):
             os.makedirs(virtual_path)
+        
         repo_path=virtual_path+reponame
         return repo_path
 
