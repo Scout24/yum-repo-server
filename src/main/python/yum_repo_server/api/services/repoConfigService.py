@@ -70,6 +70,10 @@ class RepoConfigService(object):
         if not os.path.exists(static_path): 
             os.makedirs(static_path)
         
+        if '..' in reponame:
+            raise ValueError('reponame is not allowed to contain ..')
+            
+        
         repo_path=static_path+reponame
         return repo_path
 
@@ -77,6 +81,10 @@ class RepoConfigService(object):
         virtual_path=config.get_repo_dir() + '/virtual/'
         if not os.path.exists(virtual_path):
             os.makedirs(virtual_path)
+            
+        if '..' in reponame:
+            raise ValueError('reponame is not allowed to contain ..')
+         
         
         repo_path=virtual_path+reponame
         return repo_path
