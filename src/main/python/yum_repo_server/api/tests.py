@@ -1,16 +1,16 @@
 from django.test.simple import DjangoTestSuiteRunner
 import unittest
 from teamcity.unittestpy import TeamcityTestRunner, TeamcityTestResult
-from testCleanup import TestCleanup
-from testCreateRepo import TestCreateRepo
-from testRepoConfigService import TestRepoConfigService
-from testRpmFile import TestStaticRepo
-from testScheduler import TestScheduler
-from testStaticRepo import TestStaticRepo
-from testUpload import TestLegacyUpload
-from testCsvListing import TestCsvListing
-from testVirtualRepo import TestVirtualRepo
-from testRepoClient import TestRepoClient
+from test.testCleanup import TestCleanup
+from test.testCreateRepo import TestCreateRepo
+from test.testRepoConfigService import TestRepoConfigService
+from test.testRpmFile import TestStaticRepo
+from test.testScheduler import TestScheduler
+from test.testStaticRepo import TestStaticRepo
+from test.testUpload import TestLegacyUpload
+from test.testCsvListing import TestCsvListing
+from test.testVirtualRepo import TestVirtualRepo
+from test.testRepoClient import TestRepoClient
 from teamcity_test_runner_extension.teamcityTestRunner import ExtendedTeamcityTestRunner
 
 class TeamCityDjangoTestSuiteRunner(DjangoTestSuiteRunner):
