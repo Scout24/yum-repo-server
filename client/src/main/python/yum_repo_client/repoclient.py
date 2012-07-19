@@ -165,7 +165,7 @@ class CommandLineClient(object):
         return operationMethod(self)
 
     def propagateRpm(self):
-        if len(self.arguments) < 4:
+        if len(self.arguments) < 5:
             print "ERROR: Please specify source, rpm and target repository."
             return self.showHelp()
         fromrepo=self.arguments[2]
