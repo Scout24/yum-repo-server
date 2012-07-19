@@ -24,7 +24,7 @@ class RpmPropagationHandler(BaseHandler):
             return self._build_bad_response('source repository does not exist.')
 
         destination = data['destination']
-        if '/' in destination:
+        if '/' in destination or str(destination).startswith('.'):
             return self._build_bad_response('destination must not contain slashes.')
 
         destination_repo_path = self.config.getStaticRepoDir(destination)
