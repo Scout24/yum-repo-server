@@ -5,8 +5,8 @@ import sys
 if __name__ == "__main__":
     pathToProject = sys.path[0]
     pythonSrcPath = pathToProject + "/src/main/python"
-    sys.path.append(pythonSrcPath)
-    sys.path.append(pathToProject + "/client/src/main/python")
+    sys.path.insert(0, pythonSrcPath)
+    sys.path.insert(0, pathToProject + "/client/src/main/python")
 
     # Override HttpRequest._load_post_and_files to handle our special legacy upload request via curl -d
     from yum_repo_server.api import upload
