@@ -23,7 +23,11 @@ class RpmPropagationHandler(BaseHandler):
         if not os.path.exists(source_repo_path):
             return self._build_bad_response('source repository does not exist.')
 
-        destination_repo_path = self.config.getStaticRepoDir(data['destination'])
+        destination = data['destination']
+        if '/' in destination:
+            return self._build_bad_response('destination must not contain slashes.')
+
+        destination_repo_path = self.config.getStaticRepoDir(destination)
         if not os.path.exists(destination_repo_path):
             return self._build_bad_response('destination repository does not exist')
         
