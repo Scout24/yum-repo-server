@@ -9,6 +9,7 @@ The yum-repo-server is a server that allows you to host and manage YUM repositor
 * Graphical web interface to browse repositories and their contents
 * Link system to create virtual repositories that can dynamically point to other repositories
 * Easily extensible due to good test coverage
+* Propagation of RPMs from one staging repository to the next
 * Command line wrapper for more comfort, see [http://github.com/is24-herold/yum-repo-client]
 
 
@@ -33,8 +34,8 @@ While creating a standalone YUM repository is easy, there was no easy way to man
   * This development server is fully fledged and you can use it to determine if the yum-repo-server is what you want very quickly.
   * Use the included yum-repo-client for more comfortable tryouts. (cd into client/ and install it with <code>./setup.py install</code>)
 
-## Production use
-TODO
+## Production usage
+For production usage we recommend an *apache webserver (httpd)* with *mod_wsgi*. If you build a RPM by <code>python setup.py bdist_rpm</code> an apache configuration file is automatically included. But the <code>wsgi.py</code> should work as well with other WSGI-compatible servers like CherryPy, twisted.web, Gunicorn, etc.
 
 ## How it works
 ### Technology
@@ -88,3 +89,7 @@ The RPM can then be retrieved with a GET request sent to
 
 #### Generating repository metadata
 Generating metadata involves a POST request to <code>$host/$repo_base/$repo_name/repodata</code> since it creates a new resource (the actual metadata files) underneath <code>repodata/</code>.
+
+#### Propagate a RPM from one repository to another
+You can propagate a RPM from a source repository to a destination repository on the same host by sending a POST request to <code>$host/propagation/</code> with parameter <code>source</code> and <code>destination</code>.
+<code>source</code> must be <code>$source-repo-name/$archituctre/artifact-name.rpm</code>. <code>destination</code> is just name of the target repository.
