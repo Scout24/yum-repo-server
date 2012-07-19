@@ -11,7 +11,7 @@ _repocomplete()
        echo $repos
     }
 
-    local repohost repoport cur prev prevprev opts base  username
+    local repohost repoport cur prev prevprev opts base  username prevprevprev
     username=`whoami`
     if [ -f "/etc/yum-repo-client.yaml" ] #check if defaults file exists
     then
@@ -29,20 +29,35 @@ _repocomplete()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     [[ "$COMP_CWORD" -gt "1" ]] && prevprev="${COMP_WORDS[COMP_CWORD-2]}"  
+    [[ "$COMP_CWORD" -gt "2" ]] && prevprevprev="${COMP_WORDS[COMP_CWORD-3]}"  
 
     ### commands (options that can be used only once)
-    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm"
+    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate"
     ### options that can appear anywhere
     opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
 
+    case "${prevprevprev}" in
+      propagate)
+         local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
+    esac
+
     ### check previous typed word and react accordingly
     case "${prev}" in
+      propagate)
+         local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
+
       uploadto)
          local matches=$(__getStaticRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
-           return 0
-           ;;
+         return 0
+         ;;
       generatemetadata)
          local matches=$(__getStaticRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
@@ -68,6 +83,9 @@ _repocomplete()
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
          return 0
          ;;
+      create)
+         return 0
+         ;;
       *.rpm)  ###mass upload mode, autcomplete RPM file names
          local matches=$(for x in `ls | grep ".rpm"`; do echo ${x} ; done )
          COMPREPLY=( $(compgen -W "${matches} ${opts}" -- ${cur}) )
@@ -75,6 +93,10 @@ _repocomplete()
          ;;
       *)  ### go one step further for commands taking two arguments
          case "${prevprev}" in
+            propagate)
+               COMPREPLY="arch/name"
+               return 0
+               ;;
             uploadto)
                local matches=$(for x in `ls | grep ".rpm"`; do echo ${x} ; done )
                COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
