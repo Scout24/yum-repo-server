@@ -80,10 +80,9 @@ class HttpClient(object):
 
     def propagateRpm(self,fromrepo,rpm_arch_slash_name,torepo):
         post_data = 'source=/'+fromrepo+"/"+rpm_arch_slash_name+"&destination=/"+torepo
-        print post_data
-        #response = self.doHttpPost('/propagate/', post_data)
-        #self.assertResponse(response, httplib.CREATED)
-        #return response
+        response = self.doHttpPost('/propagate/', post_data)
+        self.assertResponse(response, httplib.CREATED)
+        return response
 
     def doHttpPost(self, extPath, postdata='', headers=None):
         if not headers: headers = {}
