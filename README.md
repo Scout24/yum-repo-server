@@ -94,3 +94,8 @@ Generating metadata involves a POST request to <code>$host/$repo_base/$repo_name
 You can propagate a RPM from a source repository to a destination repository on the same host by sending a POST request to <code>$host/propagation/</code> with parameter <code>source</code> and <code>destination</code>.
 <code>source</code> must be <code>$source-repo-name/$architecture/artifact-name.rpm</code>. <code>destination</code> is just name of the target repository.
 Propagation does not work with virtual repositories.
+For example:
+<code>
+curl -F "source=test-repo/noarch/test-artifact&destination=test-repo2" http://myyum-repo-server/propagation/
+</code>
+will search for the latest <code>test-artifact-XX-X.noarch.rpm</code> and propagate the rpm from <code>test-repo</code> repository to <code>test-repo2</code>.
