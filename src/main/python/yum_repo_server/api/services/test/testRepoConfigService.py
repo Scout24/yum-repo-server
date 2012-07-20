@@ -11,14 +11,6 @@ class TestRepoConfigService(TestCase):
                       'rss-5-1.1.noarch.rpm',
                       'rss-7-1.4.noarch.rpm',
                       'rss-4-1.1.noarch.rpm']
-    dict_rpm_tuples = {'rss':
-                           [
-                               ('4', '1.2', 'rss-4-1.2.noarch.rpm'),
-                               ('5', '1.1', 'rss-5-1.1.noarch.rpm'),
-                               ('7', '1.4', 'rss-7-1.4.noarch.rpm'),
-                               ('4', '1.1', 'rss-4-1.1.noarch.rpm'),
-                           ]}
-
 
     def test_doCleanup(self):
         os.makedirs(self.testRepo)
@@ -47,39 +39,26 @@ class TestRepoConfigService(TestCase):
         except ValueError:
             pass
 
-    def test_sort_of_obsolete_rpms(self):
-        expected_list_to_delete = [('4', '1.1', 'rss-4-1.1.noarch.rpm')]
-        list_to_delete = RepoConfigService()._check_dict_for_rpms_to_delete(self.dict_rpm_tuples, 3)
-
-        self.assertEqual(expected_list_to_delete, list_to_delete)
-
-
-    def test_get_rpm_group_with_obsolete_files_by_file_name(self):
-        dict_group_with_obsolete_rpms = RepoConfigService()._get_rpm_group_with_obsolete_files_by_file_name(
-            self.rpm_file_names, 3)
-
-        self.assertEqual(self.dict_rpm_tuples.keys(), dict_group_with_obsolete_rpms.keys())
-        self.assertEqual(self.dict_rpm_tuples.values(), dict_group_with_obsolete_rpms.values())
-
-    def test_get_no_rpm_group_if_less_than_max_rpm(self):
-        rpm_file_names = ['rss-4-1.1.noarch.rpm']
-        dict_group_with_obsolete_rpms = RepoConfigService()._get_rpm_group_with_obsolete_files_by_file_name(
-            rpm_file_names, 3)
-
-        self.assertEqual([], dict_group_with_obsolete_rpms.keys())
-        self.assertEqual([], dict_group_with_obsolete_rpms.values())
-
-
-    def test_get_no_rpm_group_if_rpms_have_different_names(self):
+    def test_find_rpms_to_delete(self):
         rpm_file_names = ['rss-4-1.1.noarch.rpm',
                           'rss-4-1.2.noarch.rpm',
                           'rss-5-1.1.noarch.rpm',
-                          'feed-rss-7-1.4.noarch.rpm']
-        dict_group_with_obsolete_rpms = RepoConfigService()._get_rpm_group_with_obsolete_files_by_file_name(
-            rpm_file_names, 3)
-
-        self.assertEqual([], dict_group_with_obsolete_rpms.keys())
-        self.assertEqual([], dict_group_with_obsolete_rpms.values())
+                          'rss-7-1.4.noarch.rpm']
+        
+        rpm_to_delete = RepoConfigService()._find_rpms_to_delete(rpm_file_names, 3)
+        
+        self.assertEquals(1, len(rpm_to_delete))
+        self.assertEquals('rss-4-1.1.noarch.rpm', rpm_to_delete[0].file_name)
+        
+    def test_find_rpms_to_delete_returns_empty_list_when_single_group_is_not_big_enough(self):
+        rpm_file_names = ['rss-4-1.1.noarch.rpm',
+                          'rss-4-1.2.noarch.rpm',
+                          'rss-5-1.1.noarch.rpm',
+                          'rss-feed-7-1.4.noarch.rpm']
+        
+        rpm_to_delete = RepoConfigService()._find_rpms_to_delete(rpm_file_names, 3)
+        
+        self.assertEquals(0, len(rpm_to_delete))
 
     def touchRpms(self, testRepo):
         for repo in self.rpm_file_names:

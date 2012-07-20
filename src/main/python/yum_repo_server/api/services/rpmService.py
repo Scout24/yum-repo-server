@@ -1,7 +1,7 @@
 import os
 import rpm
 
-class RpmService():
+class RpmService(object):
     
     def get_latest_rpm(self, name, directory):
         return self.get_latest_rpm_from_list(name, os.listdir(directory))
@@ -15,7 +15,7 @@ class RpmService():
             return None
         
         rpm_files = rpm_groups[name]
-        rpm_files.sort(cmp=compareRpmFiles)
+        rpm_files.sort(cmp=compare_rpm_files)
         
         return rpm_files[-1].file_name
     
@@ -50,7 +50,7 @@ class RpmFile():
         self.release =  release
         self.architecture = architecture
     
-def compareRpmFiles(file1, file2):
+def compare_rpm_files(file1, file2):
     return rpm.labelCompare(('1', file1.version, file1.release), ('1', file2.version, file2.release))
 
 def create_rpm_file_object(file_name):

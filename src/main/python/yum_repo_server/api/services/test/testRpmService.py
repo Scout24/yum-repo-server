@@ -1,6 +1,6 @@
 import unittest
 from yum_repo_server.api.services.rpmService import RpmService,\
-    create_rpm_file_object
+    create_rpm_file_object, compare_rpm_files
 
 class TestRpmService(unittest.TestCase):
     
@@ -75,4 +75,20 @@ class TestRpmFileObjectFactoryMethod(unittest.TestCase):
         
         self.assertEquals(0, len(invalid_names_not_found),
                           'the following rpms were not detected as invalid: %s ' % invalid_names_not_found)
+
+class TestSortRpmFileObject(unittest.TestCase):
+    def test_sort(self):
+        rpms=(
+            'tree-1.2-21.noarch.rpm',
+            'tree-2.5-12.noarch.rpm',
+            'tree-1.2-23.noarch.rpm',
+        )
+        
+        rpm_list = RpmService().get_rpm_files_grouped_by_name(rpms)['tree']
+        rpm_list.sort(cmp=compare_rpm_files)
+        
+        self.assertEquals('tree-1.2-21.noarch.rpm', rpm_list[0].file_name)
+        self.assertEquals('tree-1.2-23.noarch.rpm', rpm_list[1].file_name)
+        self.assertEquals('tree-2.5-12.noarch.rpm', rpm_list[2].file_name)
+
         

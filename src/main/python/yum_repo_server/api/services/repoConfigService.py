@@ -5,6 +5,7 @@ import rpm
 import subprocess
 from yum_repo_server.settings import REPO_CONFIG
 import logging
+from yum_repo_server.api.services.rpmService import RpmService, compare_rpm_files
 
 class RepoConfig(object):
     def __init__(self, data):
@@ -40,6 +41,7 @@ class RepoNotFoundException(Exception):
 class RepoConfigService(object):
     ALIAS_METADATA_FILENAME = "repo.yaml"
     METADATA_GENERATION_FILENAME = "metadata-generation.yaml"
+    rpm_service = RpmService()
 
     def getMetaDataGenerationFilePathRelativeToRepoDirByRepoName(self, static_reponame):
         return self.getStaticRepoDir() + '/' + static_reponame + '/' + self.METADATA_GENERATION_FILENAME
@@ -149,56 +151,27 @@ class RepoConfigService(object):
             for architecture in arc_dirs:
                 path_to_arc_repo = full_path_to_repo + '/' + architecture
                 if(os.path.isdir(path_to_arc_repo) and not architecture == 'repodata'):
-                    rpm_files = os.listdir(path_to_arc_repo)
-                    rpm_files = list(filter(lambda file_name: file_name.endswith('.rpm'), rpm_files))
-                    if len(rpm_files) == 0:
-                        continue
-                    
-                    rpm_group_with_obsolete_files = self._get_rpm_group_with_obsolete_files_by_file_name(rpm_files,
-                        rpm_max_keep)
-                    rpms_to_delete = self._check_dict_for_rpms_to_delete(rpm_group_with_obsolete_files, rpm_max_keep)
+                    rpms_to_delete = self._find_rpms_to_delete(os.listdir(path_to_arc_repo), rpm_max_keep)
                     self._delete_rpm_list(path_to_arc_repo, rpms_to_delete)
+                    
+    def _find_rpms_to_delete(self, file_name_list, rpm_max_keep):
+        grouped_rpms = self.rpm_service.get_rpm_files_grouped_by_name(file_name_list)
+        
+        return self._check_group_for_rpms_to_delete(grouped_rpms, rpm_max_keep)
 
-
-
-    def _get_rpm_group_with_obsolete_files_by_file_name(self, rpm_file_names, rpm_max_keep):
-        dict_obsolete_rpms = {}
-        dict_rpm_groups = {}
-        for rpm_file_name in rpm_file_names:
-            rpm_group, rpm_group_infos = self._split_rpm_file_name(rpm_file_name)
-
-            if rpm_group == None:
-                continue
-
-            if not dict_rpm_groups.has_key(rpm_group):
-                dict_rpm_groups[rpm_group] = [rpm_group_infos]
-            else:
-                dict_rpm_groups[rpm_group].append(rpm_group_infos)
-                if len(dict_rpm_groups[rpm_group]) > rpm_max_keep:
-                    dict_obsolete_rpms[rpm_group] = dict_rpm_groups[rpm_group]
-
-        return dict_obsolete_rpms
-
-    def _check_dict_for_rpms_to_delete(self, dict_with_obsolete_rpms, rpm_max_keep):
+    def _check_group_for_rpms_to_delete(self, grouped_rpms, rpm_max_keep):
         list_of_rpms_to_delete = []
-        for rpm_group_name in dict_with_obsolete_rpms.keys():
-            list_of_tuples = dict_with_obsolete_rpms[rpm_group_name]
-            list_of_tuples.sort(cmp=self._compareTuples)
-            list_of_rpms_to_delete.extend(list_of_tuples[0:len(list_of_tuples) - rpm_max_keep])
+        for group_name in grouped_rpms.keys():
+            list_of_rpms = grouped_rpms[group_name]
+            list_of_rpms.sort(cmp=compare_rpm_files)
+            list_of_rpms_to_delete.extend(list_of_rpms[0:len(list_of_rpms) - rpm_max_keep])
+            
         return list_of_rpms_to_delete
 
-
-    def _compareTuples(self, tuple1, tuple2):
-        return rpm.labelCompare(('1', tuple1[0], tuple1[1]), ('1', tuple2[0], tuple2[1]))
-
-
-    def _split_rpm_file_name(self, rpm_file):
-        rpm_parts = rpm_file.rsplit('.', 2)
-        if rpm_parts[2] != 'rpm':
-            return None
-
-        rpm_name_parts = rpm_parts[0].rsplit('-', 2)
-        return rpm_name_parts[0], (rpm_name_parts[1], rpm_name_parts[2], rpm_file)
+    def _delete_rpm_list(self, path_to_arc_repo, rpms_to_delete):
+        for rpm_file in rpms_to_delete:
+            rpm_to_delete = path_to_arc_repo + '/' + rpm_file.file_name
+            os.remove(rpm_to_delete)
 
     def getRepoLockFile(self, reponame):
         return os.path.join(self.getStaticRepoDir(reponame), '.lock')
@@ -231,11 +204,6 @@ class RepoConfigService(object):
             
     def getRepoCacheDir(self, reponame = ''):
         return REPO_CONFIG.get('REPO_CACHE_DIR') + '/yum-repo-server/' + reponame
-
-    def _delete_rpm_list(self, path_to_arc_repo, rpms_to_delete):
-        for rpm in rpms_to_delete:
-            rpm_to_delete = path_to_arc_repo + '/' + rpm[2]
-            os.remove(rpm_to_delete)
             
     @property
     def staticRepos(self):
