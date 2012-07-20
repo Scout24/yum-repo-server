@@ -3,6 +3,8 @@ from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 import os
 import shutil
+from yum_repo_server.api.services.rpmService import create_rpm_file_object,\
+    RpmService
 
 class RpmPropagationHandler(BaseHandler):
     config = RepoConfigService()
@@ -31,6 +33,8 @@ class RpmPropagationHandler(BaseHandler):
         if not os.path.exists(destination_repo_path):
             return self._build_bad_response('destination repository does not exist')
         
+        rpm = self._determine_rpm_file_name(os.path.join(source_repo_path, source_arch), rpm)
+        
         source_rpm_path = os.path.join(source_repo_path, source_arch, rpm)
         destination_rpm_path = os.path.join(destination_repo_path, source_arch, rpm)
         if not os.path.exists(source_rpm_path):
@@ -46,6 +50,12 @@ class RpmPropagationHandler(BaseHandler):
         resp['Location'] = os.path.join('/repo', data['destination'], source_arch, rpm)
         
         return resp
+
+    def _determine_rpm_file_name(self, directory, rpm):
+        if create_rpm_file_object(rpm) is not None:
+            return rpm
+        
+        return RpmService().get_latest_rpm(rpm, directory)
 
     def _build_bad_response(self, msg):
         resp = rc.BAD_REQUEST
