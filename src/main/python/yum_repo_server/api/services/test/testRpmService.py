@@ -32,7 +32,7 @@ class TestRpmService(unittest.TestCase):
         )
         latest_rpm = RpmService().get_latest_rpm_from_list('test-rpm', rpms)
         
-        self.assertIsNone(latest_rpm)
+        self.assertTrue(latest_rpm is None)
         
     def test_get_rpm_files_grouped_by_name(self):
         rpms=(
