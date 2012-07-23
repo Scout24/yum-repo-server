@@ -10,7 +10,7 @@ The yum-repo-server is a server that allows you to host and manage YUM repositor
 * Link system to create virtual repositories that can dynamically point to other repositories
 * Easily extensible due to good test coverage
 * Propagation of RPMs from one staging repository to the next
-* Command line wrapper for more comfort, see [http://github.com/is24-herold/yum-repo-client]
+* Command line wrapper for more comfort, see [https://github.com/ImmobilienScout24/yum-repo-client]
 
 
 ## Aim
@@ -74,7 +74,7 @@ if you do not wish to have a periodic createrepo scheduled.
 
 ### API requests
 API requests are handled by piston and use a REST like format.
-For maximal comfort, use the yum-repo-client, see [http://github.com/is24-herold/yum-repo-client].
+For maximal comfort, use the yum-repo-client, see [https://github.com/ImmobilienScout24/yum-repo-client].
 The examples below should give you a good understanding of how the requests look like.
 
 #### Repository creation
