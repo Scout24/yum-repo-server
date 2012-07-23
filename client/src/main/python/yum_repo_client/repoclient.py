@@ -293,7 +293,7 @@ class CommandLineClient(object):
     Options:
         create <reponame>  : Creates a new empty repository on the server
         uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
-        deleterpm <reponame> <rpm1> ... <rpmN> : Deletes rpms from the server
+        deleterpm <reponame> <arch1>/<rpm1> ... <archN>/<rpmN> : Deletes rpms from the server
         generatemetadata <reponame> : Generates Yum Metadata for this repository
         linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
