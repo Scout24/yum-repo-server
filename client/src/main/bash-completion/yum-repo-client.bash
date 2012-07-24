@@ -112,6 +112,10 @@ _repocomplete()
                COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
                return 0
                ;;
+           deleterpm)
+               COMPREPLY="arch/name"
+               return 0
+               ;;
             *)
                ;;
          esac
