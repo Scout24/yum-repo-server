@@ -2,6 +2,7 @@ from yum_repo_server.api  import config
 import os
 import yaml
 import rpm
+import re
 import subprocess
 from yum_repo_server.settings import REPO_CONFIG
 import logging
@@ -92,21 +93,23 @@ class RepoConfigService(object):
         return repo_path
 
     def createVirtualRepo(self, virtual_reponame, destination_relative_to_repodir):
-        destination = config.get_repo_dir() + '/' + destination_relative_to_repodir
-        destination = self.removeTrailingSlashIfPresent(destination)
-        logging.info("check if " + destination + " exists")
-        if not os.path.exists(destination):
-            raise RepoNotFoundException()
+        
+        if re.match('^https?://.*', destination_relative_to_repodir):
+            static_destination = destination_relative_to_repodir
+        else:
+            destination = config.get_repo_dir() + '/' + destination_relative_to_repodir
+            destination = self.removeTrailingSlashIfPresent(destination)
+            logging.info("check if " + destination + " exists")
+            if not os.path.exists(destination):
+                raise RepoNotFoundException()
+    
+            if self.is_virtual_repository_path(destination):
+                destination_reponame = destination_relative_to_repodir[len('virtual/'):]
+                static_destination = self.getConfig(destination_reponame).destination
+            else:#destination is static -> no need to check for repo.yaml just take destination as is
+                static_destination = '/' + destination_relative_to_repodir
 
-        if self.is_virtual_repository_path(destination):
-            destination_reponame = destination_relative_to_repodir[len('virtual/'):]
-            static_destination = self.getConfig(destination_reponame).destination
-        else:#destination is static -> no need to check for repo.yaml just take destination as is
-            static_destination = '/' + destination_relative_to_repodir
-
-        path_to_virtual_repo = self.getVirtualRepoDir(virtual_reponame)
-        self.create_virtual_repo_skeleton(path_to_virtual_repo)
-
+        self.create_virtual_repo_skeleton(virtual_reponame)
         return self.writeConfig(virtual_reponame, static_destination)
 
     def writeConfig(self, virtual_reponame, static_destination):
@@ -124,7 +127,8 @@ class RepoConfigService(object):
 
         return dict(alias_to=static_destination, link_already_existed=link_already_existed)
 
-    def create_virtual_repo_skeleton(self, path_to_virtual_repo):
+    def create_virtual_repo_skeleton(self, virtual_reponame):
+        path_to_virtual_repo = self.getVirtualRepoDir(virtual_reponame)
         if not os.path.exists(path_to_virtual_repo):
             os.makedirs(path_to_virtual_repo)
 
