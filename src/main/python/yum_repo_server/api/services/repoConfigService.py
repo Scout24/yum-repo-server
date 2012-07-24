@@ -95,7 +95,10 @@ class RepoConfigService(object):
     def createVirtualRepo(self, virtual_reponame, destination_relative_to_repodir):
         
         if re.match('^https?://.*', destination_relative_to_repodir):
-            static_destination = destination_relative_to_repodir
+            if destination_relative_to_repodir.endswith('/'):
+                static_destination = destination_relative_to_repodir[:-1]
+            else:
+                static_destination = destination_relative_to_repodir
         else:
             destination = config.get_repo_dir() + '/' + destination_relative_to_repodir
             destination = self.removeTrailingSlashIfPresent(destination)
