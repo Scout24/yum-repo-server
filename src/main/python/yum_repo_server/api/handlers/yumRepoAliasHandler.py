@@ -19,18 +19,15 @@ class YumRepoAliasHandler(BaseHandler):
 
     def create(self, request, text):
         try:
-            data = self.check_request_sanity(request)
+            virtual_repo_name, destination_repo = self.check_request_sanity(request)
         except RequestFailException as rfe:
             return rfe.args[0]
 
-        virtual_repo_name = data.get(self.POST_PARAM_VIRTUAL_REPO_NAME)
-        destination_relative_to_repodir = data.get(self.POST_PARAM_DESTINATION_NAME)
-        
         try: 
-            result = self.repoConfigService.createVirtualRepo(virtual_repo_name, destination_relative_to_repodir)
+            result = self.repoConfigService.createVirtualRepo(virtual_repo_name, destination_repo)
         except RepoNotFoundException:
             resp = rc.NOT_HERE #Do NOT disclose the actual path to the client -> return relative destination
-            resp.content = 'The destination repository at %s does not exist.' % destination_relative_to_repodir
+            resp.content = 'The destination repository at %s does not exist.' % destination_repo
             return resp
 
         response = rc.CREATED
@@ -52,13 +49,14 @@ class YumRepoAliasHandler(BaseHandler):
             resp.content = 'The name attribute is missing'
             raise (RequestFailException(resp))
 
-        destination_relative_to_repodir = data.get(self.POST_PARAM_DESTINATION_NAME, None)
+        destination_repo = data.get(self.POST_PARAM_DESTINATION_NAME, None)
 
-        if not destination_relative_to_repodir:
+        if not destination_repo:
             resp = rc.BAD_REQUEST
             resp.content = 'The destination attribute is missing'
             raise (RequestFailException(resp))
-        return data
+        
+        return name, destination_repo
 
     # handle GET requests
     def read(self, request, text):
