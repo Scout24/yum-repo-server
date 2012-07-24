@@ -4,7 +4,7 @@ import os
 import yaml
 from yum_repo_client.repoclient import RepoException
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
-from yum_repo_server.test import Constants
+from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 
 
@@ -94,6 +94,13 @@ class TestVirtualRepo(BaseIntegrationTestCase):
         self.assertEqual(response.status, httplib.OK)
         content = response.read()
         self.assertEquals(content, '{"destination": "/static/' + static_reponame + '"}')
+        
+    def test_should_allow_http_redirected_repos(self):
+        virtual_reponame = unique_repo_name()
+        self.repoclient().createVirtualRepo(virtual_reponame, "http://anyhost.com/repo")
+        response = self.helper.do_http_get("/repo/virtual/" + virtual_reponame + "/repodata/repomd.xml")
+        self.assertStatusCode(response, httplib.FOUND)
+        self.assertEquals(response.getheader('Location'), 'http://anyhost.com/repo/repodata/repomd.xml')
 
     def assertCreateVirtualRepo(self):
         static_repo_name = self.createNewRepoAndAssertValid()

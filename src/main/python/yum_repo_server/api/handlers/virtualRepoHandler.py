@@ -3,6 +3,8 @@ from piston.utils import rc
 
 import os
 import shutil
+import re
+from django.http import HttpResponseRedirect
 from yum_repo_server.static import serve
 from yum_repo_server.api  import config
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
@@ -22,9 +24,12 @@ class VirtualRepoHandler(BaseHandler):
             return resp
 
         repoConfig = self.repoConfigService.getConfig(virtual_reponame)
-        absoluteDestinationRepoPath = config.get_repo_dir() + repoConfig.destination
-
-        return serve(request, path_relative_to_repository, absoluteDestinationRepoPath, True)
+        
+        if re.match('^https?://.*', repoConfig.destination):
+            return HttpResponseRedirect(repoConfig.destination + rpm) 
+        else:
+            absoluteDestinationRepoPath = config.get_repo_dir() + repoConfig.destination
+            return serve(request, path_relative_to_repository, absoluteDestinationRepoPath, True)
     
     def delete(self, request, reponame, rpm = '/'):
         if not rpm is None and len(rpm) > 1:
