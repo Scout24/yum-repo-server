@@ -285,6 +285,19 @@ class CommandLineClient(object):
             print e
             return 1    
 
+    def redirectTo(self):
+        if len(self.arguments) < 4:
+            print "ERROR Please provide a virtual repository name and redirect target."
+            return self.showHelp()
+        
+        virtual_reponame = self.arguments[2]        
+        destination = self.arguments[3]
+        try:
+            self.httpClient.createVirtualRepo(virtual_reponame, destination)
+            return 0
+        except Exception, e:
+            print e
+            return 1
 
     def showHelp(self):
         print """
@@ -297,6 +310,7 @@ class CommandLineClient(object):
         generatemetadata <reponame> : Generates Yum Metadata for this repository
         linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
+        redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
         
@@ -316,6 +330,7 @@ class CommandLineClient(object):
                 'deletevirtual' : CommandLineClient.deleteVirtualRepo,
                 'deleterpm' : CommandLineClient.deleteRpms,
                 'propagate' : CommandLineClient.propagateRpm,
+                'redirectto' : CommandLineClient.redirectTo,
         }
 
 
