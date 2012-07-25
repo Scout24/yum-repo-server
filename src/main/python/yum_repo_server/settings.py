@@ -5,6 +5,8 @@ import yaml
 import sys
 import tempfile
 
+from django.core.files.uploadedfile import UploadedFile
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -163,6 +165,9 @@ if not os.path.exists(REPO_CONFIG['SCHEDULER_DAEMON_LOGGING_CONF']):
 
 if not os.path.exists(REPO_CONFIG['SERVER_LOGGING_CONF']):
     REPO_CONFIG['SERVER_LOGGING_CONF']=os.path.join(INSTALL_DIR, 'defaults/serverLogging.conf')
+
+# set chunk size for temporay files
+UploadedFile.DEFAULT_CHUNK_SIZE = 1024 * 1024
 
 # test suite
 TEST_RUNNER = 'yum_repo_server.api.tests.TeamCityDjangoTestSuiteRunner'
