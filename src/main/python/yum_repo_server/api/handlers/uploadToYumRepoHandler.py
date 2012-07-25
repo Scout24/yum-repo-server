@@ -31,7 +31,6 @@ class UploadToYumRepoHandler(BaseHandler):
             os.remove(tempFilename)
             return rc.BAD_REQUEST
 
-        os.remove(tempFilename)
         return rc.CREATED
     
     def read(self, request, reponame):
