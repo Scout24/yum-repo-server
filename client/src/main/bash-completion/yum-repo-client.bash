@@ -32,7 +32,7 @@ _repocomplete()
     [[ "$COMP_CWORD" -gt "2" ]] && prevprevprev="${COMP_WORDS[COMP_CWORD-3]}"  
 
     ### commands (options that can be used only once)
-    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate"
+    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate redirectto"
     ### options that can appear anywhere
     opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
@@ -49,6 +49,12 @@ _repocomplete()
     case "${prev}" in
       propagate)
          local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
+
+      redirectto)
+         local matches=$(__getVirtualRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
          return 0
          ;;
@@ -110,6 +116,10 @@ _repocomplete()
             linktostatic)
                local matches=$(__getStaticRepos)
                COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+               return 0
+               ;;
+           deleterpm)
+               COMPREPLY="arch/name"
                return 0
                ;;
             *)
