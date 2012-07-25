@@ -8,6 +8,7 @@ from yum_repo_server.rpm.rpmfile import RpmFileException
 from yum_repo_server.rpm.rpmfile import RpmValidationException
 from yum_repo_server.static import serve
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from django.core.files.uploadedfile import TemporaryUploadedFile 
 from piston.handler import BaseHandler
 from piston.utils import rc
 import logging
@@ -42,6 +43,10 @@ class UploadToYumRepoHandler(BaseHandler):
 
         if not os.path.isdir(self.TEMP_DIR):
             os.makedirs(self.TEMP_DIR)
+            
+        # optimize: if the uploaded is already a TemporaryUploadedFile, we can reuse this file
+        if isinstance(request_file, TemporaryUploadedFile) and os.path.exists(request_file.temporary_file_path()):
+            return request_file.temporary_file_path()
 
         path = self.TEMP_DIR + '/' + self._get_time_stamp() + '.' + str(uuid.uuid4())
 
