@@ -173,3 +173,7 @@ FILE_UPLOAD_TEMP_DIR = REPO_CONFIG['TEMP_DIR']
 
 # test suite
 TEST_RUNNER = 'yum_repo_server.api.tests.TeamCityDjangoTestSuiteRunner'
+
+def initTempDir():
+    if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
+        os.makedirs(FILE_UPLOAD_TEMP_DIR)
