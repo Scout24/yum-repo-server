@@ -2,7 +2,6 @@
 import os
 import os.path
 import yaml
-import sys
 import tempfile
 
 from django.core.files.uploadedfile import UploadedFile
@@ -168,6 +167,11 @@ if not os.path.exists(REPO_CONFIG['SERVER_LOGGING_CONF']):
 
 # set chunk size for temporay files
 UploadedFile.DEFAULT_CHUNK_SIZE = 1024 * 1024
+
+# set tmp directory for uploaded files
+FILE_UPLOAD_TEMP_DIR = REPO_CONFIG['TEMP_DIR']
+if not os.path.exists(FILE_UPLOAD_TEMP_DIR):
+    os.makedirs(FILE_UPLOAD_TEMP_DIR)
 
 # test suite
 TEST_RUNNER = 'yum_repo_server.api.tests.TeamCityDjangoTestSuiteRunner'
