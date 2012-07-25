@@ -28,7 +28,8 @@ class UploadToYumRepoHandler(BaseHandler):
             rpmFileHandler.move_to_canonical_name(repoPath)
         except (RpmFileException, RpmValidationException) as e:
             sys.stderr.write("ERROR validating %s: %s\n" % (tempFilename, str(e)))
-            os.remove(tempFilename)
+            if os.path.exists(tempFilename):
+                os.remove(tempFilename)
             return rc.BAD_REQUEST
 
         return rc.CREATED
