@@ -1,3 +1,5 @@
+import os
+
 from yum_repo_server.api.handlers.yumRepoHandler import YumRepoHandler
 from yum_repo_server.api.handlers.yumRepoAliasHandler import YumRepoAliasHandler
 from yum_repo_server.api.handlers.uploadToYumRepoHandler import UploadToYumRepoHandler
@@ -12,7 +14,7 @@ from yum_repo_server.api.handlers.csvListingHandler import CsvListingHandler
 from django.conf.urls.defaults import *
 
 from piston.resource import Resource
-import yum_repo_server
+from yum_repo_server import settings
 
 createYumRepoResource = Resource(handler=YumRepoHandler)
 uploadToYumRepoHandler = Resource(handler=UploadToYumRepoHandler)
@@ -37,3 +39,5 @@ urlpatterns = patterns('',
     url(r'^(?P<path>.*)$', staticRepoResource),
 )
 
+# initialize temp dir for uploads
+settings.initTempDir()
