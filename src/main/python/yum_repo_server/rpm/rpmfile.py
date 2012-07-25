@@ -47,7 +47,7 @@ class RpmFileHandler (object):
         shutil.move(self.rpm_file.file_name, absolute_file_name)
         return absolute_file_name
 
-    def save_copy_with_canonical_name(self, destination):
+    def move_to_canonical_name(self, destination):
         if self.rpm_file.binary:
             destination = os.path.join(destination, self.rpm_file.arch)
         else:
@@ -57,7 +57,7 @@ class RpmFileHandler (object):
             
         resulting_name = os.path.join(destination, self.build_canonical_rpm_file_name())
         temporary_resulting_name = resulting_name + ".part"
-        shutil.copyfile(self.rpm_file.file_name,temporary_resulting_name)
+        shutil.move(self.rpm_file.file_name,temporary_resulting_name)
         shutil.move(temporary_resulting_name,resulting_name)
 
 class RpmFile (object):

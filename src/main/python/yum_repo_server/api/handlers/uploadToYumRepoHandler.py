@@ -25,7 +25,7 @@ class UploadToYumRepoHandler(BaseHandler):
         try:
             rpmFileHandler = RpmFileHandler(tempFilename)
             rpmFileHandler.assert_valid()
-            rpmFileHandler.save_copy_with_canonical_name(repoPath)
+            rpmFileHandler.move_to_canonical_name(repoPath)
         except (RpmFileException, RpmValidationException) as e:
             sys.stderr.write("ERROR validating %s: %s\n" % (tempFilename, str(e)))
             os.remove(tempFilename)
