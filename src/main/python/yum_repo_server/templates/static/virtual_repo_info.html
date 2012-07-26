@@ -4,6 +4,9 @@
       <label>Destination</label>
       <span>
         <select id="reposelect" onchange="yum.selectRepo()">
+          {% if config.destination|slice:":4" == 'http' %}
+            <option value="{{config.destination}}">{{config.destination}}</option>
+          {% endif %} 
           {% for repo in staticRepos %}
             <option value="static/{{ repo }}" {% ifequal '/static/'|add:repo config.destination %}selected="selected"{% endifequal %}>static/{{ repo }}</option>
           {% endfor %}
