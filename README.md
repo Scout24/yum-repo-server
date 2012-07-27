@@ -12,10 +12,12 @@ The yum-repo-server is a server that allows you to host and manage YUM repositor
 * Propagation of RPMs from one staging repository to the next
 * Command line wrapper for more comfort, see below
 
-
 ## Aim
 The aim of this project is to provide a simple, straightforward and extensible implementation of a server that is able to manage YUM repositories. 
 While creating a standalone YUM repository is easy, there was no easy way to manage many such repositories at the time of writing.
+
+## Intent
+Our company is migrating towards a CLD-friendly deployment solution. Our solution involves release repositories that need to be dynamically referenceable in order to update hosts or entire host groups without changing the host's repositories. A picture will follow shortly.
 
 ## Benefits
 * The yum-repo-server enables you to access repository management operations from other routines or automations, such as build servers or delivery chains.
@@ -74,7 +76,7 @@ if you do not wish to have a periodic createrepo scheduled.
 
 ### API requests
 API requests are handled by piston and use a REST like format.
-For maximal comfort, use the yum-repo-client, see [https://github.com/ImmobilienScout24/yum-repo-client].
+For maximal comfort, use the yum-repo-client.
 The examples below should give you a good understanding of how the requests look like.
 
 #### Repository creation
