@@ -17,7 +17,9 @@ The aim of this project is to provide a simple, straightforward and extensible i
 While creating a standalone YUM repository is easy, there was no easy way to manage many such repositories at the time of writing.
 
 ## Intent
-Our company is migrating towards a CLD-friendly deployment solution. Our solution involves release repositories that need to be dynamically referenceable in order to update hosts or entire host groups without changing the host's repositories. A picture will follow shortly.
+Our company is migrating towards a CLD-friendly deployment solution. Our solution involves release repositories that need to be dynamically referenceable in order to update hosts or entire host groups without changing the host's repositories. This is done like so :
+
+![Image of intended usage of the yum-repo-server](/docs/yrs_usecase.png "Intended usage of the yum-repo-server")
 
 ## Benefits
 * The yum-repo-server enables you to access repository management operations from other routines or automations, such as build servers or delivery chains.
