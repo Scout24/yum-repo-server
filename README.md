@@ -48,7 +48,7 @@ Have a look at updaterepo [https://github.com/is24-herold/updaterepo] if you nee
 
 ### Repository location
 At the core of the yum-repo-server is a directory that contains repository information and contents.
-This directory's location is stored in a setup.py file, like so :
+This directory's location is stored in a settings.py file, like so :
 <code>
 REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos', [shortened]  }
 </code>
