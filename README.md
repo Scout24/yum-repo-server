@@ -99,3 +99,48 @@ For example:
 curl -F "source=test-repo/noarch/test-artifact&destination=test-repo2" http://myyum-repo-server/propagation/
 </code>
 will search for the latest <code>test-artifact-XX-X.noarch.rpm</code> and propagate the rpm from <code>test-repo</code> repository to <code>test-repo2</code>.
+
+# yum-repo-client
+===============
+
+## Aim
+yum-repo-client is a command line interface for interacting with the yum-repo-server [https://github.com/ImmobilienScout24/yum-repo-server]
+The aim is to provide a command line wrapper for every functionality the yum-repo-server provides so you don't have to fiddle with REST requests.
+This is especially good for automations that can run command line tools because you can modify the yum-repo-server as you wish without breaking your automation (provided you include the modifications in the yum-repo-client).
+
+## Features
+The yum-repo-client currently supports
+* Remote repository creation
+* RPM upload and remote deletion
+* Virtual repository creation, linking, redirection and deletion
+* Optional authentication and yum-repo-server host parametrization
+* RPM propagation
+* Smart bash autocompletion
+
+## Getting started
+### Obtaining the yum-repo-client
+The yum-repo-client comes bundled with the yum-repo-server.
+Everything you need is located in the project subfolder 'client'.
+### Building the yum-repo-client
+First of all it is recommended to run the tests:
+<code>
+python setup.py test
+</code>
+
+These should always be successfull. 
+Optionally after that you can run:
+<code>
+python setup.py bdist_rpm
+</code>
+to get an rpm of the yum-repo-client.
+### Installing the yum-repo-client
+If you have build a rpm file in the step above, then you can install it as usual.
+Without the rpm file you can install the yum-repo-client with:
+<code>
+python setup.py install
+</code>
+### Using the yum-repo-client
+Simply call 
+<code> [you@yourhost ~]$ repoclient </code> 
+to display the help text that includes call syntax and operation description
+### Extending or customizing the yum-repo-client
