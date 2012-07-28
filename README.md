@@ -63,17 +63,17 @@ This is handled by django and quite straightforward.
 A virtual repository does look exactly like a regular repository for consumers, but it is actually an empty repository that contains a YAML file named <code>repo.yaml</code>. The file contains an entry with a relative path to a regular repository, and requests to the virtual repository are rerouted to the regular one.
 
 ### Periodic metadata generation
-The metadata generation is located in a YAML file that lives in the repository it describes.
-The file looks like this :
+The metadata generation is located in a YAML file called `repo.yaml` that lives in the repository it describes.
+The file looks like this :  
 <code>
-generation_type : scheduled
-generation_interval : 40
-rpm_max_keep : 3
+generation_type : scheduled  
+generation_interval : 40  
+rpm_max_keep : 3  
 </code>
 This will schedule a periodic createrepo that will be executed every 40 seconds.
-rpm_max_keep means there will also be a cleanup routine before the createrepo that will delete older
+`rpm_max_keep` means there will also be a cleanup routine before the createrepo that will delete older
 RPMs when there are more than three RPMs with the same canonical name.
-You may omit rpm_max_keep to disable the cleanup routine and set generation_type to 'manual' or remove the file
+You may omit `rpm_max_keep` to disable the cleanup routine and set `generation_type` to `manual` or remove the file
 if you do not wish to have a periodic createrepo scheduled.
 
 ### API requests
@@ -100,7 +100,7 @@ You can propagate a RPM from a source repository to a destination repository on 
 Propagation does not work with virtual repositories.
 For example:
 <code>
-curl -F "source=test-repo/noarch/test-artifact&destination=test-repo2" http://myyum-repo-server/propagation/
+curl -F "source=test-repo/noarch/test-artifact&destination=test-repo2" http://myyum-repo-server/propagation/  
 </code>
 will search for the latest <code>test-artifact-XX-X.noarch.rpm</code> and propagate the rpm from <code>test-repo</code> repository to <code>test-repo2</code>.
 
