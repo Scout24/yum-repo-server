@@ -147,4 +147,12 @@ python setup.py install
 Simply call 
 <code> [you@yourhost ~]$ repoclient </code> 
 to display the help text that includes call syntax and operation description
+### Setting the defaults
+To set the default host and port used by the yum-repo-client, you need to edit (or create) the file `/etc/yum-repo-client.yaml`.
+This file should contain the following entries :  
+`DEFAULT_HOST : localhost`  
+`DEFAULT_PORT : 8000`  
+The configuration above is for usage with the django development server (not for production use!).
+
+
 ### Extending or customizing the yum-repo-client
