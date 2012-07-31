@@ -32,7 +32,7 @@ _repocomplete()
     [[ "$COMP_CWORD" -gt "2" ]] && prevprevprev="${COMP_WORDS[COMP_CWORD-3]}"  
 
     ### commands (options that can be used only once)
-    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate redirectto"
+    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate redirectto tag taglist"
     ### options that can appear anywhere
     opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
@@ -48,6 +48,18 @@ _repocomplete()
     ### check previous typed word and react accordingly
     case "${prev}" in
       propagate)
+         local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
+
+      tag)
+         local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
+
+      taglist)
          local matches=$(__getStaticRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
          return 0
@@ -99,6 +111,10 @@ _repocomplete()
          ;;
       *)  ### go one step further for commands taking two arguments
          case "${prevprev}" in
+            tag)
+               COMPREPLY="'my tag'"
+               return 0
+               ;;
             propagate)
                COMPREPLY="arch/name"
                return 0
