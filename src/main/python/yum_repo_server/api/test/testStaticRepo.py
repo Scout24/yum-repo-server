@@ -5,7 +5,6 @@ from yum_repo_client.repoclient import RepoException
 from yum_repo_client.repoclient import HttpClient 
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
-import httplib2
 from yum_repo_server.settings import REPO_CONFIG
 
 
