@@ -33,12 +33,6 @@ class TestTagRepo(BaseIntegrationTestCase):
         self.assertTrue(tag in read_tags)
 
    
-    def test_tag_repo_creates_tags_dir(self):
-        reponame=self.createNewRepoAndAssertValid()
-        post_data="tag=tag_"+reponame
-        self.doHttpPost(Constants.HTTP_PATH_STATIC+"/"+reponame+"/tags/",post_data)
-        self.assertTrue(os.path.exists(self.config.getTagsDirForStaticRepo(reponame)))
-
     def test_tag_repo_writes_tag(self):
         reponame=self.createNewRepoAndAssertValid()
         tag="tag_"+reponame

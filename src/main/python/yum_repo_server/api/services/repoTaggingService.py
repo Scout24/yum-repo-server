@@ -17,9 +17,6 @@ class RepoTaggingService(object):
       if not os.path.exists(repo):
         raise IsNotAStaticRepoException()
       tagpath = self.config.getTagsFileForStaticRepo(static_reponame)
-      tagdir = self.config.getTagsDirForStaticRepo(static_reponame)
-      if not os.path.exists(tagdir):
-        os.mkdir(tagdir)
 
       lock = lockfile.FileLock("static_reponame")
       while not lock.i_am_locking():
