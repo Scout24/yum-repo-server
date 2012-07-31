@@ -39,7 +39,7 @@ class RepoTaggingService(object):
           return ""
        f = open(filepath, "r")
        try:
-           tags = f.read().split('\n')
+           tags = set(f.read().split('\n'))
        finally:
            f.close()
        return tags
