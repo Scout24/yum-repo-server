@@ -1,3 +1,4 @@
+import string
 from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
@@ -48,9 +49,9 @@ class RepoTaggingHandler(BaseHandler):
 
     # handle GET requests
     def read(self, request, repodir):
-      body = self.repoTaggingService.getTags(repodir)
+      tags = self.repoTaggingService.getTags(repodir)
       response = rc.ALL_OK
-      response.content = body
+      response.content = string.join(tags, '\n')
       return response
             
 
