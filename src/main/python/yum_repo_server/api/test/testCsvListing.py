@@ -2,6 +2,8 @@ import httplib
 import unittest
 import os
 import shutil
+import datetime
+import time
 from yum_repo_client.repoclient import RepoException
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
@@ -57,11 +59,40 @@ class TestCsvListing(BaseIntegrationTestCase):
     def test_filter_by_tags_exclusive(self):
         repo1 = self.createNewRepoAndAssertValid()
         self.repoclient().tagRepo(repo1, "atag")
+        self.repoclient().tagRepo(repo1, "atag2")
         repo2 = self.createNewRepoAndAssertValid()
         self.repoclient().tagRepo(repo2, "atag")
-        self.repoclient().tagRepo(repo2, "atag2")
+
         response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?notag=atag2")
+        self.assertEqual(repo2 + "\n", response.read())
+
+    def test_filter_by_older_then(self):
+        repo1 = self.createNewRepoAndAssertValid()
+        repo2 = self.createNewRepoAndAssertValid()
+        configService = RepoConfigService()
+        repo2dir = configService.getStaticRepoDir(repo2)
+
+        self.set_mtime(repo2dir)
+
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?older=5")
+        self.assertEqual(repo2 + "\n", response.read())
+
+    def test_filter_by_newer_then(self):
+        repo1 = self.createNewRepoAndAssertValid()
+        repo2 = self.createNewRepoAndAssertValid()
+        configService = RepoConfigService()
+        repo2dir = configService.getStaticRepoDir(repo2)
+
+        self.set_mtime(repo2dir)
+
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?newer=5")
         self.assertEqual(repo1 + "\n", response.read())
+
+    def set_mtime(self, path):
+        today = datetime.datetime.now()
+        pastday = today - datetime.timedelta(days=11)
+        atime = int(time.mktime(pastday.timetuple()))
+        os.utime(path, (atime, atime))
 
 if __name__ == '__main__':
     unittest.main()

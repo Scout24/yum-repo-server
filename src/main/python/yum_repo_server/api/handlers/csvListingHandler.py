@@ -1,5 +1,7 @@
 import os
 import re
+import datetime
+import time
 
 from piston.handler import BaseHandler
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
@@ -52,4 +54,18 @@ class CsvListingHandler(BaseHandler):
             taggingService = RepoTaggingService()
             repos = filter(lambda d: len(forbiddentags.intersection(taggingService.getTags(d))) == 0, repos)
 
+        if 'older' in request.GET:
+            pastTime = self.get_past_time(int(request.GET['older']))
+            configService = RepoConfigService()
+            repos = filter(lambda d: os.stat(configService.getStaticRepoDir(d)).st_mtime < pastTime, repos)
+
+        if 'newer' in request.GET:
+            pastTime = self.get_past_time(int(request.GET['newer']))
+            configService = RepoConfigService()
+            repos = filter(lambda d: os.stat(configService.getStaticRepoDir(d)).st_mtime > pastTime, repos)
+
         return repos
+
+    def get_past_time(self, days):
+        pastDay = datetime.datetime.now() - datetime.timedelta(days=days)
+        return int(time.mktime(pastDay.timetuple()))
