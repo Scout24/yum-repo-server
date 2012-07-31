@@ -12,6 +12,11 @@ class TestTagRepo(BaseIntegrationTestCase):
     config=RepoConfigService()
 
 
+    def test_tag_repo_fails_with_no_tag_in_postdata(self):
+        reponame=self.createNewRepoAndAssertValid()
+        response = self.doHttpPost(Constants.HTTP_PATH_STATIC+"/"+reponame+"/tags/","hello world how are you today")
+        self.assertTrue(response.status, httplib.BAD_REQUEST)
+        
     def test_tag_repo_ok(self):
         reponame=self.createNewRepoAndAssertValid()
         post_data="tag=tag_"+reponame
