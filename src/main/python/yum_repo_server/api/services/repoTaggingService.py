@@ -41,3 +41,13 @@ class RepoTaggingService(object):
         lock.release()
         logging.info("Lock released")
       return "Tagged OK"
+
+    def getTags(self,static_reponame):
+       filepath=self.config.getTagsFileForStaticRepo(static_reponame)
+       if not os.path.exists(filepath):
+          return ""
+       f = open(filepath, "r")
+       tags = f.read()
+       f.close()
+       return tags
+

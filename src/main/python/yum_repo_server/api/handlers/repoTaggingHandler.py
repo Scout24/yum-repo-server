@@ -48,7 +48,10 @@ class RepoTaggingHandler(BaseHandler):
 
     # handle GET requests
     def read(self, request, repodir):
-      return "In arbeit..."
+      body = self.repoTaggingService.getTags(repodir)
+      response = rc.ALL_OK
+      response.content = body
+      return response
             
 
 
