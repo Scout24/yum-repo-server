@@ -12,6 +12,8 @@ from django.core.files.uploadedfile import TemporaryUploadedFile
 from piston.handler import BaseHandler
 from piston.utils import rc
 import logging
+import shutil
+from yum_repo_server.settings import REPO_CONFIG
 
 class StaticRepoHandler(BaseHandler):
     
@@ -34,6 +36,22 @@ class StaticRepoHandler(BaseHandler):
             return rc.BAD_REQUEST
 
         return rc.CREATED
+    
+    def delete(self, request, reponame):
+        if not REPO_CONFIG.has_key('static_repo_deletable') or REPO_CONFIG['static_repo_deletable'] == False:
+            return rc.BAD_REQUEST
+        
+        if '/' in reponame:
+            return self._bad_request('slashes are not allowed within reponame')
+        if '.' == reponame or '..' == reponame:
+            return self._bad_request('bad reponame')
+        
+        repo_path = self.repoConfigService.getStaticRepoDir(reponame)
+        if not os.path.exists(repo_path):
+            return rc.NOT_FOUND
+        
+        shutil.rmtree(repo_path)
+        return rc.DELETED
     
     def read(self, request, reponame):
         return serve(request, reponame, self.repoConfigService.getStaticRepoDir(), True)
@@ -62,3 +80,7 @@ class StaticRepoHandler(BaseHandler):
     def _get_time_stamp(self):
         return str(int(round(time.time() * 1000)))
 
+    def _bad_request(self, message):
+        response = rc.BAD_REQUEST
+        response.content = message
+        return response
