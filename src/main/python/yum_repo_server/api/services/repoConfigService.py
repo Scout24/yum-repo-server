@@ -44,8 +44,12 @@ class RepoConfigService(object):
     METADATA_GENERATION_FILENAME = "metadata-generation.yaml"
     rpm_service = RpmService()
 
+    def getTagsDirForStaticRepo(self,static_reponame):
+        tagsDir = os.path.join(self.getStaticRepoDir(static_reponame),'tags')
+        return tagsDir
+
     def getTagsFileForStaticRepo(self, static_reponame):
-        return os.path.join(self.getStaticRepoDir(static_reponame),'tags.yaml')
+        return os.path.join(self.getTagsDirForStaticRepo(static_reponame),'tags.yaml')
 
     def getMetaDataGenerationFilePathRelativeToRepoDirByRepoName(self, static_reponame):
         return self.getStaticRepoDir() + '/' + static_reponame + '/' + self.METADATA_GENERATION_FILENAME
