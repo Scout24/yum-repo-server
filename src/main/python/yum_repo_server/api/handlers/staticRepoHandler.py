@@ -1,45 +1,64 @@
+import yum_repo_server
 import os
-
-from piston.handler import BaseHandler
+import time
+import sys
+import uuid
+from yum_repo_server.rpm.rpmfile import RpmFileHandler
+from yum_repo_server.rpm.rpmfile import RpmFileException
+from yum_repo_server.rpm.rpmfile import RpmValidationException
 from yum_repo_server.static import serve
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from django.core.files.uploadedfile import TemporaryUploadedFile 
+from piston.handler import BaseHandler
 from piston.utils import rc
+import logging
 
 class StaticRepoHandler(BaseHandler):
+    
+    repoConfigService = RepoConfigService()
+    TEMP_DIR = yum_repo_server.settings.REPO_CONFIG['TEMP_DIR']
 
-    config = RepoConfigService()
-
-    def read(self, request, reponame, arch, rpm):
-        rpm_path = os.path.join(reponame, arch, rpm)
-        return serve(request, rpm_path, self.config.getStaticRepoDir(), True, False, False)
-
-    def delete(self, request, reponame, arch, rpm):
-        path_variables = reponame + arch + rpm
-        if '/' in path_variables or '..' in path_variables:
-            return self._bad_request('')
+    def create(self, request, reponame):
+        tempFilename = self._save_as_temp_file(request)
+        logging.info('Saved uploaded rpm to ' + tempFilename)
         
-        repository_path = self.config.getStaticRepoDir(reponame)
-        if not os.path.isdir(repository_path):
-            return rc.NOT_FOUND
-        
-        rpm_path = os.path.join(repository_path, arch, rpm)
-        
-        if not rpm_path.endswith('.rpm'):
-            return self._bad_request('rpm name has to end with .rpm')
+        repoPath = self.repoConfigService.getStaticRepoDir(reponame)
+        try:
+            rpmFileHandler = RpmFileHandler(tempFilename)
+            rpmFileHandler.assert_valid()
+            rpmFileHandler.move_to_canonical_name(repoPath)
+        except (RpmFileException, RpmValidationException) as e:
+            sys.stderr.write("ERROR validating %s: %s\n" % (tempFilename, str(e)))
+            if os.path.exists(tempFilename):
+                os.remove(tempFilename)
+            return rc.BAD_REQUEST
 
-        if not os.path.isfile(rpm_path):
-            return rc.NOT_FOUND
-        
-        os.remove(rpm_path)
-        return rc.DELETED
+        return rc.CREATED
+    
+    def read(self, request, reponame):
+        return serve(request, reponame, self.repoConfigService.getStaticRepoDir(), True)
 
-    def create(self, request, path):
-        return rc.BAD_REQUEST
+    def _save_as_temp_file(self, request):
+        request_file = request.FILES["rpmFile"]
 
-    def update(self, request, path):
-        return rc.BAD_REQUEST
+        if not os.path.isdir(self.TEMP_DIR):
+            os.makedirs(self.TEMP_DIR)
+            
+        # optimize: if the uploaded is already a TemporaryUploadedFile, we can reuse this file
+        if isinstance(request_file, TemporaryUploadedFile) and os.path.exists(request_file.temporary_file_path()):
+            return request_file.temporary_file_path()
 
-    def _bad_request(self, message):
-        response = rc.BAD_REQUEST
-        response.write(message)
-        return response
+        path = self.TEMP_DIR + '/' + self._get_time_stamp() + '.' + str(uuid.uuid4())
+
+        targetFile = open(path, 'wb+')
+        try:
+            for chunk in request_file.chunks():
+                targetFile.write(chunk)
+        finally:
+            targetFile.close()
+
+        return path
+
+    def _get_time_stamp(self):
+        return str(int(round(time.time() * 1000)))
+
