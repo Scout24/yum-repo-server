@@ -38,8 +38,12 @@ class TestCsvListing(BaseIntegrationTestCase):
         self.assertTrue(reponame in response.read())
         shutil.rmtree(virtualRepoPath)
     
-    
-
+    def test_filter_by_name(self):
+        self.createNewRepoAndAssertValid()
+        reponame = 'some-app-321.1.1-' + unique_repo_name()
+        self.repoclient().createStaticRepo(reponame)
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?name=some-app-.*")
+        self.assertEqual(reponame + "\n", response.read())
     
    
 if __name__ == '__main__':
