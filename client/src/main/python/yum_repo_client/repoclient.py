@@ -32,6 +32,11 @@ class HttpClient(object):
         response = self.doHttpPost('/repo/', "name=" + reponame)
         self.assertResponse(response, httplib.CREATED)
         return response
+    
+    def delete_static_repo(self, reponame):
+        response = self.doHttpDelete('/repo/%s' % reponame)
+        self.assertResponse(response, httplib.NO_CONTENT)
+        return response
 
     def tagRepo(self,reponame,tag):
         response = self.doHttpPost('/repo/'+reponame+'/tags/',"tag="+tag)

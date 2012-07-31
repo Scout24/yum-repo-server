@@ -5,6 +5,8 @@ from yum_repo_client.repoclient import RepoException
 from yum_repo_client.repoclient import HttpClient 
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
+import httplib2
+from yum_repo_server.settings import REPO_CONFIG
 
 
 class TestStaticRepo(BaseIntegrationTestCase):
@@ -56,6 +58,45 @@ class TestStaticRepo(BaseIntegrationTestCase):
         self.assertEqual(msg, expected,
             "Response for duplicate repo name must be " + Constants.API_MSG_DUPLICATE_PREFIX + reponame + Constants.API_MSG_DUPLICATE_SUFFIX)
 
+    def test_delete_repo_returns_bad_request_when_switch_is_false(self):
+        REPO_CONFIG['static_repo_deletable'] = False
+        reponame = unique_repo_name()
+        
+        self.repoclient().createStaticRepo(reponame)
+        response = self.repoclient().doHttpDelete('/repo/%s' % reponame)
+        self.assertEqual(httplib.BAD_REQUEST, response.status)
+
+    def test_delete_repo(self):
+        REPO_CONFIG['static_repo_deletable'] = True
+        reponame = unique_repo_name()
+        
+        self.repoclient().createStaticRepo(reponame)
+        self.repoclient().delete_static_repo(reponame)
+        
+        response = self.helper.do_http_get('/repo/%s' % reponame)
+        self.assertEqual(httplib.NOT_FOUND, response.status)
+        
+    def test_delete_not_existing_repo(self):
+        REPO_CONFIG['static_repo_deletable'] = True
+        response = self.repoclient().doHttpDelete('/repo/i_should_not_exist')
+        self.assertEqual(httplib.NOT_FOUND, response.status)
+        
+    def test_delete_returns_bad_request_when_a_reponame_with_slash_is_given(self):
+        REPO_CONFIG['static_repo_deletable'] = True
+        response = self.repoclient().doHttpDelete('/repo/bad/repo/name')
+        self.assertEqual(httplib.BAD_REQUEST, response.status)
+        
+    def test_delete_returns_bad_request_when_reponame_is_parent_dir(self):
+        REPO_CONFIG['static_repo_deletable'] = True
+        # try to delete all repositories.
+        response = self.repoclient().doHttpDelete('/repo/..')
+        self.assertEqual(httplib.BAD_REQUEST, response.status)
+
+    def test_delete_returns_bad_request_when_reponame_is_dot(self):
+        REPO_CONFIG['static_repo_deletable'] = True
+        # try to delete all repositories.
+        response = self.repoclient().doHttpDelete('/repo/.')
+        self.assertEqual(httplib.BAD_REQUEST, response.status)
 
     def test_upload_rpm_to_repo(self):
         repo_name = self.createNewRepoAndAssertValid()

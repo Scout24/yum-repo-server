@@ -18,14 +18,15 @@ class RpmHandler(BaseHandler):
         if '/' in path_variables or '..' in path_variables:
             return self._bad_request('')
         
+        if not rpm.endswith('.rpm'):
+            return self._bad_request('rpm name has to end with .rpm')
+        
         repository_path = self.config.getStaticRepoDir(reponame)
         if not os.path.isdir(repository_path):
             return rc.NOT_FOUND
         
         rpm_path = os.path.join(repository_path, arch, rpm)
         
-        if not rpm_path.endswith('.rpm'):
-            return self._bad_request('rpm name has to end with .rpm')
 
         if not os.path.isfile(rpm_path):
             return rc.NOT_FOUND
