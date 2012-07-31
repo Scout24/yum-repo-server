@@ -8,7 +8,8 @@ from yum_repo_server.api.handlers.virtualRepoHandler import VirtualRepoHandler
 from yum_repo_server.api.handlers.virtualRepoConfigHandler import VirtualRepoConfigHandler
 from yum_repo_server.api.handlers.staticRepoHandler import StaticRepoHandler
 from yum_repo_server.api.handlers.csvListingHandler import CsvListingHandler
-from yum_repo_server.api.handlers.RepositoryViewerHandler import RepositoryViewerHandler
+from yum_repo_server.api.handlers.repositoryViewerHandler import RepositoryViewerHandler
+from yum_repo_server.api.handlers.repoTaggingHandler import RepoTaggingHandler
 
 
 
@@ -26,9 +27,11 @@ repoConfigHandler = Resource(handler=VirtualRepoConfigHandler)
 staticRepoResource = Resource(handler=StaticRepoHandler)
 repoCsvListingResource = Resource(handler=CsvListingHandler)
 repositoryViewerResource = Resource(handler=RepositoryViewerHandler)
+repoTaggingResource = Resource(handler=RepoTaggingHandler)
 
 urlpatterns = patterns('',
     url(r'^(?P<repodir>[a-zA-Z0-9-.]+)\.txt',repoCsvListingResource),
+    url(r'^(?P<repodir>[a-zA-Z0-9-.]+)/tags/',repoTaggingResource),
     url(r'^(/?)$', createYumRepoResource),
     url(r'^virtual(/)?$', createYumRepoAliasResource),
     url(r'^virtual/(?P<reponame>[a-zA-Z0-9-.]+)\.json', repoConfigHandler),
