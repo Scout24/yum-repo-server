@@ -5,3 +5,4 @@ dist
 target
 *.pyc
 *.egg-info
+*.iml

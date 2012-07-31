@@ -1,8 +1,7 @@
-import string
 import os
+import re
 
 from piston.handler import BaseHandler
-from yum_repo_server.static import serve
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from piston.utils import rc
 
@@ -27,6 +26,7 @@ class CsvListingHandler(BaseHandler):
                 return respose       
             if os.path.exists(dir) and os.path.isdir(dir):     
                 repos = os.listdir(dir)
+                repos = self.filter(request, repos)
                 for repo in repos:
                     response.write(repo)
                     response.write("\n")
@@ -35,3 +35,10 @@ class CsvListingHandler(BaseHandler):
             response.write("""
             You are not allowed to look into %s"""%repodir)
         return response
+
+    def filter(self, request, repos):
+        if 'name' in request.GET:
+            pattern = re.compile(request.GET['name'])
+            repos = filter(lambda d: pattern.match(d), repos)
+
+        return repos
