@@ -5,6 +5,7 @@ from test.testCleanup import TestCleanup
 from test.testCreateRepo import TestCreateRepo
 from test.testRpmFile import TestStaticRepo
 from test.testScheduler import TestScheduler
+from test.testTagRepo import TestTagRepo
 from test.testStaticRepo import TestStaticRepo
 from test.testUpload import TestLegacyUpload
 from test.testCsvListing import TestCsvListing
