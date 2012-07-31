@@ -38,7 +38,9 @@ class RepoTaggingService(object):
        if not os.path.exists(filepath):
           return ""
        f = open(filepath, "r")
-       tags = f.read()
-       f.close()
+       try:
+           tags = set(f.read().split('\n'))
+       finally:
+           f.close()
        return tags
 
