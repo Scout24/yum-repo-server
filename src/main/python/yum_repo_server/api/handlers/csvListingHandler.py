@@ -47,4 +47,9 @@ class CsvListingHandler(BaseHandler):
             taggingService = RepoTaggingService()
             repos = filter(lambda d: len(tags.intersection(taggingService.getTags(d))) > 0, repos)
 
+        if 'notag' in request.GET:
+            forbiddentags = set(request.GET['notag'].split(','))
+            taggingService = RepoTaggingService()
+            repos = filter(lambda d: len(forbiddentags.intersection(taggingService.getTags(d))) == 0, repos)
+
         return repos
