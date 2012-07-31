@@ -92,6 +92,17 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         except httplib.HTTPException:
             print "ERROR! Looks like the server is not running on " + self.live_server_host
             exit
+    def doHttpGet(self, extPath, headers = {}):
+        try:
+            httpServ = httplib.HTTPConnection(self.live_server_host, self.live_server_port)
+            httpServ.connect()
+            httpServ.request('GET', extPath, None, headers)
+            response = httpServ.getresponse()
+            httpServ.close()
+            return response
+        except httplib.HTTPException:
+            print "ERROR! Looks like the server is not running on " + self.live_server_host
+            exit
         
     #### utility methods ####
     def cleanupDirectory(self, cleanupPath):

@@ -1,4 +1,3 @@
-import string
 import os
 
 from piston.handler import BaseHandler
@@ -10,25 +9,28 @@ class StaticRepoHandler(BaseHandler):
 
     config = RepoConfigService()
 
-    def read(self, request, path):
-        return serve(request, path, self.config.getStaticRepoDir(), True, False, False)
+    def read(self, request, reponame, arch, rpm):
+        rpm_path = os.path.join(reponame, arch, rpm)
+        return serve(request, rpm_path, self.config.getStaticRepoDir(), True, False, False)
 
-    def delete(self, request, path):
-        if '../' in path:
-            return self.badRequest('../ in path not allowed')
-        parts = path.split('/')
-        reponame = parts[0]
-        rpm = string.join(parts[1:], '/')
-        if not rpm.endswith('.rpm'):
-            return self.badRequest('rpm name has to end with .rpm')
+    def delete(self, request, reponame, arch, rpm):
+        path_variables = reponame + arch + rpm
+        if '/' in path_variables or '..' in path_variables:
+            return self._bad_request('')
+        
+        repository_path = self.config.getStaticRepoDir(reponame)
+        if not os.path.isdir(repository_path):
+            return rc.NOT_FOUND
+        
+        rpm_path = os.path.join(repository_path, arch, rpm)
+        
+        if not rpm_path.endswith('.rpm'):
+            return self._bad_request('rpm name has to end with .rpm')
 
-        repositoryPath = self.config.getStaticRepoDir(reponame)
-        if not os.path.isdir(repositoryPath):
+        if not os.path.isfile(rpm_path):
             return rc.NOT_FOUND
-        fullPathToRpm = os.path.join(repositoryPath, rpm)
-        if not os.path.isfile(fullPathToRpm):
-            return rc.NOT_FOUND
-        os.remove(fullPathToRpm)
+        
+        os.remove(rpm_path)
         return rc.DELETED
 
     def create(self, request, path):
@@ -37,7 +39,7 @@ class StaticRepoHandler(BaseHandler):
     def update(self, request, path):
         return rc.BAD_REQUEST
 
-    def badRequest(self, message):
+    def _bad_request(self, message):
         response = rc.BAD_REQUEST
         response.write(message)
         return response
