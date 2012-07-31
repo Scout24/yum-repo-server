@@ -17,12 +17,21 @@ class TestTagRepo(BaseIntegrationTestCase):
         response = self.doHttpPost(Constants.HTTP_PATH_STATIC+"/"+reponame+"/tags/","hello world how are you today")
         self.assertTrue(response.status, httplib.BAD_REQUEST)
         
-    def test_tag_repo_ok(self):
+    def test_tag_repo_post_ok(self):
         reponame=self.createNewRepoAndAssertValid()
         post_data="tag=tag_"+reponame
         response = self.doHttpPost(Constants.HTTP_PATH_STATIC+"/"+reponame+"/tags/",post_data)
         self.assertEquals(response.status, httplib.CREATED)
-        os.listdir(self.config.getStaticRepoDir(reponame))
+
+    def test_tag_repo_read_ok(self):
+        reponame=self.createNewRepoAndAssertValid()
+        tag="tag_"+reponame
+        post_data="tag="+tag
+        self.doHttpPost(Constants.HTTP_PATH_STATIC+"/"+reponame+"/tags/",post_data)
+        response = self.doHttpGet(Constants.HTTP_PATH_STATIC+"/"+reponame+"/tags/")
+        read_tags=response.read()
+        self.assertTrue(tag in read_tags)
+
    
     def test_tag_repo_creates_tags_dir(self):
         reponame=self.createNewRepoAndAssertValid()
