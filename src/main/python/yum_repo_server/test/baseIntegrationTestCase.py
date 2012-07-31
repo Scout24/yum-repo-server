@@ -108,10 +108,8 @@ class BaseIntegrationTestCase(LiveServerTestCase):
     def cleanupDirectory(self, cleanupPath):
         if os.path.exists(cleanupPath):
             dirList = os.listdir(cleanupPath)
-            testprefix = Constants.TESTREPO_PREFIX
 
             for fname in dirList:
                 fpath = cleanupPath + fname
                 if os.path.exists(fpath):
-                    if testprefix in fname:
-                        shutil.rmtree(fpath)
+                    shutil.rmtree(fpath)
