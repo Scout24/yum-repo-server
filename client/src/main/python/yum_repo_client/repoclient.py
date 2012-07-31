@@ -33,6 +33,16 @@ class HttpClient(object):
         self.assertResponse(response, httplib.CREATED)
         return response
 
+    def tagRepo(self,reponame,tag):
+        response = self.doHttpPost('/repo/'+reponame+'/tags/',"tag="+tag)
+        self.assertResponse(response,httplib.CREATED)
+        return response
+
+    def tagList(self,reponame):
+        response = self.doHttpGet('/repo/'+reponame+'/tags/')
+        self.assertResponse(response,httplib.OK)
+        return response
+
     def uploadRpm(self, reponame, rpm_file_name):
         c = pycurl.Curl()
         c.setopt(c.POST, 1)
@@ -112,6 +122,22 @@ class HttpClient(object):
         try:
             httpServ = httplib.HTTPConnection(self.hostname, self.port)
             httpServ.request('DELETE', extPath, None, headers)
+            response = httpServ.getresponse()
+            return response
+        except httplib.HTTPException:
+            print "ERROR! Looks like the server is not running on " + self.hostname
+            exit
+
+    def doHttpGet(self, extPath):
+        headers = {'User-Agent': self.USER_AGENT}
+        
+        if self.username is not None:
+            auth = 'Basic ' + string.strip(base64.encodestring(self.username + ':' + self.password))
+            headers['Authorization'] = auth
+        
+        try:
+            httpServ = httplib.HTTPConnection(self.hostname, self.port)
+            httpServ.request('GET', extPath, None, headers)
             response = httpServ.getresponse()
             return response
         except httplib.HTTPException:
@@ -272,9 +298,37 @@ class CommandLineClient(object):
             print e
             return 1
         
+    def tagList(self):
+        if len(self.arguments)<3:
+            print "ERROR : Please specify a repository name"
+            return self.showHelp()
+        reponame=self.arguments[2]
+        try:
+            response = self.httpClient.tagList(reponame)
+            print "***Tags for repository "+reponame+"***\n"
+            print response.read()
+            return 0
+        except Exception, e:
+            print e
+
+
+    def tag(self):
+        if len(self.arguments)<4:
+            print "ERROR: Please specify a repository name and a tag"
+            return self.showHelp()
+        reponame=self.arguments[2]
+        tag=self.arguments[3]
+
+        try:
+            self.httpClient.tagRepo(reponame,tag)
+            return 0
+        except Exception, e:
+            print e
+            return 1
+
     def deleteVirtualRepo(self):
         if len(self.arguments) < 3:
-            print "ERROR: Please specify a reponame."
+            print "ERROR: Please specify a repository name"
             return self.showHelp()
 
         reponame = self.arguments[2]
@@ -313,6 +367,8 @@ class CommandLineClient(object):
         redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
+        tag <repo> <tag> : Tags a repo with <tag>
+        taglist <repo> : Lists tags for <repo>
         
         --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
         --port=<port> : port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml
@@ -331,6 +387,8 @@ class CommandLineClient(object):
                 'deleterpm' : CommandLineClient.deleteRpms,
                 'propagate' : CommandLineClient.propagateRpm,
                 'redirectto' : CommandLineClient.redirectTo,
+                'tag' : CommandLineClient.tag,
+                'taglist' : CommandLineClient.tagList,
         }
 
 
