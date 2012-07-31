@@ -45,7 +45,7 @@ class RepoConfigService(object):
     rpm_service = RpmService()
 
     def getTagsFileForStaticRepo(self, static_reponame):
-        return os.path.join(self.getStaticRepoDir(static_reponame),'tags.yaml')
+        return os.path.join(self.getStaticRepoDir(static_reponame),'tags.txt')
 
     def getMetaDataGenerationFilePathRelativeToRepoDirByRepoName(self, static_reponame):
         return self.getStaticRepoDir() + '/' + static_reponame + '/' + self.METADATA_GENERATION_FILENAME
