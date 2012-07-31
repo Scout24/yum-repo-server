@@ -18,7 +18,7 @@ class RepoTaggingService(object):
         raise IsNotAStaticRepoException()
       tagpath = self.config.getTagsFileForStaticRepo(static_reponame)
 
-      lock = lockfile.FileLock("static_reponame")
+      lock = lockfile.FileLock(static_reponame)
       while not lock.i_am_locking():
         try:
           lock.acquire(timeout=15) #wait 15sec max
