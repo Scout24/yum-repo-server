@@ -4,6 +4,7 @@ import re
 from piston.handler import BaseHandler
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from piston.utils import rc
+from yum_repo_server.api.services.repoTaggingService import RepoTaggingService
 
 class CsvListingHandler(BaseHandler):
 
@@ -15,17 +16,17 @@ class CsvListingHandler(BaseHandler):
         if repodir in okToRead:
             response = rc.ALL_OK       
             response.content=""
-            dir = None
+            rootDir = None
             if repodir=='':
-                dir=self.config.getStaticRepoDir()
+                rootDir=self.config.getStaticRepoDir()
             if repodir=='virtual':
-                dir=self.config.getVirtualRepoDir()
-            if not dir :
+                rootDir=self.config.getVirtualRepoDir()
+            if not rootDir :
                 response=rc.BAD_REQUEST
                 response.write("")
                 return respose       
-            if os.path.exists(dir) and os.path.isdir(dir):     
-                repos = os.listdir(dir)
+            if os.path.exists(rootDir) and os.path.isdir(rootDir):
+                repos = os.listdir(rootDir)
                 repos = self.filter(request, repos)
                 for repo in repos:
                     response.write(repo)
@@ -40,5 +41,10 @@ class CsvListingHandler(BaseHandler):
         if 'name' in request.GET:
             pattern = re.compile(request.GET['name'])
             repos = filter(lambda d: pattern.match(d), repos)
+
+        if 'tag' in request.GET:
+            tags = set(request.GET['tag'].split(','))
+            taggingService = RepoTaggingService()
+            repos = filter(lambda d: len(tags.intersection(taggingService.getTags(d))) > 0, repos)
 
         return repos

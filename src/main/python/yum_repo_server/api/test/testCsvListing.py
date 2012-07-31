@@ -45,7 +45,16 @@ class TestCsvListing(BaseIntegrationTestCase):
         response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?name=some-app-.*")
         self.assertEqual(reponame + "\n", response.read())
     
-   
+    def test_filter_by_tags_inclusive(self):
+        repo1 = self.createNewRepoAndAssertValid()
+        self.repoclient().tagRepo(repo1, "atag")
+        repo2 = self.createNewRepoAndAssertValid()
+        self.repoclient().tagRepo(repo2, "atag")
+        self.repoclient().tagRepo(repo2, "atag2")
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?tag=atag2,btag")
+        self.assertEqual(repo2 + "\n", response.read())
+
+
 if __name__ == '__main__':
     unittest.main()
 
