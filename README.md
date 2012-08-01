@@ -117,6 +117,8 @@ for virtual repos:
 <code>
 http://myyum-repo-server/repo/virtual.txt
 </code>
+Optionally you can get the destination for virtual repositories with the showDestination parameter. If set to true the list will contain entries with the following pattern: <code>repo_name:destination</code>. The destination is the path to the static repository or it could also be a url to an external repository.
+
 To filter the list you have several url parameters:
  * Filter by name regex: <code>http://myyum-repo-server/repo.txt?name=any_regex.*</code>
  * Filter by tags: <code>http://myyum-repo-server/repo.txt?tag=tag1,tag2</code> This will retrieve all repositories marked with tag1 or tag2.
