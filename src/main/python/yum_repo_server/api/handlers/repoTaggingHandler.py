@@ -2,7 +2,7 @@ import string
 from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
-from yum_repo_server.api.services.repoTaggingService import RepoTaggingService,CouldNotLockTagsException
+from yum_repo_server.api.services.repoTaggingService import RepoTaggingService,CouldNotLockTagsException,NotFoundException
 
 
 class RequestFailException(Exception):
@@ -49,7 +49,12 @@ class RepoTaggingHandler(BaseHandler):
 
     # handle GET requests
     def read(self, request, repodir):
-      tags = self.repoTaggingService.getTags(repodir)
+      try:
+        tags = self.repoTaggingService.getTags(repodir)
+      except NotFoundException as e:
+        response=rc.NOT_FOUND
+        response.content="The repository '"+repodir+"' does not exist"
+        return response
       response = rc.ALL_OK
       response.content = string.join(tags, '\n')
       return response

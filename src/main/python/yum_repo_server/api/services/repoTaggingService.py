@@ -8,6 +8,9 @@ class IsNotAStaticRepoException(Exception):
 class CouldNotLockTagsException(Exception):
   pass
 
+class NotFoundException(Exception):
+  pass
+
 class RepoTaggingService(object):
     config=RepoConfigService()
 
@@ -37,11 +40,12 @@ class RepoTaggingService(object):
     def getTags(self,static_reponame):
        filepath=self.config.getTagsFileForStaticRepo(static_reponame)
        if not os.path.exists(filepath):
-          return ""
+          raise NotFoundException()
        f = open(filepath, "r")
        try:
            tags = set(f.read().split('\n'))
        finally:
            f.close()
+       tags.remove('')
        return tags
 
