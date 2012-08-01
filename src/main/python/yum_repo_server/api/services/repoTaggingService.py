@@ -42,7 +42,7 @@ class RepoTaggingService(object):
        if not os.path.exists(self.config.getStaticRepoDir(static_reponame)):
           raise NotFoundException()
        if not os.path.exists(filepath):
-          return ""
+          return set()
        f = open(filepath, "r")
        try:
            tags = set(f.read().split('\n'))
