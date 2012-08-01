@@ -112,9 +112,9 @@ def directory_index(path, fullpath, add_virtual = False, show_virtuals = False):
             unsorted_files.append(FileInfo(f, fullpath))
             
     if add_virtual:
-	virtual_repodir = RepoConfigService().getVirtualRepoDir()
+        virtual_repodir = RepoConfigService().getVirtualRepoDir()
         repodir=os.path.join(virtual_repodir,os.path.pardir)
-	relative_virtualdir=os.path.basename(os.path.normpath(virtual_repodir))
+        relative_virtualdir=os.path.basename(os.path.normpath(virtual_repodir))
         file_info = FileInfo(relative_virtualdir, repodir)
         if os.path.exists(file_info.fullpath):
             unsorted_files.append(file_info)
