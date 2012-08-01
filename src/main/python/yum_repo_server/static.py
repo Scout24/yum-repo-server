@@ -101,11 +101,9 @@ class FileInfo(object):
                     return fileType[1:]
             
             return 'unknown'
-                
 
-def directory_index(path, fullpath, add_virtual = False, show_virtuals = False):
-    t = loader.select_template(['static/directory_index.html',
-           'static/directory_index'])
+def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, show_tags = False):
+    t = loader.select_template(['static/directory_index.html', 'static/directory_index'])
     unsorted_files = []
     for f in os.listdir(fullpath):
         if not f.startswith('.'):
