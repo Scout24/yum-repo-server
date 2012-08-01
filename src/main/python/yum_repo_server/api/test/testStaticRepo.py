@@ -80,6 +80,15 @@ class TestStaticRepo(BaseIntegrationTestCase):
         response = self.repoclient().doHttpDelete('/repo/i_should_not_exist')
         self.assertEqual(httplib.NOT_FOUND, response.status)
         
+    def test_delete_not_deletable_repository(self):
+        REPO_CONFIG['static_repo_deletable'] = True
+        REPO_CONFIG['NON_DELETABLE_REPOSITORIES'] = 'src/test/resources/non-deletable-repositories'
+        
+        self.repoclient().createStaticRepo('not_deletable')
+        
+        response = self.repoclient().doHttpDelete('/repo/not_deletable')
+        self.assertEqual(httplib.BAD_REQUEST, response.status)
+        
     def test_delete_returns_bad_request_when_a_reponame_with_slash_is_given(self):
         REPO_CONFIG['static_repo_deletable'] = True
         response = self.repoclient().doHttpDelete('/repo/bad/repo/name')

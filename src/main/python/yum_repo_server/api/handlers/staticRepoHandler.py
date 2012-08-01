@@ -14,6 +14,7 @@ from piston.utils import rc
 import logging
 import shutil
 from yum_repo_server.settings import REPO_CONFIG
+from yum_repo_server.api.config import get_non_deletable_repositories
 
 class StaticRepoHandler(BaseHandler):
     
@@ -42,13 +43,17 @@ class StaticRepoHandler(BaseHandler):
             return rc.BAD_REQUEST
         
         if '/' in reponame:
-            return self._bad_request('slashes are not allowed within reponame')
+            return self._bad_request('slashes are not allowed within the repository name')
         if '.' == reponame or '..' == reponame:
-            return self._bad_request('bad reponame')
+            return self._bad_request('bad repository name')
         
         repo_path = self.repoConfigService.getStaticRepoDir(reponame)
         if not os.path.exists(repo_path):
             return rc.NOT_FOUND
+
+        not_deletable_respos = get_non_deletable_repositories()
+        if reponame in not_deletable_respos:
+            return self._bad_request('repository can not be deleted')
         
         shutil.rmtree(repo_path)
         return rc.DELETED
