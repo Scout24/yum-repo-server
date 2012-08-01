@@ -186,14 +186,12 @@ class CommandLineClient(object):
     operations = {}
     arguments = []
     options = {}
-    params = {}
 
 
     def __init__(self, arguments):
         self.arguments = arguments
         
         self.options = CommandLineClientOptionsExtractor()
-        self.params = CommandLineClientOptionsExtractor()
         self.options.extract_and_remove_options_from_arguments(self.arguments)
         
         self.httpClient = HttpClient(hostname=self.options.hostname, port=self.options.port)
