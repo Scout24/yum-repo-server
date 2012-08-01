@@ -60,7 +60,7 @@ class YumRepoAliasHandler(BaseHandler):
 
     # handle GET requests
     def read(self, request, text):
-        return serve(request=request, path='/virtual/', document_root=config.get_repo_dir(), show_indexes=True, show_virtuals=True)
+        return serve(request=request, path='/virtual/', document_root=config.get_repo_dir(), show_indexes=True, show_virtuals=True, show_tags = True)
             
 
 
