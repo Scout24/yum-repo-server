@@ -14,6 +14,7 @@ class RepoTaggingService(object):
 
     def tagRepo(self, static_reponame, tag):
       repo = self.config.getStaticRepoDir(static_reponame)
+      tag_encoded=tag.encode('utf-8')
       if not os.path.exists(repo):
         raise IsNotAStaticRepoException()
       tagpath = self.config.getTagsFileForStaticRepo(static_reponame)
@@ -26,7 +27,7 @@ class RepoTaggingService(object):
           raise CouldNotLogTagsException()
       try:  
         fileHandle=open(tagpath,'a')
-        fileHandle.write(tag)
+        fileHandle.write(tag_encoded)
         fileHandle.write('\n')
         fileHandle.close()
       finally:              
