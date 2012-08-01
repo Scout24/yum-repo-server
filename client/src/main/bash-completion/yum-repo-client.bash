@@ -32,7 +32,7 @@ _repocomplete()
     [[ "$COMP_CWORD" -gt "2" ]] && prevprevprev="${COMP_WORDS[COMP_CWORD-3]}"  
 
     ### commands (options that can be used only once)
-    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate redirectto tag taglist"
+    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate redirectto tag taglist querystatic queryvirtual"
     ### options that can appear anywhere
     opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
@@ -47,6 +47,11 @@ _repocomplete()
 
     ### check previous typed word and react accordingly
     case "${prev}" in
+       
+      @(-)!(-)*) #starts with a - (but only one minus, not two (or more)) -> user input expected, no autocompletion
+        return 0
+        ;;
+
       propagate)
          local matches=$(__getStaticRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
@@ -143,6 +148,22 @@ _repocomplete()
          esac
          ;;
       esac
+
+    #We need an 'extrawurst' for queries because parameter combinations are allowed
+    local snd=${COMP_WORDS[1]} #first option given (after 'repoclient')
+    if [ "$snd" = "querystatic" ]
+    then
+      local matches="-name -tag -notag -newer -older"
+      COMPREPLY=( $(compgen -W "${matches} ${opts}" -- ${cur}) )
+      return 0
+    fi
+      
+    if [ "$snd" = "queryvirtual" ]
+    then
+      local matches="-name -newer -older -showDestination"
+      COMPREPLY=( $(compgen -W "${matches} ${opts}" -- ${cur}) )
+      return 0
+    fi
 
    ### autocomplete options or commands if nothing was passed yet
    [[ "$COMP_CWORD" -eq "1" ]] && COMPREPLY=($(compgen -W "${oneshotopts}" -- ${cur})) #complete a command, options should appear only later
