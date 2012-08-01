@@ -26,7 +26,7 @@ class CsvListingHandler(BaseHandler):
             if not rootDir :
                 response=rc.BAD_REQUEST
                 response.write("")
-                return respose       
+                return response       
             if os.path.exists(rootDir) and os.path.isdir(rootDir):
                 repos = os.listdir(rootDir)
                 repos = self.filter(request, repos)
