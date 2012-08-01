@@ -63,7 +63,7 @@ This is handled by django and quite straightforward.
 A virtual repository does look exactly like a regular repository for consumers, but it is actually an empty repository that contains a YAML file named <code>repo.yaml</code>. The file contains an entry with a relative path to a regular repository, and requests to the virtual repository are rerouted to the regular one.
 
 ### Periodic metadata generation
-The metadata generation is located in a YAML file called `repo.yaml` that lives in the repository it describes.
+The metadata generation is located in a YAML file called `metadata-generation.yaml` that lives in the repository it describes.
 The file looks like this :  
 <code>
 generation_type : scheduled  
