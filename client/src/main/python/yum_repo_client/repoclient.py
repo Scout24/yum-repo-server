@@ -439,20 +439,20 @@ class CommandLineClient(object):
     
     Options:
         create <reponame>  : Creates a new empty repository on the server
-        uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
         deleterpm <reponame> <arch1>/<rpm1> ... <archN>/<rpmN> : Deletes rpms from the server
+        deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
+        deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
         generatemetadata <reponame> : Generates Yum Metadata for this repository
         linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
-        redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
-        deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
-        deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
         querystatic  [-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
         queryvirtual [-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories
-        tag <repo> <tag> : Tags a repo with <tag>
+        redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
         taglist <repo> : Lists tags for <repo>
-        
+        tag <repo> <tag> : Tags a repo with <tag>
+        uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
+
         --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
         --port=<port> : port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml
         --username=<username> : username to use basic authentication. You will be prompted for the password.
