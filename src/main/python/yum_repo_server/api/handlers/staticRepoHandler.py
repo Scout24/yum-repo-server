@@ -39,9 +39,6 @@ class StaticRepoHandler(BaseHandler):
         return rc.CREATED
     
     def delete(self, request, reponame):
-        if not REPO_CONFIG.has_key('static_repo_deletable') or REPO_CONFIG['static_repo_deletable'] == False:
-            return rc.BAD_REQUEST
-        
         if '/' in reponame:
             return self._bad_request('slashes are not allowed within the repository name')
         if '.' == reponame or '..' == reponame:
@@ -51,8 +48,7 @@ class StaticRepoHandler(BaseHandler):
         if not os.path.exists(repo_path):
             return rc.NOT_FOUND
 
-        not_deletable_respos = get_non_deletable_repositories()
-        if reponame in not_deletable_respos:
+        if reponame in get_non_deletable_repositories():
             return self._bad_request('repository can not be deleted')
         
         shutil.rmtree(repo_path)
