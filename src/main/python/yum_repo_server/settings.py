@@ -143,6 +143,7 @@ REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos',
                 'SCHEDULER_DAEMON_PIDFILE' : '/var/run/yum-repo-server/yum-repo-server.pid',
                 'SCHEDULER_DAEMON_LOGGING_CONF': '/etc/yum-repo-server/schedulerDaemonLogging.conf',
                 'SERVER_LOGGING_CONF': '/etc/yum-repo-server/serverLogging.conf',
+                'NON_DELETABLE_REPOSITORIES': '/etc/yum-repo-server/non-deletable-repositories',
                }
 
 # get config file
