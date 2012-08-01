@@ -40,6 +40,7 @@
               {% if f.isDir and show_virtuals %}
               <img class="virtualInfo" title="Virtual Repository: {{ f.filename }}" onclick="return false;" rel="{{ f.filename|urlencode }}.html" src="/static/images/icons/info.png" />
               {% endif %}
+              <span class="tags">{{ f.tags|join:" " }}</span>
             </span>
             <span class="size">{{ f.size|filesizeformat }}</span>
             <span class="mtime">&nbsp;{{ f.mtime }}</span>
