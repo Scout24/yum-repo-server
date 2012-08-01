@@ -85,6 +85,14 @@ li span.icon {
 	margin-right: 5px;
 }
 
+li span.tags {
+    display: inline;
+    float: none;
+    font-weight: normal;
+    font-size: 80%;
+    color: #cccccc;
+}
+
 li.head span {
 	text-align: center;
 	color: #AAA;
