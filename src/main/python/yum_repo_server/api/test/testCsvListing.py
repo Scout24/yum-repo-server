@@ -32,6 +32,12 @@ class TestCsvListing(BaseIntegrationTestCase):
         self.assertTrue(reponame in response.read())
         shutil.rmtree(self.config.getStaticRepoDir(reponame))
         
+    def test_static_listing_lists_repos_without_destination_url_when_parameter_is_given(self):
+        reponame = self.createNewRepoAndAssertValid()
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?showDestination=true")
+        response_text = response.read().strip()
+        self.assertEquals(reponame, response_text)
+        
     def test_virtual_listing_lists_repos(self):
         reponame = unique_repo_name()
         virtualRepoPath = self.config.getVirtualRepoDir()+reponame
