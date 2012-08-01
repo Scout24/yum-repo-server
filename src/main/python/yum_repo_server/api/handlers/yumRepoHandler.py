@@ -1,7 +1,7 @@
 from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
-from yum_repo_server.static import serve
+from yum_repo_server.static import serve, ParentDirType
 
 import re
 import os
@@ -48,7 +48,7 @@ class YumRepoHandler(BaseHandler):
 
     def read(self, request, text):
         static_path = self.repoConfigService.getStaticRepoDir()
-        return serve(request=request, path='/', document_root=static_path, show_indexes=True, show_virtuals=True, show_tags = True)
+        return serve(request, '/', static_path, True, True, ParentDirType.STATIC)
 
         
         
