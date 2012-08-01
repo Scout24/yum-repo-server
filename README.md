@@ -132,7 +132,7 @@ This is especially good for automations that can run command line tools because 
 
 ## Features
 The yum-repo-client currently supports
-* Remote repository creation
+* Remote repository creation and deletion
 * RPM upload and remote deletion
 * Virtual repository creation, linking, redirection and deletion
 * Optional authentication and yum-repo-server host parametrization
