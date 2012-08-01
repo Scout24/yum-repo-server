@@ -112,7 +112,7 @@ _repocomplete()
       *)  ### go one step further for commands taking two arguments
          case "${prevprev}" in
             tag)
-               COMPREPLY="'my tag'"
+               COMPREPLY="'my_tag'"
                return 0
                ;;
             propagate)

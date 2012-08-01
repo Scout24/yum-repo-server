@@ -3,7 +3,7 @@ from piston.utils import rc
 from yum_repo_server.api import config
 from yum_repo_server.api.services.repoConfigService import RepoConfigService, \
     RepoNotFoundException
-from yum_repo_server.static import serve
+from yum_repo_server.static import serve, ParentDirType
 
 
 class RequestFailException(Exception):
@@ -60,7 +60,7 @@ class YumRepoAliasHandler(BaseHandler):
 
     # handle GET requests
     def read(self, request, text):
-        return serve(request=request, path='/virtual/', document_root=config.get_repo_dir(), show_indexes=True, show_virtuals=True, show_tags = True)
+        return serve(request=request, path='/virtual/', document_root=config.get_repo_dir(), show_indexes=True, show_virtuals=True, parent_dir_type=ParentDirType.VIRTUAL)
             
 
 

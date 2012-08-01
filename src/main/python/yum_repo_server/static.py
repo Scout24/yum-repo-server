@@ -17,8 +17,14 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpRespons
 from django.template import loader, Context
 from django.utils.http import http_date, parse_http_date
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoTaggingService import RepoTaggingService
 
-def serve(request, path, document_root=None, show_indexes=False, add_virtual = False, show_virtuals=False):
+class ParentDirType(object):
+    NONE=0
+    STATIC=1
+    VIRTUAL=2
+
+def serve(request, path, document_root=None, show_indexes=False, add_virtual = False, show_virtuals=False, parent_dir_type = ParentDirType.NONE):
     """
     Serve static files below a given point in the directory structure.
 
@@ -53,7 +59,7 @@ def serve(request, path, document_root=None, show_indexes=False, add_virtual = F
             full_request_path = request.get_full_path()
             if not full_request_path.endswith('/'):
                 return HttpResponseRedirect(full_request_path + '/')
-            return directory_index(newpath, fullpath, add_virtual, show_virtuals)
+            return directory_index(path=newpath, fullpath=fullpath, add_virtual=add_virtual, show_virtuals=show_virtuals, parent_dir_type=parent_dir_type)
         raise Http404("Directory indexes are not allowed here.")
     if not os.path.exists(fullpath):
         raise Http404('"%s" does not exist' % fullpath)
@@ -74,12 +80,14 @@ def serve(request, path, document_root=None, show_indexes=False, add_virtual = F
 KWOWN_FILE_TYPES = ['.rpm', '.xml.gz', '.xml', '.sqlite.bz2']
 
 class FileInfo(object):
-    
+
+    taggingService = RepoTaggingService()
     filename = 'foo'
     fullpath = 'bar'
     isDir = False
+    tags = []
     
-    def __init__(self, filename, parentDir):
+    def __init__(self, filename, parentDir, parentDirType = ParentDirType.NONE):
         self.filename = filename
         self.fullpath = os.path.join(parentDir, filename)
         self.isDir = os.path.isdir(self.fullpath)
@@ -91,6 +99,9 @@ class FileInfo(object):
         self.mtime = time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(os.path.getctime(self.fullpath)))
         self.mimetype = self.getMimeType()
         self.isFile = not self.isDir
+        if parentDirType == ParentDirType.STATIC and filename != '':
+            print parentDir + ' foo ' + filename
+            self.tags = self.taggingService.getTags(filename)
             
     def getMimeType(self):
         if self.isDir:
@@ -102,12 +113,12 @@ class FileInfo(object):
             
             return 'unknown'
 
-def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, show_tags = False):
+def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, parent_dir_type = ParentDirType.NONE):
     t = loader.select_template(['static/directory_index.html', 'static/directory_index'])
     unsorted_files = []
     for f in os.listdir(fullpath):
         if not f.startswith('.'):
-            unsorted_files.append(FileInfo(f, fullpath))
+            unsorted_files.append(FileInfo(f, fullpath, parent_dir_type))
             
     if add_virtual:
         virtual_repodir = RepoConfigService().getVirtualRepoDir()
