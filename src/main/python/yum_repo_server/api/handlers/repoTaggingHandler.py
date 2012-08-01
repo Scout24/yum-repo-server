@@ -3,6 +3,7 @@ from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoTaggingService import RepoTaggingService,CouldNotLockTagsException,NotFoundException
+import re
 
 
 class RequestFailException(Exception):
@@ -44,7 +45,11 @@ class RepoTaggingHandler(BaseHandler):
             resp = rc.BAD_REQUEST
             resp.content = 'The tag attribute is missing'
             raise (RequestFailException(resp))
-        
+        pattern = re.compile(".*\s.*")
+        if pattern.match(tag):
+            resp = rc.BAD_REQUEST
+            resp.content = 'The tag attribute did not match the required pattern (no whitespace)'
+            raise (RequestFailException(resp))
         return tag
 
     # handle GET requests
@@ -56,7 +61,7 @@ class RepoTaggingHandler(BaseHandler):
         response.content="The repository '"+repodir+"' does not exist"
         return response
       response = rc.ALL_OK
-      response.content = string.join(tags, '\n')
+      response.content = string.join(tags, ' ')
       return response
             
 
