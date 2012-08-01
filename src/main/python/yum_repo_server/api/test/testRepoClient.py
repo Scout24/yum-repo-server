@@ -13,6 +13,14 @@ class TestRepoClient(BaseIntegrationTestCase):
         response = self.helper.do_http_get('/repo/' + reponame + '/')
         self.assertStatusCode(response, httplib.OK)
         
+    def test_delete_static_repo(self):
+        reponame = unique_repo_name();
+        self._execute(['create', reponame]);
+        self._execute(['deletestatic', reponame])
+        
+        response = self.helper.do_http_get('/repo/' + reponame + '/')
+        self.assertStatusCode(response, httplib.NOT_FOUND)
+        
     def test_upload_rpm(self):
         reponame = self.createNewRepoAndAssertValid()
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
