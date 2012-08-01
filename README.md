@@ -105,12 +105,12 @@ curl -F "source=test-repo/noarch/ test-artifact&destination=test-repo2" http://m
 will search for the latest <code>test-artifact-XX-X.noarch.rpm</code> and propagate the rpm from <code>test-repo</code> repository to <code>test-repo2</code>.
 
 #### List static or virtual repositories
-You can retrieve a list of static or virtual repositories via
+You can retrieve a list of static or virtual repositories for static repos via
 <code>
-# static repos
 http://myyum-repo-server/repo.txt
-
-# virtual repos
+</code>
+for virtual repos:
+<code>
 http://myyum-repo-server/repo/virtual.txt
 </code>
 To filter the list you have several url parameters:
