@@ -28,6 +28,30 @@ class HttpClient(object):
         self.hostname = hostname
         self.port = port
 
+    # transforms a dictionary in a URL-parameter styled string (empty if dictionary has no keys)
+    def _toUrlParams(self,params):
+        postdata=None
+        for param in params:
+          if not postdata:
+            postdata=param+"="+params[param]
+          else:
+            postdata+="&"+param+"="+params[param]
+        if not postdata:
+            return ""
+        return postdata
+
+    def queryStatic(self,params):
+        urlparams=self._toUrlParams(params)
+        response = self.doHttpGet('/repo.txt?'+urlparams)
+        self.assertResponse(response,httplib.OK)
+        return response
+
+    def queryVirtual(self,params):
+        urlparams=self._toUrlParams(params)
+        response = self.doHttpGet('/repo/virtual.txt?'+urlparams)
+        self.assertResponse(response,httplib.OK)
+        return response
+
     def createStaticRepo(self, reponame):
         response = self.doHttpPost('/repo/', "name=" + reponame)
         self.assertResponse(response, httplib.CREATED)
@@ -162,15 +186,19 @@ class CommandLineClient(object):
     operations = {}
     arguments = []
     options = {}
+    params = {}
+
 
     def __init__(self, arguments):
         self.arguments = arguments
         
         self.options = CommandLineClientOptionsExtractor()
+        self.params = CommandLineClientOptionsExtractor()
         self.options.extract_and_remove_options_from_arguments(self.arguments)
         
         self.httpClient = HttpClient(hostname=self.options.hostname, port=self.options.port)
         self.initOperations()
+
 
     def execute(self):
         if len(self.arguments) < 2:
@@ -189,6 +217,26 @@ class CommandLineClient(object):
 
         operationMethod = self.operations[operation]
         return operationMethod(self)
+
+    def queryStatic(self):
+            try:
+                params = self._get_params(self.arguments)
+                response = self.httpClient.queryStatic(params)
+                print response.read()
+                return 0
+            except Exception, e:
+                print e
+                return 1
+
+    def queryVirtual(self):
+            try:
+                params = self._get_params(self.arguments)
+                response = self.httpClient.queryVirtual(params)
+                print response.read()
+                return 0
+            except Exception, e:
+                print e
+                return 1
 
     def propagateRpm(self):
         if len(self.arguments) < 5:
@@ -372,6 +420,21 @@ class CommandLineClient(object):
             print e
             return 1
 
+    #parses -param style parameters from a string array and returns a dictionnary with param:value. The - from the parameter is stripped.
+    def _get_params(self, arguments):
+            params={}
+            upperBound=len(arguments)
+            for i in range(upperBound):
+              argument=arguments[i]      
+              if argument.startswith('-') and not argument.startswith('--'):
+                if i>=len(arguments)-1: # missing parameter value
+                    raise ValueError("PARSING ERROR! Expected a value for parameter '"+arguments[i]+"'")
+                paramName=arguments[i]
+                paramName=paramName[1:] # strip the - from the parameter
+                paramValue=arguments[i+1]
+                params[paramName]=paramValue
+            return params
+
     def showHelp(self):
         print """
     Yum Repo Server Client Command Line Tool
@@ -387,6 +450,8 @@ class CommandLineClient(object):
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
         deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
+        querystatic  [-name <regex>] [-tag <tag1,..,tagN>] [-notag <tag1,..,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
+        queryvirtual [-name <regex>] [-newer <days>] [-older <days>] : Query/filter virtual repositories
         tag <repo> <tag> : Tags a repo with <tag>
         taglist <repo> : Lists tags for <repo>
         
@@ -410,6 +475,8 @@ class CommandLineClient(object):
                 'redirectto' : CommandLineClient.redirectTo,
                 'tag' : CommandLineClient.tag,
                 'taglist' : CommandLineClient.tagList,
+                'querystatic' : CommandLineClient.queryStatic,
+                'queryvirtual' : CommandLineClient.queryVirtual,
         }
 
 
@@ -473,7 +540,7 @@ class CommandLineClientOptionsExtractor(object):
         'port' : _set_port,
         'username' : _set_username,
     }
-    
+
     def extract_and_remove_options_from_arguments(self, arguments):
         '''
             Extracts known options (properties of this class) and removes them from the
@@ -484,6 +551,15 @@ class CommandLineClientOptionsExtractor(object):
         for argument in originalArgs:
             if argument.startswith('--'):
                 self._set_known_option_and_remove_it_from_argument_list(argument, arguments)
+    
+
+
+
+    def _set_known_param_value_and_remove_it_from_argument_list(self, paramName, paramValue, argument_list):
+        self._params[paramName]=paramValue
+        argument_list.remove(paramName)
+        argument_list.remove(paramValue)
+
 
     def _set_known_option_and_remove_it_from_argument_list(self, possible_option, argument_list):
         '''
