@@ -39,6 +39,12 @@ class TestCsvListing(BaseIntegrationTestCase):
         response = self.helper.do_http_get(Constants.HTTP_PATH_VIRTUAL+".txt")
         self.assertTrue(reponame in response.read())
         shutil.rmtree(virtualRepoPath)
+        
+    def test_virtual_listing_has_destination_url(self):
+        static_repo, virtual_repo = self.assert_create_virtual_repo()
+        response = self.helper.do_http_get(Constants.HTTP_PATH_VIRTUAL+".txt?showDestination=true")
+        response_text = response.read().strip()
+        self.assertEquals('%s:/static/%s' % (virtual_repo, static_repo), response_text)
     
     def test_filter_by_name(self):
         self.createNewRepoAndAssertValid()

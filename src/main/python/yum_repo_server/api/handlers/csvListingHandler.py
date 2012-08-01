@@ -13,31 +13,43 @@ class CsvListingHandler(BaseHandler):
     config = RepoConfigService()
 
     def read(self, request,repodir=''):
-        
-        okToRead=["virtual",""]
-        if repodir in okToRead:
-            response = rc.ALL_OK       
-            response.content=""
-            rootDir = None
-            if repodir=='':
-                rootDir=self.config.getStaticRepoDir()
-            if repodir=='virtual':
-                rootDir=self.config.getVirtualRepoDir()
-            if not rootDir :
-                response=rc.BAD_REQUEST
-                response.write("")
-                return response       
-            if os.path.exists(rootDir) and os.path.isdir(rootDir):
-                repos = os.listdir(rootDir)
-                repos = self.filter(request, repos)
-                for repo in repos:
-                    response.write(repo)
-                    response.write("\n")
-        else:
+        if not self._valid(repodir):
             response = rc.BAD_REQUEST
-            response.write("""
-            You are not allowed to look into %s"""%repodir)
+            response.write("You are not allowed to look into %s" % repodir)
+            return response
+        
+        is_virtual = repodir == 'virtual' 
+        show_destination = is_virtual and 'showDestination' in request.GET and request.GET['showDestination'].lower() == 'true'
+                
+        
+        root_dir = self.config.getStaticRepoDir()
+        if is_virtual:
+            root_dir=self.config.getVirtualRepoDir()
+               
+        repos = os.listdir(root_dir)
+        repos = self.filter(request, repos)
+        
+        response = rc.ALL_OK       
+        response.content=""
+        
+        for repo in repos:
+            response.write(self._write_repo(repo, show_destination))
+            response.write("\n")
+                
         return response
+    
+    def _valid(self, repodir):
+        if repodir in ["virtual", ""]:
+            return True
+        return False
+    
+    def _write_repo(self, repo, show_destination=False):
+        
+        if show_destination:
+            destination = self.config.getConfig(repo).destination
+            return '%s:%s' % (repo, destination)
+            
+        return repo
 
     def filter(self, request, repos):
         if 'name' in request.GET:
