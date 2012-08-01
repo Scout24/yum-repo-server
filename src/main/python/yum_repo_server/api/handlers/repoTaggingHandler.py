@@ -45,10 +45,10 @@ class RepoTaggingHandler(BaseHandler):
             resp = rc.BAD_REQUEST
             resp.content = 'The tag attribute is missing'
             raise (RequestFailException(resp))
-        pattern = re.compile(".*\s.*")
-        if pattern.match(tag):
+        pattern = re.compile("\w")
+        if not pattern.match(tag):
             resp = rc.BAD_REQUEST
-            resp.content = 'The tag attribute did not match the required pattern (no whitespace)'
+            resp.content = 'The tag attribute did not match the required pattern'
             raise (RequestFailException(resp))
         return tag
 
