@@ -314,6 +314,7 @@ class CommandLineClient(object):
             return 0
         except Exception, e:
             print e
+            return 1
 
 
     def tag(self):
