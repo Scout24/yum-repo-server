@@ -102,7 +102,12 @@ class FileInfo(object):
             
             return 'unknown'
 
-def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, show_tags = False):
+class ParentDirType(object):
+    NONE=0
+    STATIC=1
+    VIRTUAL=2
+
+def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, parent_dir_type = ParentDirType.NONE):
     t = loader.select_template(['static/directory_index.html', 'static/directory_index'])
     unsorted_files = []
     for f in os.listdir(fullpath):
