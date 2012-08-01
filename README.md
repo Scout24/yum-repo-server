@@ -85,6 +85,10 @@ The examples below should give you a good understanding of how the requests look
 Creating a new repository involves sending a POST request with the name of the repository in the body to <code>$host/$repo_base</code>. 
 This will create a new resource (the new repository) underneath the repository base, which means you can access your new repository at <code>$host/$repo_base/$new_repo_name</code>
 
+#### Repository deletion
+A static repository can be deleted when sending a DELETE request to the repository (/repo/repo-to-delete). It can be protected from deletion when its name is listed within the <code>/etc/yum-repo-server/non-deletable-repositories<code> file. 
+Virtual repositories that were linked to the deleted static repository, will not be deleted or changed. The virtual repositories will deliver HTTP 404 sites as long as the static repository does not exist again or the link is changed manually.
+
 #### Upload to an existing repository
 As a consequence, uploading a RPM to an existing repository involves sending a POST request containing the RPM file in a form element called rpmFile. The request is send to <code>$host/$repo_base/$repo_name</code>
 It creates a new resource underneath <code>$repo_name</code>. 
