@@ -448,8 +448,8 @@ class CommandLineClient(object):
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
         deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
-        querystatic  [-name <regex>] [-tag <tag1,..,tagN>] [-notag <tag1,..,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
-        queryvirtual [-name <regex>] [-newer <days>] [-older <days>] : Query/filter virtual repositories
+        querystatic  [-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
+        queryvirtual [-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories
         tag <repo> <tag> : Tags a repo with <tag>
         taglist <repo> : Lists tags for <repo>
         
