@@ -61,7 +61,7 @@ class RepoTaggingHandler(BaseHandler):
         response.content="The repository '"+repodir+"' does not exist"
         return response
       response = rc.ALL_OK
-      response.content = string.join(tags, ' ')
+      response.content = string.join(tags, '\n')
       return response
             
 
