@@ -100,9 +100,27 @@ You can propagate a RPM from a source repository to a destination repository on 
 Propagation does not work with virtual repositories.
 For example:
 <code>
-curl -F "source=test-repo/noarch/test-artifact&destination=test-repo2" http://myyum-repo-server/propagation/  
+curl -F "source=test-repo/noarch/ test-artifact&destination=test-repo2" http://myyum-repo-server/propagation/
 </code>
 will search for the latest <code>test-artifact-XX-X.noarch.rpm</code> and propagate the rpm from <code>test-repo</code> repository to <code>test-repo2</code>.
+
+#### List static or virtual repositories
+You can retrieve a list of static or virtual repositories for static repos via
+<code>
+http://myyum-repo-server/repo.txt
+</code>
+for virtual repos:
+<code>
+http://myyum-repo-server/repo/virtual.txt
+</code>
+To filter the list you have several url parameters:
+ * Filter by name regex: <code>http://myyum-repo-server/repo.txt?name=any_regex.*</code>
+ * Filter by tags: <code>http://myyum-repo-server/repo.txt?tag=tag1,tag2</code> This will retrieve all repositories marked with tag1 or tag2.
+ * Filter by tags exclusive: <code>http://myyum-repo-server/repo.txt?notag=tag1,tag2</code> This will retrieve all repositories marked not marked with tag1 or tag2.
+ * Filter by newer then X days: <code>http://myyum-repo-server/repo.txt?newer=10</code> This will retrieve all repositories newer then 10 days.
+ * Filter by older then X days: <code>http://myyum-repo-server/repo.txt?older=10</code> This will retrieve all repositories older then 10 days.
+
+All filters are concatable and are combined via _and_, so <code>http://myyum-repo-server/repo.txt?older=10&newer=30</code> will retrieve all repositories older then 10 days and newer then 30 days.
 
 # yum-repo-client
 ===============

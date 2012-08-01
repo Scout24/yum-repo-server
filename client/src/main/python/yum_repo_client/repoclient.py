@@ -310,7 +310,6 @@ class CommandLineClient(object):
         reponame=self.arguments[2]
         try:
             response = self.httpClient.tagList(reponame)
-            print "***Tags for repository "+reponame+"***\n"
             print response.read()
             return 0
         except Exception, e:
