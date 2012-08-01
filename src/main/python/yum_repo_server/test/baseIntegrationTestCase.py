@@ -33,6 +33,14 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         msg = response.read()
         self.assertCreaterepoReplyValid(msg, reponame)
         return reponame
+    
+    def assert_create_virtual_repo(self):
+        static_repo_name = self.createNewRepoAndAssertValid()
+        self.generate_metadata(static_repo_name)
+        virtual_reponame = Constants.TESTREPO_PREFIX + static_repo_name
+        response = self.create_virtual_repo_from_static_repo(virtual_reponame, static_repo_name)
+        self.assertEquals(response.status, httplib.CREATED)
+        return static_repo_name, virtual_reponame
 
     def create_virtual_repo(self, virtual_reponame, destination_reponame):
         return self.repoclient().createVirtualRepo(virtual_reponame, destination_reponame)
