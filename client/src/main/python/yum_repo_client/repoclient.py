@@ -329,6 +329,20 @@ class CommandLineClient(object):
         except Exception, e:
             print e
             return 1
+        
+    def deleteStaticRepo(self):
+        if len(self.arguments) < 3:
+            print "ERROR: Please specify a repository name"
+            return self.showHelp()
+        
+        reponame = self.arguments[2]
+        
+        try:
+            self.httpClient.delete_static_repo(reponame)
+            return 0
+        except Exception as e:
+            print e
+            return 1
 
     def deleteVirtualRepo(self):
         if len(self.arguments) < 3:
@@ -370,6 +384,7 @@ class CommandLineClient(object):
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
         redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
         deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
+        deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
         tag <repo> <tag> : Tags a repo with <tag>
         taglist <repo> : Lists tags for <repo>
@@ -388,6 +403,7 @@ class CommandLineClient(object):
                 'linktostatic' : CommandLineClient.createLinkToStatic,
                 'linktovirtual' : CommandLineClient.createLinkToVirtual,
                 'deletevirtual' : CommandLineClient.deleteVirtualRepo,
+                'deletestatic' : CommandLineClient.deleteStaticRepo,
                 'deleterpm' : CommandLineClient.deleteRpms,
                 'propagate' : CommandLineClient.propagateRpm,
                 'redirectto' : CommandLineClient.redirectTo,
@@ -409,6 +425,7 @@ class CommandLineClient(object):
         password = getpass.getpass()
         self.httpClient.username = self.options.username
         self.httpClient.password = password
+
 
 
 class OptionParsingException(Exception): pass
