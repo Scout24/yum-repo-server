@@ -32,7 +32,7 @@ _repocomplete()
     [[ "$COMP_CWORD" -gt "2" ]] && prevprevprev="${COMP_WORDS[COMP_CWORD-3]}"  
 
     ### commands (options that can be used only once)
-    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deleterpm propagate redirectto tag taglist querystatic queryvirtual"
+    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deletestatic deleterpm propagate redirectto tag taglist querystatic queryvirtual"
     ### options that can appear anywhere
     opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
