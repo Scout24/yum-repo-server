@@ -24,11 +24,11 @@ class TestVirtualRepo(BaseIntegrationTestCase):
         self.assertEquals(response.status, httplib.BAD_REQUEST)
 
     def test_create_link_to_static_repo(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         self.assertVirtualRepoConfig(virtual_reponame, static_reponame)
 
     def test_create_link_to_virtual_repo(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         new_virtual_reponame = "alias_to_" + virtual_reponame
         #now alias the aliased repo!
         response = self.create_virtual_repo_from_virtual_repo(new_virtual_reponame, virtual_reponame)
@@ -36,7 +36,7 @@ class TestVirtualRepo(BaseIntegrationTestCase):
         self.assertVirtualRepoConfig(new_virtual_reponame, static_reponame)
 
     def test_create_double_link(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         new_virtual_reponame = "alias_to_" + virtual_reponame
         #now alias the aliased repo!
         response = self.create_virtual_repo_from_virtual_repo(new_virtual_reponame, virtual_reponame)
@@ -58,19 +58,19 @@ class TestVirtualRepo(BaseIntegrationTestCase):
 
 
     def test_deliver_rpm_file_from_virtual_repository(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
         self.upload_testfile(static_reponame, testRPMFilePath)
         self.generate_metadata(static_reponame)
         self.assertRpmDownloadable(virtual_reponame)
         
     def test_serve_directory_listing(self):
-        self.assertCreateVirtualRepo()
+        self.assert_create_virtual_repo()
         response = self.helper.do_http_get('/repo/virtual/')
         self.assertEqual(response.status, httplib.OK)
         
     def test_should_not_delete_files_in_virtual_repos(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         response = self.repoclient().doHttpDelete('/repo/virtual/' + virtual_reponame + '/fail')
         self.assertEqual(response.status, httplib.NOT_IMPLEMENTED)
         
@@ -82,14 +82,14 @@ class TestVirtualRepo(BaseIntegrationTestCase):
             return True
 
     def test_delete_virtual_repo(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         response = self.repoclient().deleteVirtualRepo(virtual_reponame)
         self.assertEqual(response.status, httplib.NO_CONTENT)
         response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame)
         self.assertEqual(response.status, httplib.NOT_FOUND)
         
     def test_should_provide_repo_info(self):
-        static_reponame, virtual_reponame = self.assertCreateVirtualRepo()
+        static_reponame, virtual_reponame = self.assert_create_virtual_repo()
         response = self.helper.do_http_get('/repo/virtual/' + virtual_reponame + '.json')
         self.assertEqual(response.status, httplib.OK)
         content = response.read()
@@ -101,14 +101,6 @@ class TestVirtualRepo(BaseIntegrationTestCase):
         response = self.helper.do_http_get("/repo/virtual/" + virtual_reponame + "/repodata/repomd.xml")
         self.assertStatusCode(response, httplib.FOUND)
         self.assertEquals(response.getheader('Location'), 'http://anyhost.com/repo/repodata/repomd.xml')
-
-    def assertCreateVirtualRepo(self):
-        static_repo_name = self.createNewRepoAndAssertValid()
-        self.generate_metadata(static_repo_name)
-        virtual_reponame = Constants.TESTREPO_PREFIX + static_repo_name
-        response = self.create_virtual_repo_from_static_repo(virtual_reponame, static_repo_name)
-        self.assertEquals(response.status, httplib.CREATED)
-        return static_repo_name, virtual_reponame
 
     def assertVirtualRepoConfig(self, virtual_reponame, static_reponame):
         metadatapath = RepoConfigService().getVirtualRepoDir(virtual_reponame) + "/" + RepoConfigService.ALIAS_METADATA_FILENAME

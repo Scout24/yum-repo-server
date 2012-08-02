@@ -86,7 +86,7 @@ Creating a new repository involves sending a POST request with the name of the r
 This will create a new resource (the new repository) underneath the repository base, which means you can access your new repository at <code>$host/$repo_base/$new_repo_name</code>
 
 #### Repository deletion
-A static repository can be deleted when sending a DELETE request to the repository (/repo/repo-to-delete). It can be protected from deletion when its name is listed within the <code>/etc/yum-repo-server/non-deletable-repositories<code> file. 
+A static repository can be deleted when sending a DELETE request to the repository (/repo/repo-to-delete). It can be protected from deletion when its name is listed within the <code>/etc/yum-repo-server/non-deletable-repositories</code> file. 
 Virtual repositories that were linked to the deleted static repository, will not be deleted or changed. The virtual repositories will deliver HTTP 404 sites as long as the static repository does not exist again or the link is changed manually.
 
 #### Upload to an existing repository
@@ -117,6 +117,8 @@ for virtual repos:
 <code>
 http://myyum-repo-server/repo/virtual.txt
 </code>
+Optionally you can get the destination for virtual repositories with the showDestination parameter. If set to true the list will contain entries with the following pattern: <code>repo_name:destination</code>. The destination is the path to the static repository or it could also be a url to an external repository.
+
 To filter the list you have several url parameters:
  * Filter by name regex: <code>http://myyum-repo-server/repo.txt?name=any_regex.*</code>
  * Filter by tags: <code>http://myyum-repo-server/repo.txt?tag=tag1,tag2</code> This will retrieve all repositories marked with tag1 or tag2.
