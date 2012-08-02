@@ -18,12 +18,12 @@ class RepoTaggingHandler(BaseHandler):
     def create(self, request, repodir,tag):
         try:
             tag = self.check_request_sanity(request)
-        except RequestFailException as rfe:
+        except RequestFailException, rfe:
             return rfe.args[0]
 
         try:
             result = self.repoTaggingService.tagRepo(repodir,tag)
-        except CouldNotLockTagsException as lockErr:
+        except CouldNotLockTagsException, lockErr:
             response = rc.BAD_REQUEST
             response.content = "Could not lock tags file"
             return response
@@ -55,7 +55,7 @@ class RepoTaggingHandler(BaseHandler):
     def read(self, request, repodir,tag):
       try:
         tags = self.repoTaggingService.getTags(repodir)
-      except NotFoundException as e:
+      except NotFoundException, e:
         response=rc.NOT_FOUND
         response.content="The repository '"+repodir+"' does not exist"
         return response
@@ -68,11 +68,11 @@ class RepoTaggingHandler(BaseHandler):
     def delete(self,request, repodir,tag):
         try:
             result = self.repoTaggingService.unTagRepo(repodir,tag)
-        except CouldNotLockTagsException as lockErr:
+        except CouldNotLockTagsException, lockErr:
             response = rc.BAD_REQUEST
             response.content = "Could not lock tags file"
             return response
-        except NoSuchTagException as noTagErr:
+        except NoSuchTagException, noTagErr:
             response = rc.NOT_FOUND
             response.content = "The repository "+repodir+" has no tag "+tag
             return response

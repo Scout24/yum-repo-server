@@ -20,7 +20,7 @@ class YumRepoAliasHandler(BaseHandler):
     def create(self, request, text):
         try:
             virtual_repo_name, destination_repo = self.check_request_sanity(request)
-        except RequestFailException as rfe:
+        except RequestFailException, rfe:
             return rfe.args[0]
 
         try: 
