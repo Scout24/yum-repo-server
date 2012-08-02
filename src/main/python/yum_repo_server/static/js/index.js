@@ -26,5 +26,21 @@ window.yum = {
 		
 		selectRepo : function() {
 			$('#cluetip a.button').show();
-		}
+		},
+
+        addTag : function(tagElem, reponame, tag) {
+          $.ajax({
+                type : 'POST',
+                cache : false,
+                url : reponame + '/tags/',
+                data : 'tag=' + tag,
+                success: function () {
+                    alert('Saved');
+                    window.location.reload();
+                },
+                error: function (xhr, status, error) {
+                    alert('Tagging failed : ' + status);
+                }
+            });
+        }
 }

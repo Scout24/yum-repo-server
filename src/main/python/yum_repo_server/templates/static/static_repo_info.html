@@ -12,7 +12,7 @@
       <label>Add Tag:</label>
       <span>
         {% for tag in defaultTags %}
-          <span class="tag">{{ tag }}<a href="#" class="addTag" title="Add tag {{ tag }}">+</a></span>
+          <span class="tag">{{ tag }}<a href="#" class="addTag" title="Add tag {{ tag }}" onclick="yum.addTag(this, '{{reponame}}', '{{tag}}'); return false;">+</a></span>
         {% endfor %}
       </span>
     </li>

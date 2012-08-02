@@ -56,11 +56,12 @@ def virtual_repo_info(request, reponame):
 
 def static_repo_info(request, reponame):
     config = RepoTaggingService()
+    tags = config.getTags(reponame)
     template = loader.select_template(['static/static_repo_info.html'])
     context = Context({
         'reponame' : reponame,
-        'tags' : config.getTags(reponame),
-        'defaultTags' : config.getDefaultTags()
+        'tags' : tags,
+        'defaultTags' : config.getDefaultTags() - tags,
         })
     return HttpResponse(template.render(context))
 
