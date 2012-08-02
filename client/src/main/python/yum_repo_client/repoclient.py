@@ -9,6 +9,7 @@ import string
 import base64
 import yaml
 import re
+import urllib
 
 class RepoException(Exception):
     def __init__(self, value):
@@ -28,26 +29,14 @@ class HttpClient(object):
         self.hostname = hostname
         self.port = port
 
-    # transforms a dictionary in a URL-parameter styled string (empty if dictionary has no keys)
-    def _toUrlParams(self,params):
-        postdata=None
-        for param in params:
-          if not postdata:
-            postdata=param+"="+params[param]
-          else:
-            postdata+="&"+param+"="+params[param]
-        if not postdata:
-            return ""
-        return postdata
-
     def queryStatic(self,params):
-        urlparams=self._toUrlParams(params)
-        response = self.doHttpGet('/repo.txt?'+urlparams)
+        urlparams = urllib.urlencode(params)
+        response = self.doHttpGet('/repo.txt?%s' % urlparams)
         self.assertResponse(response,httplib.OK)
         return response
 
     def queryVirtual(self,params):
-        urlparams=self._toUrlParams(params)
+        urlparams = urllib.urlencode(params)
         response = self.doHttpGet('/repo/virtual.txt?'+urlparams)
         self.assertResponse(response,httplib.OK)
         return response
