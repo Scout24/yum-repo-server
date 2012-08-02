@@ -37,8 +37,8 @@
               {% ifequal f.mimetype "rpm" %}
               <img class="rpmInfo" title="RPM Info" onclick="return false;" rel="{{ f.filename|urlencode }}/info.html" src="/static/images/icons/info.png" />
               {% endifequal %}
-              {% if f.isDir and show_virtuals %}
-              <img class="virtualInfo" title="Virtual Repository: {{ f.filename }}" onclick="return false;" rel="{{ f.filename|urlencode }}.html" src="/static/images/icons/info.png" />
+              {% if f.isDir and f.hasInfo %}
+              <img class="info" title="Info for {{ f.filename }}" onclick="return false;" rel="{{ f.filename|urlencode }}.html" src="/static/images/icons/info.png" />
               {% endif %}
               <span class="tags">{{ f.tags|join:" " }}</span>
             </span>
