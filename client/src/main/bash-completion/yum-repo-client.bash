@@ -32,7 +32,7 @@ _repocomplete()
     [[ "$COMP_CWORD" -gt "2" ]] && prevprevprev="${COMP_WORDS[COMP_CWORD-3]}"  
 
     ### commands (options that can be used only once)
-    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deletestatic deleterpm propagate redirectto tag taglist querystatic queryvirtual"
+    oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deletestatic deleterpm propagate redirectto tag taglist querystatic queryvirtual untag"
     ### options that can appear anywhere
     opts="--hostname=${repohost} --port=${repoport} --username=${username}"
 
@@ -44,6 +44,8 @@ _repocomplete()
          return 0
          ;;
     esac
+
+       
 
     ### check previous typed word and react accordingly
     case "${prev}" in
@@ -58,6 +60,12 @@ _repocomplete()
          return 0
          ;;
 
+      untag)
+         local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
+      
       tag)
          local matches=$(__getStaticRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
@@ -134,6 +142,12 @@ _repocomplete()
                COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
                return 0
                ;;
+            untag)
+               local matches=$(for x in `curl -fs "${repohost}:${repoport}/repo/${prev}/tags/"`; do echo ${x}; done)
+               COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+               return 0
+               ;;
+
             linktovirtual)
                local matches=$(__getVirtualRepos)
                COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
