@@ -179,3 +179,7 @@ li a.addTag {
 	display: none;
 }
 
+input.error {
+    background-color: #ffdddd;
+}
+
