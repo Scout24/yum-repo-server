@@ -45,10 +45,9 @@ class RepoTaggingHandler(BaseHandler):
             resp = rc.BAD_REQUEST
             resp.content = 'The tag attribute is missing'
             raise (RequestFailException(resp))
-        pattern = re.compile(".*\s.*")
-        if pattern.match(tag):
+        if not re.match("^[\w\-\.]+$", tag):
             resp = rc.BAD_REQUEST
-            resp.content = 'The tag attribute did not match the required pattern (no whitespace)'
+            resp.content = 'The tag attribute did not match the required pattern'
             raise (RequestFailException(resp))
         return tag
 
@@ -61,7 +60,7 @@ class RepoTaggingHandler(BaseHandler):
         response.content="The repository '"+repodir+"' does not exist"
         return response
       response = rc.ALL_OK
-      response.content = string.join(tags, ' ')
+      response.content = string.join(tags, '\n')
       return response
             
 

@@ -100,7 +100,6 @@ class FileInfo(object):
         self.mimetype = self.getMimeType()
         self.isFile = not self.isDir
         if parentDirType == ParentDirType.STATIC and filename != '':
-            print parentDir + ' foo ' + filename
             self.tags = self.taggingService.getTags(filename)
 
         self.hasInfo = parentDirType == ParentDirType.STATIC or parentDirType == ParentDirType.VIRTUAL
