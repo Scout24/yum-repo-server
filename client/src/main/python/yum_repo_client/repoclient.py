@@ -405,7 +405,7 @@ class CommandLineClient(object):
         try:
             self.httpClient.delete_static_repo(reponame)
             return 0
-        except Exception as e:
+        except Exception, e:
             print e
             return 1
 
