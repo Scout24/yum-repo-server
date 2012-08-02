@@ -1,6 +1,6 @@
 $(document).ready(function() {
 	$('img.rpmInfo').cluetip({activation: 'click', sticky: true, closePosition: 'title', arrows: true, width: 750});
-	$('img.virtualInfo').cluetip({activation: 'click', sticky: true, closePosition: 'title', arrows: true, width: 500, ajaxCache: false});
+	$('img.info').cluetip({activation: 'click', sticky: true, closePosition: 'title', arrows: true, width: 500, ajaxCache: false});
 });
 
 window.yum = {

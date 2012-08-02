@@ -24,7 +24,7 @@ class ParentDirType(object):
     STATIC=1
     VIRTUAL=2
 
-def serve(request, path, document_root=None, show_indexes=False, add_virtual = False, show_virtuals=False, parent_dir_type = ParentDirType.NONE):
+def serve(request, path, document_root=None, show_indexes=False, add_virtual = False, parent_dir_type = ParentDirType.NONE):
     """
     Serve static files below a given point in the directory structure.
 
@@ -59,7 +59,7 @@ def serve(request, path, document_root=None, show_indexes=False, add_virtual = F
             full_request_path = request.get_full_path()
             if not full_request_path.endswith('/'):
                 return HttpResponseRedirect(full_request_path + '/')
-            return directory_index(path=newpath, fullpath=fullpath, add_virtual=add_virtual, show_virtuals=show_virtuals, parent_dir_type=parent_dir_type)
+            return directory_index(path=newpath, fullpath=fullpath, add_virtual=add_virtual, parent_dir_type=parent_dir_type)
         raise Http404("Directory indexes are not allowed here.")
     if not os.path.exists(fullpath):
         raise Http404('"%s" does not exist' % fullpath)
@@ -102,6 +102,8 @@ class FileInfo(object):
         if parentDirType == ParentDirType.STATIC and filename != '':
             print parentDir + ' foo ' + filename
             self.tags = self.taggingService.getTags(filename)
+
+        self.hasInfo = parentDirType == ParentDirType.STATIC or parentDirType == ParentDirType.VIRTUAL
             
     def getMimeType(self):
         if self.isDir:
@@ -113,7 +115,7 @@ class FileInfo(object):
             
             return 'unknown'
 
-def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, parent_dir_type = ParentDirType.NONE):
+def directory_index(path, fullpath, add_virtual = False, parent_dir_type = ParentDirType.NONE):
     t = loader.select_template(['static/directory_index.html', 'static/directory_index'])
     unsorted_files = []
     for f in os.listdir(fullpath):
@@ -134,7 +136,6 @@ def directory_index(path, fullpath, add_virtual = False, show_virtuals = False, 
         'directory' : path,
         'file_list' : files,
         'file_count': len(files),
-        'show_virtuals' : show_virtuals,
     })
     return HttpResponse(t.render(c))
 
