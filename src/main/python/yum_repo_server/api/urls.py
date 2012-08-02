@@ -31,7 +31,7 @@ repoTaggingResource = Resource(handler=RepoTaggingHandler)
 
 urlpatterns = patterns('',
     url(r'^(?P<repodir>[a-zA-Z0-9-.]+)\.txt',repoCsvListingResource),
-    url(r'^(?P<repodir>[a-zA-Z0-9-.]+)/tags/',repoTaggingResource),
+    url(r'^(?P<repodir>[a-zA-Z0-9-.]+)/tags/(?P<tag>[\w\-\.]*)$',repoTaggingResource),
     url(r'^(/?)$', createYumRepoResource),
     url(r'^virtual(/)?$', createYumRepoAliasResource),
     url(r'^virtual/(?P<reponame>[a-zA-Z0-9-.]+)\.json', repoConfigHandler),

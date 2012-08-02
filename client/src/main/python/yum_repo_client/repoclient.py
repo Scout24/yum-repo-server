@@ -62,6 +62,11 @@ class HttpClient(object):
         self.assertResponse(response, httplib.NO_CONTENT)
         return response
 
+    def untagRepo(self,reponame,tag):
+        response = self.doHttpDelete('/repo/'+reponame+'/tags/'+tag)
+        self.assertResponse(response,httplib.NO_CONTENT)
+        return response
+
     def tagRepo(self,reponame,tag):
         response = self.doHttpPost('/repo/'+reponame+'/tags/',"tag="+tag)
         self.assertResponse(response,httplib.CREATED)
@@ -362,6 +367,19 @@ class CommandLineClient(object):
             print e
             return 1
 
+    def untag(self):
+        if len(self.arguments)<4:
+            print "ERROR: Please specify a repository name and a tag"
+            return self.showHelp()
+        reponame=self.arguments[2]
+        tag=self.arguments[3]
+
+        try:
+            self.httpClient.untagRepo(reponame,tag)
+            return 0
+        except Exception, e:
+            print e
+            return 1
 
     def tag(self):
         if len(self.arguments)<4:
@@ -451,6 +469,7 @@ class CommandLineClient(object):
         redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
         taglist <repo> : Lists tags for <repo>
         tag <repo> <tag> : Tags a repo with <tag>
+        untag <repo> <tag> : Removes a <tag> from the repo
         uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
 
         --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
@@ -472,6 +491,7 @@ class CommandLineClient(object):
                 'propagate' : CommandLineClient.propagateRpm,
                 'redirectto' : CommandLineClient.redirectTo,
                 'tag' : CommandLineClient.tag,
+                'untag' : CommandLineClient.untag,
                 'taglist' : CommandLineClient.tagList,
                 'querystatic' : CommandLineClient.queryStatic,
                 'queryvirtual' : CommandLineClient.queryVirtual,

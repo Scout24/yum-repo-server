@@ -2,7 +2,7 @@ import string
 from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
-from yum_repo_server.api.services.repoTaggingService import RepoTaggingService,CouldNotLockTagsException,NotFoundException
+from yum_repo_server.api.services.repoTaggingService import RepoTaggingService,CouldNotLockTagsException,NotFoundException,NoSuchTagException
 import re
 
 
@@ -15,7 +15,7 @@ class RepoTaggingHandler(BaseHandler):
     repoConfigService = RepoConfigService()
     repoTaggingService = RepoTaggingService()
 
-    def create(self, request, repodir):
+    def create(self, request, repodir,tag):
         try:
             tag = self.check_request_sanity(request)
         except RequestFailException as rfe:
@@ -52,7 +52,7 @@ class RepoTaggingHandler(BaseHandler):
         return tag
 
     # handle GET requests
-    def read(self, request, repodir):
+    def read(self, request, repodir,tag):
       try:
         tags = self.repoTaggingService.getTags(repodir)
       except NotFoundException as e:
@@ -65,5 +65,17 @@ class RepoTaggingHandler(BaseHandler):
             
 
 
-
-        
+    def delete(self,request, repodir,tag):
+        try:
+            result = self.repoTaggingService.unTagRepo(repodir,tag)
+        except CouldNotLockTagsException as lockErr:
+            response = rc.BAD_REQUEST
+            response.content = "Could not lock tags file"
+            return response
+        except NoSuchTagException as noTagErr:
+            response = rc.NOT_FOUND
+            response.content = "The repository "+repodir+" has no tag "+tag
+            return response
+        response = rc.DELETED
+        response.content = result
+        return response
