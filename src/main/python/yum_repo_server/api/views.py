@@ -2,6 +2,7 @@ import rpm
 import os
 
 from yum_repo_server import settings
+from yum_repo_server.api.services.repoTaggingService import RepoTaggingService
 from yum_repo_server.rpm.rpmfile import RpmFile
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from django.template import loader, Context
@@ -51,6 +52,15 @@ def virtual_repo_info(request, reponame):
         'config' : repoConfig,
         'staticRepos' : config.staticRepos,
     })
+    return HttpResponse(template.render(context))
+
+def static_repo_info(request, reponame):
+    config = RepoTaggingService()
+    template = loader.select_template(['static/static_repo_info.html'])
+    context = Context({
+        'reponame' : reponame,
+        'tags' : config.getTags(reponame),
+        })
     return HttpResponse(template.render(context))
 
 def error_page(request, error):
