@@ -4,6 +4,8 @@ from yum_repo_client.repoclient import RepoException
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_client.repoclient import CommandLineClient
+import sys
+import os
 
 class TestRepoClient(BaseIntegrationTestCase):
     
@@ -27,6 +29,43 @@ class TestRepoClient(BaseIntegrationTestCase):
         self._execute(['uploadto', reponame, testRPMFilePath])
         response = self.helper.do_http_get('/repo/' + reponame + '/' + Constants.TEST_RPM_DESTINATION_NAME)
         self.assertStatusCode(response, httplib.OK)
+        
+    def test_filter_static_reponames_with_regex(self):
+        self.createNewRepoAndAssertValid()
+        self.repoclient().createStaticRepo('testrepo-123.1.42')
+        realout = sys.stdout
+        logfile_name = 'test-log-filter_static_reponames_with_regex.log'
+        sys.stdout = open(logfile_name, 'w')
+        self._execute(['querystatic', '-name', 'testrepo-[\d\.]+'])
+        sys.stdout.close()
+        sys.stdout = realout
+        
+        logfile = open(logfile_name, 'r')
+        test_output = filter(lambda entry: entry.strip() != '',logfile.readlines())
+        logfile.close()
+        os.remove(logfile_name)
+        
+        self.assertEquals(1, len(test_output))
+        self.assertEquals('testrepo-123.1.42\n', test_output[0])
+        
+    def test_filter_virtual_reponames_with_regex(self):
+        reponame = self.createNewRepoAndAssertValid()
+        self.repoclient().createLinkToStaticRepo('testrepo1-123', reponame)
+        self.repoclient().createLinkToStaticRepo('testrepo-123.1.42', reponame)
+        realout = sys.stdout
+        logfile_name = 'test-log-filter_virtual_reponame_with_regex.log'
+        sys.stdout = open(logfile_name, 'w')
+        self._execute(['queryvirtual', '-name', 'testrepo-[\d\.]+'])
+        sys.stdout.close()
+        sys.stdout = realout
+        
+        logfile = open(logfile_name, 'r')
+        test_output = filter(lambda entry: entry.strip() != '',logfile.readlines())
+        logfile.close()
+        os.remove(logfile_name)
+        
+        self.assertEquals(1, len(test_output))
+        self.assertEquals('testrepo-123.1.42\n', test_output[0])
         
     def test_delete_rpm(self):
         reponame = self.createNewRepoAndAssertValid()
