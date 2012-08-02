@@ -3,7 +3,17 @@
     <li>
       <label>Tags</label>
       <span>
-        {{ tags|join:" " }}
+        {% for tag in tags %}
+          <span class="tag">{{ tag }}</span>
+        {% endfor %}
+      </span>
+    </li>
+    <li>
+      <label>Add Tag:</label>
+      <span>
+        {% for tag in defaultTags %}
+          <span class="tag">{{ tag }}<a href="#" class="addTag" title="Add tag {{ tag }}">+</a></span>
+        {% endfor %}
       </span>
     </li>
   </ul>

@@ -60,6 +60,7 @@ def static_repo_info(request, reponame):
     context = Context({
         'reponame' : reponame,
         'tags' : config.getTags(reponame),
+        'defaultTags' : config.getDefaultTags()
         })
     return HttpResponse(template.render(context))
 

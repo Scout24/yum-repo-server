@@ -155,6 +155,26 @@ a.button {
 	white-space: normal;
 }
 
+#cluetip li span.tag {
+    width: auto;
+    display: inline;
+    float: none;
+    border: 1px solid #CCEEFF;
+    border-radius: 20px;
+    line-height: 20px;
+    padding: 5px;
+    background-color: #BBEEFF;
+    margin-bottom: 2px;
+}
+
+li a.addTag {
+    color: white;
+    padding: 0px 3px;
+    border: 1px solid white;
+    border-radius: 20px;
+    margin-left: 5px;
+}
+
 #cluetip a.button{
 	display: none;
 }
