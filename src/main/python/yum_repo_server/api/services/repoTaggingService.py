@@ -88,3 +88,15 @@ class RepoTaggingService(object):
        tags.discard('')
        return tags
 
+    def getDefaultTags(self):
+        tagFilePath = os.path.join(self.config.getRepoDir(), 'defaultTags.txt')
+        if os.path.exists(tagFilePath):
+            f = open(tagFilePath)
+            try:
+                content = f.read()
+                tags = content.split('\n')
+                return set(tags)
+            finally:
+                f.close()
+
+        return set()
