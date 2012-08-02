@@ -4,7 +4,7 @@
       <label>Tags</label>
       <span>
         {% for tag in tags %}
-          <span class="tag">{{ tag }}</span>
+          <span class="tag">{{ tag }}<a href="#" class="addTag" title="Remove tag {{ tag }}" onclick="yum.removeTag(this, '{{reponame}}', '{{tag}}'); return false;">-</a></span>
         {% endfor %}
       </span>
     </li>
