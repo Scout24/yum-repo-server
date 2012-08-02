@@ -5,7 +5,7 @@ $(document).ready(function() {
 
 window.yum = {
     saveRepo : function(reponame) {
-        reposelect = $('#reposelect');
+        var reposelect = $('#reposelect');
         var destination = reposelect.val();
 
         $.ajax({
@@ -33,7 +33,7 @@ window.yum = {
             type : 'POST',
             cache : false,
             url : reponame + '/tags/',
-            data : 'tag=' + tag,
+            data : 'tag=' + encodeURI(tag),
             success: function () {
                 alert('Saved');
                 window.location.reload();
@@ -44,11 +44,13 @@ window.yum = {
         });
     },
 
+
+
     removeTag : function(tagElem, reponame, tag) {
         $.ajax({
             type : 'DELETE',
             cache : false,
-            url : reponame + '/tags/' + tag,
+            url : reponame + '/tags/' + encodeURI(tag),
             success: function () {
                 alert('Saved');
                 window.location.reload();
@@ -57,5 +59,17 @@ window.yum = {
                 alert('Tagging failed : ' + status);
             }
         });
+    },
+
+    addCustomTag : function(tagElem, reponame) {
+        var input = $(tagElem.parentNode).children('input');
+        var tag = $.trim(input.val());
+        if (!tag.match(/^[\w\.\-]+$/)) {
+            input.addClass('error');
+            return;
+        }
+
+        input.removeClass('error');
+        yum.addTag(tagElem, reponame, tag);
     }
 }

@@ -14,6 +14,7 @@
         {% for tag in defaultTags %}
           <span class="tag">{{ tag }}<a href="#" class="addTag" title="Add tag {{ tag }}" onclick="yum.addTag(this, '{{reponame}}', '{{tag}}'); return false;">+</a></span>
         {% endfor %}
+        <span class="tag"><input type="text" name="customField" length="20" /><a href="#" class="addTag" title="Add custom tag" onclick="yum.addCustomTag(this, '{{reponame}}'); return false;">+</a></span>
       </span>
     </li>
   </ul>
