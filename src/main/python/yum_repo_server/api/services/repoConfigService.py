@@ -204,7 +204,7 @@ class RepoConfigService(object):
             return_code = pipe.returncode
             if return_code > 0:
                 logging.error(stderr)
-        except Exception as ex:
+        except Exception, ex:
             logging.error("exception occurred while calling createrepo : " + ex.message)
         finally:
             if os.path.exists(lockfile):

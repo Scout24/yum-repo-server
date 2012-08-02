@@ -51,7 +51,7 @@ class MetaDataGenerationScheduler():
             self.configService.doCreateRepo(repoDir, reponame)
             monitor.job_finishes()
             logging.info(monitor.get_pretty_job_summary("createrepo on "+reponame+" (cleanup included : "+str(didCleanUp)+")"))
-        except Exception as ex:
+        except Exception, ex:
             logging.error(traceback.format_exc())
 
     def update_program_config(self):
@@ -131,7 +131,7 @@ class MetaDataGenerationScheduler():
                 lockfile = self.configService.getRepoLockFile(reponame)
                 if not os.path.exists(lockfile):
                     shutil.rmtree(absoluteDir)
-        except Exception as ex:
+        except Exception, ex:
             logging.error("Exception in CleanupCacheDir : "+str(ex))                    
         finally:
             cleanupCacheMonitor.job_finishes()
