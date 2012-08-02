@@ -4,6 +4,8 @@ from yum_repo_client.repoclient import RepoException
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_client.repoclient import CommandLineClient
+import sys
+import os
 
 class TestRepoClient(BaseIntegrationTestCase):
     
@@ -27,6 +29,52 @@ class TestRepoClient(BaseIntegrationTestCase):
         self._execute(['uploadto', reponame, testRPMFilePath])
         response = self.helper.do_http_get('/repo/' + reponame + '/' + Constants.TEST_RPM_DESTINATION_NAME)
         self.assertStatusCode(response, httplib.OK)
+        
+    def test_filter_static_reponames_with_regex(self):
+        self.createNewRepoAndAssertValid()
+        self.repoclient().createStaticRepo('testrepo-123.1.42')
+        
+        written_lines = self._catch_output_for(self._execute, ['querystatic', '-name', 'testrepo-[\d\.]+'])
+        test_output = []
+        
+        for line in written_lines:
+            if line.strip() != '':
+                test_output.append(line.strip())
+        
+        self.assertEquals(1, len(test_output))
+        self.assertEquals('testrepo-123.1.42', test_output[0])
+        
+    def test_filter_virtual_reponames_with_regex(self):
+        reponame = self.createNewRepoAndAssertValid()
+        self.repoclient().createLinkToStaticRepo('testrepo1-123', reponame)
+        self.repoclient().createLinkToStaticRepo('testrepo-123.1.42', reponame)
+        
+        written_lines = self._catch_output_for(self._execute, ['queryvirtual', '-name', 'testrepo-[\d\.]+'])
+        test_output = []
+        
+        for line in written_lines:
+            if line.strip() != '':
+                test_output.append(line.strip())
+        
+        self.assertEquals(1, len(test_output))
+        self.assertEquals('testrepo-123.1.42', test_output[0])
+        
+    def _catch_output_for(self, function, *args):
+        realout = sys.stdout
+        logfile_name = 'tmp-test-out.log'
+        sys.stdout = open(logfile_name, 'w')
+        
+        function(*args)
+        
+        sys.stdout.close()
+        sys.stdout = realout
+        
+        logfile = open(logfile_name, 'r')
+        lines = logfile.readlines()
+        logfile.close()
+        os.remove(logfile_name)
+        
+        return lines
         
     def test_delete_rpm(self):
         reponame = self.createNewRepoAndAssertValid()
