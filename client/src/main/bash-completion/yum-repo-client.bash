@@ -101,6 +101,11 @@ _repocomplete()
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
          return 0
          ;;
+      deletestatic)
+         local matches=$(__getStaticRepos)
+         COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+         return 0
+         ;;
       deletevirtual)
          local matches=$(__getVirtualRepos)
          COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
