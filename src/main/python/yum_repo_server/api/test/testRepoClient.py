@@ -33,39 +33,48 @@ class TestRepoClient(BaseIntegrationTestCase):
     def test_filter_static_reponames_with_regex(self):
         self.createNewRepoAndAssertValid()
         self.repoclient().createStaticRepo('testrepo-123.1.42')
-        realout = sys.stdout
-        logfile_name = 'test-log-filter_static_reponames_with_regex.log'
-        sys.stdout = open(logfile_name, 'w')
-        self._execute(['querystatic', '-name', 'testrepo-[\d\.]+'])
-        sys.stdout.close()
-        sys.stdout = realout
         
-        logfile = open(logfile_name, 'r')
-        test_output = filter(lambda entry: entry.strip() != '',logfile.readlines())
-        logfile.close()
-        os.remove(logfile_name)
+        written_lines = self._catch_output_for(self._execute, ['querystatic', '-name', 'testrepo-[\d\.]+'])
+        test_output = []
+        
+        for line in written_lines:
+            if line.strip() != '':
+                test_output.append(line.strip())
         
         self.assertEquals(1, len(test_output))
-        self.assertEquals('testrepo-123.1.42\n', test_output[0])
+        self.assertEquals('testrepo-123.1.42', test_output[0])
         
     def test_filter_virtual_reponames_with_regex(self):
         reponame = self.createNewRepoAndAssertValid()
         self.repoclient().createLinkToStaticRepo('testrepo1-123', reponame)
         self.repoclient().createLinkToStaticRepo('testrepo-123.1.42', reponame)
+        
+        written_lines = self._catch_output_for(self._execute, ['queryvirtual', '-name', 'testrepo-[\d\.]+'])
+        test_output = []
+        
+        for line in written_lines:
+            if line.strip() != '':
+                test_output.append(line.strip())
+        
+        self.assertEquals(1, len(test_output))
+        self.assertEquals('testrepo-123.1.42', test_output[0])
+        
+    def _catch_output_for(self, function, *args):
         realout = sys.stdout
-        logfile_name = 'test-log-filter_virtual_reponame_with_regex.log'
+        logfile_name = 'tmp-test-out.log'
         sys.stdout = open(logfile_name, 'w')
-        self._execute(['queryvirtual', '-name', 'testrepo-[\d\.]+'])
+        
+        function(*args)
+        
         sys.stdout.close()
         sys.stdout = realout
         
         logfile = open(logfile_name, 'r')
-        test_output = filter(lambda entry: entry.strip() != '',logfile.readlines())
+        lines = logfile.readlines()
         logfile.close()
         os.remove(logfile_name)
         
-        self.assertEquals(1, len(test_output))
-        self.assertEquals('testrepo-123.1.42\n', test_output[0])
+        return lines
         
     def test_delete_rpm(self):
         reponame = self.createNewRepoAndAssertValid()
