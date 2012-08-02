@@ -8,6 +8,7 @@ from yum_repo_client.repoclient import RepoException
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+import urllib
 
 
 class TestCsvListing(BaseIntegrationTestCase):
@@ -57,6 +58,14 @@ class TestCsvListing(BaseIntegrationTestCase):
         reponame = 'some-app-321.1.1-' + unique_repo_name()
         self.repoclient().createStaticRepo(reponame)
         response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC+".txt?name=some-app-.*")
+        self.assertEqual(reponame + "\n", response.read())
+        
+    def test_filter_by_name_with_regex(self):
+        self.createNewRepoAndAssertValid()
+        reponame = 'some-app-321.1.12'
+        self.repoclient().createStaticRepo(reponame)
+        encoded_url = urllib.urlencode({'name': 'some-app-[\d\.]+'})
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '.txt?%s' % encoded_url)
         self.assertEqual(reponame + "\n", response.read())
     
     def test_filter_by_tags_inclusive(self):
