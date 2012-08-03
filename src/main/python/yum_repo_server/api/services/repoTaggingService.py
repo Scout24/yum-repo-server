@@ -95,7 +95,10 @@ class RepoTaggingService(object):
             try:
                 content = f.read()
                 tags = content.split('\n')
-                return set(tags)
+                tags = [tag.strip() for tag in tags]
+                tagsSet = set(tags)
+                tagsSet.remove('')
+                return tagsSet
             finally:
                 f.close()
 
