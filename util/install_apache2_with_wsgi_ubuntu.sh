@@ -55,8 +55,8 @@ sudo pip install django==1.3
 echo "Install Piston extension for Django"
 sudo pip install django-piston==0.2.3
 
-echo "Install Yuml for Python"
-sudo apt-get install python-yaml
+echo "Install Yaml for Python"
+sudo pip install PyYAML
 
 echo "Install Nose unittest extension for Python"
 sudo apt-get install python-nose
@@ -81,6 +81,9 @@ sudo pip install python-daemon
 
 echo "Install apscheduler"
 sudo pip install apscheduler
+
+echo "Install lockfile"
+sudo pip install lockfile
 
 echo "Show if mod_wsgi is loaded already"
 sudo /usr/sbin/apachectl -t -D DUMP_MODULES
