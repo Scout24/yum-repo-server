@@ -72,5 +72,30 @@
         {% endfor %}
       </span>
     </li>
+    <li>
+      <label><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">Files</a></label>
+      <span class="big">
+        <table class="files hidden">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th>Size</th>
+              <th>User</th>
+              <th>Group</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for file in rpm.files %}
+            <tr>
+              <td>{{ file.name }} {% if file.dir %}(dir){% endif %} </td>
+              <td class="aright">{{ file.size|filesizeformat }}</td>
+              <td>{{ file.user }}</td>
+              <td>{{ file.group }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </span>
+    </li>
   </ul>
 </div>
