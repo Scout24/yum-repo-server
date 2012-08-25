@@ -103,3 +103,20 @@ class RpmFile (object):
             raise RpmFileException("Not a rpm file: %s . Error: %s", self.file_name, str(e))
         finally:
             f.close()
+
+    @property
+    def files(self):
+        dirnames = self.hdr['dirnames']
+        basenames = self.hdr['basenames']
+        dirindexes = self.hdr['dirindexes']
+        fileusername = self.hdr['fileusername']
+        filegroupname = self.hdr['filegroupname']
+        filemd5s = self.hdr['filemd5s']
+        filesizes = self.hdr['filesizes']
+        return [{
+                'name' : os.path.join(dirnames[dirindexes[index]], basenames[index]),
+                'size' : filesizes[index],
+                'user' : fileusername[index],
+                'group' : filegroupname[index],
+                'dir' : filemd5s[index] == '',
+            } for index in range(len(basenames))]

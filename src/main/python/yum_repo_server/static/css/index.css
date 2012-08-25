@@ -20,6 +20,10 @@ h1 strong {
 	color: #555;
 }
 
+.hidden {
+    display: none;
+}
+
 #content {
 	padding: 20px;
 	margin: auto;
@@ -182,4 +186,23 @@ li a.addTag {
 input.error {
     background-color: #ffdddd;
 }
+
+/* FILE TABLE BEGIN */
+span table.files {
+     line-height: 20px;
+}
+
+th {
+    text-align: left;
+    padding: 0 2px;
+}
+
+td {
+    padding: 0 2px;
+}
+
+.aright {
+    text-align: right;
+}
+/* FILE TABLE END */
 
