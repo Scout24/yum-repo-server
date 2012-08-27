@@ -9,6 +9,9 @@ class Constants:
     HTTP_REPO = '/repo'
     HTTP_PATH_STATIC = HTTP_REPO
     HTTP_PATH_VIRTUAL = HTTP_REPO + '/virtual'
+    TEST_UNDERSCORE_RPM_FILE_LOC = 'src/test/resources/'
+    TEST_UNDERSCORE_RPM_FILE_NAME = 'underscore_test_rpm_file.rpm'
+    TEST_UNDERSCORE_RPM_DESTINATION_NAME = 'x86_64/rpmforge-release-0.3.4-1.el3.rf.x86_64.rpm'
     TEST_RPM_FILE_LOC='src/test/resources/'
     TEST_RPM_FILE_NAME="test-artifact.rpm"
     TEST_RPM_DESTINATION_NAME = 'noarch/test-artifact-1.2-1.noarch.rpm'

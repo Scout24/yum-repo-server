@@ -109,6 +109,17 @@ class TestStaticRepo(BaseIntegrationTestCase):
         self.assertTrue(os.path.isfile(uploaded_file_path))
         return uploaded_file_path
 
+    def test_remove_rpm_with_underscore_in_arch_from_repo(self):
+        repo_name = self.createNewRepoAndAssertValid()
+        file_path = Constants.TEST_UNDERSCORE_RPM_FILE_LOC + Constants.TEST_UNDERSCORE_RPM_FILE_NAME
+        self.upload_testfile(repo_name, file_path)
+
+        httpResponse = self.repoclient().deleteSingleRpm(repo_name, Constants.TEST_UNDERSCORE_RPM_DESTINATION_NAME)
+        repo_path = self.determine_repo_path(repo_name)
+        uploaded_file_path = repo_path + Constants.TEST_UNDERSCORE_RPM_DESTINATION_NAME
+        self.assertStatusCode(httpResponse, httplib.NO_CONTENT)
+        self.assertFalse(os.path.isfile(uploaded_file_path))
+
     def test_remove_rpm_from_repo(self):
         repo_name = self.createNewRepoAndAssertValid()
         uploaded_file_path = self.given_rpm_in_repository(repo_name)
