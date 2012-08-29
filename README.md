@@ -31,6 +31,8 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 
 
 ## Getting started
+* Dependencies: sudo apt-get install python-apscheduler python-teamcity-messages python-pycurl python-yaml python-lxml python-django python-django-piston python-nose createrepo python-rpm python-daemon python-lockfile
+  Missing modules can be converted to DEB with pypi-install from http://pypi.python.org/pypi/stdeb, available as python-stdeb Ubuntu package.
 * Build it : <code>python setup.py build</code>
 * Install it : <code>python setup.py install</code>
 * Run the tests : <code> python setup.py test</code>
