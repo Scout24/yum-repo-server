@@ -19,10 +19,59 @@ from django.utils.http import http_date, parse_http_date
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoTaggingService import RepoTaggingService
 
+RANGE_PATTERN = '^bytes=(\d{1,9})-(\d{0,9})$'
+
 class ParentDirType(object):
     NONE=0
     STATIC=1
     VIRTUAL=2
+
+
+def serve_file(fullpath, request):
+    # Respect the If-Modified-Since header.
+    statobj = os.stat(fullpath)
+    mimetype, encoding = mimetypes.guess_type(fullpath)
+    mimetype = mimetype or 'application/octet-stream'
+    if not was_modified_since(request.META.get('HTTP_IF_MODIFIED_SINCE'),
+        statobj.st_mtime, statobj.st_size):
+        return HttpResponseNotModified(mimetype=mimetype)
+
+    if request.META.get('HTTP_RANGE'):
+        range_description = request.META.get('HTTP_RANGE')
+        range_match = re.match(RANGE_PATTERN, range_description)
+        if not range_match:
+            return HttpResponse(content='http range "%s" does not match "%s".' % (range_description, RANGE_PATTERN), status=416)
+
+        start_byte = int(range_match.group(1))
+        last_byte = range_match.group(2)
+        if start_byte < 0:
+            return HttpResponse(content='http start byte %d is not allowed to be less than 0.' % start_byte, status=416)
+        if not last_byte:
+            last_byte = statobj.st_size - 1
+        else:
+            last_byte = int(last_byte)
+        if start_byte > last_byte:
+            return HttpResponse(content='http start byte %d is not allowed to be bigger than last byte %d.' % (start_byte, last_byte), status=416)
+        if start_byte >= statobj.st_size or last_byte >= statobj.st_size:
+            return HttpResponse(content='http start byte %d or last byte %d is bigger than file size %d.' % (start_byte, last_byte, statobj.st_size), status=416)
+
+        content_length = last_byte - start_byte + 1
+        with open(fullpath, 'rb') as file_obj:
+            file_obj.seek(start_byte)
+            response = HttpResponse(file_obj.read(content_length), mimetype=mimetype, status=206)
+
+        response['Accept-Ranges'] = 'bytes'
+        response['Content-Range'] = 'bytes %d-%d/%d' % (start_byte, last_byte, statobj.st_size)
+    else:
+        response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
+        content_length = statobj.st_size
+
+    response["Last-Modified"] = http_date(statobj.st_mtime)
+    response["Content-Length"] = content_length
+    if encoding:
+        response["Content-Encoding"] = encoding
+    return response
+
 
 def serve(request, path, document_root=None, show_indexes=False, add_virtual = False, parent_dir_type = ParentDirType.NONE):
     """
@@ -63,19 +112,8 @@ def serve(request, path, document_root=None, show_indexes=False, add_virtual = F
         raise Http404("Directory indexes are not allowed here.")
     if not os.path.exists(fullpath):
         raise Http404('"%s" does not exist' % fullpath)
-    # Respect the If-Modified-Since header.
-    statobj = os.stat(fullpath)
-    mimetype, encoding = mimetypes.guess_type(fullpath)
-    mimetype = mimetype or 'application/octet-stream'
-    if not was_modified_since(request.META.get('HTTP_IF_MODIFIED_SINCE'),
-                              statobj.st_mtime, statobj.st_size):
-        return HttpResponseNotModified(mimetype=mimetype)
-    response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
-    response["Last-Modified"] = http_date(statobj.st_mtime)
-    response["Content-Length"] = statobj.st_size
-    if encoding:
-        response["Content-Encoding"] = encoding
-    return response
+
+    return serve_file(fullpath, request)
 
 KWOWN_FILE_TYPES = ['.rpm', '.xml.gz', '.xml', '.sqlite.bz2']
 

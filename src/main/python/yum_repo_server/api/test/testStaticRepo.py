@@ -108,7 +108,7 @@ class TestStaticRepo(BaseIntegrationTestCase):
         self.assertStatusCode(response, 206)
         self.assertEqual(response.getheader('Accept-Ranges'), 'bytes')
         self.assertEqual(response.getheader('Content-Length'), '101')
-        self.assertEqual(response.getheader('Content-Range'), 'bytes 0-100/143792')
+        self.assertEqual(response.getheader('Content-Range'), 'bytes 0-100/1364')
         #self.assertEqual(response.getheader('Connection'), 'close')
         self.assertEqual(len(response.read()), 101)
 
