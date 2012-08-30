@@ -5,10 +5,10 @@ class IntegrationTestHelper():
         self.host = host
         self.port = port
     
-    def do_http_get(self, extPath):
+    def do_http_get(self, extPath, headers={}):
         try:
             httpServ = httplib.HTTPConnection(self.host, self.port)
-            httpServ.request('GET', extPath)
+            httpServ.request('GET', extPath, headers=headers)
             response = httpServ.getresponse()
             return response
         except httplib.HTTPException:
