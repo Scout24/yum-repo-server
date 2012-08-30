@@ -41,7 +41,7 @@ urlpatterns = patterns('',
     url(r'^(?P<reponame>[a-zA-Z0-9-.]+)/?\.html', 'yum_repo_server.api.views.static_repo_info'),
     url(r'^(?P<reponame>[a-zA-Z0-9-.]+)/repodata/?$', createYumMetaDataResource),
     url(r'^(?P<reponame>[a-zA-Z0-9-_.]+/?)$', staticRepoResource),
-    url(r'^(?P<reponame>[a-zA-Z0-9-.]+)/(?P<arch>[a-zA-Z0-9-.]+)/(?P<rpm>[a-zA-Z0-9-.]+)$', rpmResource),
+    url(r'^(?P<reponame>[a-zA-Z0-9-.]+)/(?P<arch>[a-zA-Z0-9-_.]+)/(?P<rpm>[a-zA-Z0-9-_.]+)$', rpmResource),
     url(r'^(?P<rpm>[a-zA-Z0-9-./]+)/info.html', 'yum_repo_server.api.views.rpm_info_static'),
     url(r'^(?P<path>.*)$', repositoryViewerResource),
 )

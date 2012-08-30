@@ -31,12 +31,32 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 
 
 ## Getting started
+* Dependencies:  
+    <code>sudo apt-get install python-pycurl \\  
+        python-yaml \\  
+        python-lxml \\  
+        python-django \\  
+        python-django-piston \\  
+        python-nose \\
+        createrepo \\  
+        python-rpm \\  
+        python-daemon \\  
+        python-lockfile \\  
+        python-stdeb  
+    pypi-install APScheduler  
+    pypi-install teamcity-messages
+    </code>  
+    as these modules are not part of Ubuntu (see http://pypi.python.org/pypi/stdeb for more info).
+
 * Build it : <code>python setup.py build</code>
-* Install it : <code>python setup.py install</code>
+
 * Run the tests : <code> python setup.py test</code>
+
+* Install it : <code>python setup.py install</code>
+
 * Try it out! Running <code>python manage.py runserver</code> will start up a django developement server (not for production!!) featuring the yum-repo-server.
-  * This development server is fully fledged and you can use it to determine if the yum-repo-server is what you want very quickly.
-  * Use the included yum-repo-client for more comfortable tryouts. (cd into client/ and install it with <code>./setup.py install</code>)
+	* This development server is fully fledged and you can use it to determine if the yum-repo-server is what you want very quickly.
+	* Use the included yum-repo-client for more comfortable tryouts. (cd into client/ and install it with <code>python setup.py install</code>)
 
 ## Production usage
 For production usage we recommend an *apache webserver (httpd)* with *mod_wsgi*. If you build a RPM by <code>python setup.py bdist_rpm</code> an apache configuration file is automatically included. But the <code>wsgi.py</code> should work as well with other WSGI-compatible servers like CherryPy, twisted.web, Gunicorn, etc.
