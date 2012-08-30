@@ -100,6 +100,31 @@ class TestStaticRepo(BaseIntegrationTestCase):
         uploaded_file_path = repo_path + Constants.TEST_RPM_DESTINATION_NAME
         self.assertTrue(os.path.isfile(uploaded_file_path))
 
+    def test_range_download(self):
+        repo_name = self.createNewRepoAndAssertValid()
+        testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
+        self.upload_testfile(repo_name, testRPMFilePath)
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '/' + repo_name + '/' + Constants.TEST_RPM_DESTINATION_NAME, headers={'Range' : 'bytes=0-100'})
+        self.assertStatusCode(response, 206)
+        self.assertEqual(response.getheader('Accept-Ranges'), 'bytes')
+        self.assertEqual(response.getheader('Content-Length'), '101')
+        self.assertEqual(response.getheader('Content-Range'), 'bytes 0-100/143792')
+        #self.assertEqual(response.getheader('Connection'), 'close')
+        self.assertEqual(len(response.read()), 101)
+
+    def test_range_download_not_statifiable(self):
+        repo_name = self.createNewRepoAndAssertValid()
+        testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
+        self.upload_testfile(repo_name, testRPMFilePath)
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '/' + repo_name + '/' + Constants.TEST_RPM_DESTINATION_NAME, headers={'Range' : 'bytes=100-2000'})
+        self.assertStatusCode(response, 416)
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '/' + repo_name + '/' + Constants.TEST_RPM_DESTINATION_NAME, headers={'Range' : 'bytes=10-0'})
+        self.assertStatusCode(response, 416)
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '/' + repo_name + '/' + Constants.TEST_RPM_DESTINATION_NAME, headers={'Range' : 'records=100-200'})
+        self.assertStatusCode(response, 416)
+        response = self.helper.do_http_get(Constants.HTTP_PATH_STATIC + '/' + repo_name + '/' + Constants.TEST_RPM_DESTINATION_NAME, headers={'Range' : 'bytes=2000-3000'})
+        self.assertStatusCode(response, 416)
+
 
     def given_rpm_in_repository(self, repo_name):
         testRPMFilePath = Constants.TEST_RPM_FILE_LOC + Constants.TEST_RPM_FILE_NAME
