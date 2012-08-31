@@ -280,7 +280,7 @@ class CommandLineClient(object):
                     error = True
                     continue
                 self.httpClient.uploadRpm(reponame, rpm_file_name)
-                print '\t' + rpm_file_name
+                print '\t'
 
             if error:
                 return 1

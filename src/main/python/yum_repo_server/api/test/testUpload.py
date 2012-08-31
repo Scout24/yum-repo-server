@@ -14,7 +14,8 @@ class TestLegacyUpload(BaseIntegrationTestCase):
         
         headers = {'Content-Type' : 'application/x-www-form-urlencoded'}
         response = self.doHttpPost(Constants.HTTP_REPO + '/' + repo_name + '/', chunk, headers)
-        self.assertEquals(response.status, httplib.CREATED, "Returncode for legacy upload must be CREATED, but was" + str(response.status))
+        self.assertStatusCode(response, httplib.CREATED)
+        self.isInString("Successfully", response.msg)
         
 if __name__ == '__main__':
     unittest.main()
