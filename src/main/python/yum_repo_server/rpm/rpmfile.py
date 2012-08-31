@@ -59,6 +59,7 @@ class RpmFileHandler (object):
         temporary_resulting_name = resulting_name + ".part"
         shutil.move(self.rpm_file.file_name,temporary_resulting_name)
         shutil.move(temporary_resulting_name,resulting_name)
+        return resulting_name
 
 class RpmFile (object):
 

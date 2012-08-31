@@ -29,14 +29,16 @@ class StaticRepoHandler(BaseHandler):
         try:
             rpmFileHandler = RpmFileHandler(tempFilename)
             rpmFileHandler.assert_valid()
-            rpmFileHandler.move_to_canonical_name(repoPath)
+            resultingName = rpmFileHandler.move_to_canonical_name(repoPath)
         except (RpmFileException, RpmValidationException) as e:
             sys.stderr.write("ERROR validating %s: %s\n" % (tempFilename, str(e)))
             if os.path.exists(tempFilename):
                 os.remove(tempFilename)
             return rc.BAD_REQUEST
+        response = rc.CREATED
+        response.content = 'Successfully uploaded '+ os.path.basename(resultingName) + ' into repository: ' + reponame[:-1]
 
-        return rc.CREATED
+        return response
     
     def delete(self, request, reponame):
         if '/' in reponame:
