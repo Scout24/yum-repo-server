@@ -247,7 +247,8 @@ class CommandLineClient(object):
             return 1
 
         try:
-            self.httpClient.propagate_rpm(fromrepo, rpm_arch_slash_name, torepo)
+            response = self.httpClient.propagate_rpm(fromrepo, rpm_arch_slash_name, torepo)
+            print "INFO: move to location: " + response.getheader("Location")
             return 0
         except Exception, e:
             print e
