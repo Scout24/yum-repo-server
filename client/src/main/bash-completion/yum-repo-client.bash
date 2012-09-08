@@ -122,9 +122,16 @@ _repocomplete()
       create)
          return 0
          ;;
-      *.rpm)  ###mass upload mode, autcomplete RPM file names
-         local matches=$(for x in `ls | grep ".rpm"`; do echo ${x} ; done )
-         COMPREPLY=( $(compgen -W "${matches} ${opts}" -- ${cur}) )
+      *.rpm)  ###mass upload mode, autocomplete RPM file names
+         local simple=$(echo ${cur}*)
+         if [ -d $cur ] && ! [ -z $cur ]
+          then
+            case $cur in
+              */) ;;
+              *) local nested=$(echo ${cur}/*);;
+            esac      
+         fi
+         COMPREPLY=( $(compgen -W "${simple} ${nested}" -- ${cur}) )
          return 0
          ;;
       *)  ### go one step further for commands taking two arguments
@@ -138,8 +145,15 @@ _repocomplete()
                return 0
                ;;
             uploadto)
-               local matches=$(for x in `ls | grep ".rpm"`; do echo ${x} ; done )
-               COMPREPLY=( $(compgen -W "${matches}" -- ${cur}) )
+               local simple=$(echo ${cur}*) #current path completion
+               if [ -d $cur ] && ! [ -z $cur ]
+                then
+                  case $cur in
+                    */) ;;
+                    *) local nested=$(echo ${cur}/*);; #if cur is a directory, look inside it
+                  esac      
+               fi
+               COMPREPLY=( $(compgen -W "${simple} ${nested}" -- ${cur}) )
                return 0
                ;;
             untag)
