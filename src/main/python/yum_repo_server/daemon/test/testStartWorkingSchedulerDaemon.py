@@ -4,6 +4,7 @@ import os
 import subprocess
 import time
 import shutil
+import stat
 
 class TestStartWorkingSchedulerDaemon(unittest.TestCase):
     PID_FILE_PATH = os.path.abspath('target/testpidfile.pid')
@@ -28,7 +29,23 @@ class TestStartWorkingSchedulerDaemon(unittest.TestCase):
         self._given_repo_dir_from_test_resources('daemon/createrepo', createrepo_dir)
         
         self._safely_execute_with_daemon(action)
+
+    def test_other_can_not_write_repodata(self):
+        createrepo_dir = 'target/static/createrepo_test'
+        def action():
+            self.assertTrue(wait_for(lambda: os.path.exists(createrepo_dir + '/repodata'), 10), 'repodata was not created within 10 seconds.')
+            self.assertTrue(wait_for(lambda: not self.is_other_writeable(createrepo_dir + '/repodata'), 10), 'umask is not correct, OTHER has write permissions!')
         
+        self._given_repo_dir_from_test_resources('daemon/createrepo', createrepo_dir)
+
+        self._safely_execute_with_daemon(action)
+        
+    def is_other_writeable(self,path):
+        st = os.stat(path)
+        can_write = bool(st.st_mode & stat.S_IWOTH) 
+        print "can write : %s"%can_write
+        return can_write 
+
     def test_cleanup_rpm_job_is_executed(self):
         repo_dir = 'target/static/cleanup_test'
         rpm_to_delete = repo_dir + '/noarch/test-rpm-3.2-12.noarch.rpm'
