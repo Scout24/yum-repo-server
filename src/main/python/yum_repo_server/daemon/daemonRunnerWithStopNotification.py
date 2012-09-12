@@ -14,8 +14,7 @@ class DaemonRunnerWithStopNotification(DaemonRunner):
 
         uid = pwd.getpwnam(REPO_CONFIG.get('DAEMON_USER')).pw_uid
         gid = grp.getgrnam(REPO_CONFIG.get('DAEMON_GROUP')).gr_gid
-        
-        self.daemon_context = DaemonContext(signal_map=signalHandlerMap, working_directory='.', uid=uid, gid=gid)
+        self.daemon_context = DaemonContext(signal_map=signalHandlerMap, working_directory='.', uid=uid, gid=gid, umask=022)
         self.daemon_context.stdin = None
         self.daemon_context.stdout = self.app.stdout
         self.daemon_context.stderr = self.app.stderr
