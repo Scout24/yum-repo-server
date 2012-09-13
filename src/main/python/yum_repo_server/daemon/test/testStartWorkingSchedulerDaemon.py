@@ -34,7 +34,7 @@ class TestStartWorkingSchedulerDaemon(unittest.TestCase):
         createrepo_dir = 'target/static/createrepo_test'
         def action():
             self.assertTrue(wait_for(lambda: os.path.exists(createrepo_dir + '/repodata'), 10), 'repodata was not created within 10 seconds.')
-            self.assertTrue(wait_for(lambda: not self.is_other_writeable(createrepo_dir + '/repodata'), 10), 'umask is not correct, OTHER has write permissions!')
+            self.assertFalse(self.is_other_writeable(createrepo_dir + '/repodata'), 'daemon umask is not correct, OTHER has write permissions on repodata!')
         
         self._given_repo_dir_from_test_resources('daemon/createrepo', createrepo_dir)
 
