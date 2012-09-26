@@ -34,7 +34,7 @@ class VirtualRepoHandler(BaseHandler):
     def delete(self, request, reponame, rpm = '/'):
         if not rpm is None and len(rpm) > 1:
             resp = rc.NOT_IMPLEMENTED
-            resp.content = "Your are just allowed to remove virtual repositories"
+            resp.content = "You are just allowed to remove virtual repositories"
             return resp
         
         repo_path = self.repoConfigService.getVirtualRepoDir(reponame)
