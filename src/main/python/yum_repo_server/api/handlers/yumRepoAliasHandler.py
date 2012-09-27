@@ -3,6 +3,7 @@ from piston.utils import rc
 from yum_repo_server.api import config
 from yum_repo_server.api.services.repoConfigService import RepoConfigService, \
     RepoNotFoundException
+from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from yum_repo_server.static import serve, ParentDirType
 
 
@@ -16,6 +17,7 @@ class YumRepoAliasHandler(BaseHandler):
     POST_PARAM_VIRTUAL_REPO_NAME = 'name'
 
     repoConfigService = RepoConfigService()
+    repoAuditService = RepoAuditService()
 
     def create(self, request, text):
         try:
@@ -30,6 +32,7 @@ class YumRepoAliasHandler(BaseHandler):
             resp.content = 'The destination repository at %s does not exist.' % destination_repo
             return resp
 
+        self.repoAuditService.log_action("created a virtual link from %s to %s"%(virtual_repo_name, destination_repo),request)
         response = rc.CREATED
         response.content = result
         return response

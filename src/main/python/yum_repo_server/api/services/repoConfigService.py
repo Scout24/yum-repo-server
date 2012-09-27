@@ -105,7 +105,6 @@ class RepoConfigService(object):
         else:
             destination = config.get_repo_dir() + '/' + destination_relative_to_repodir
             destination = self.removeTrailingSlashIfPresent(destination)
-            logging.info("check if " + destination + " exists")
             if not os.path.exists(destination):
                 raise RepoNotFoundException()
     
