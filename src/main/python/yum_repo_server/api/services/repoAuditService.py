@@ -8,5 +8,5 @@ class RepoAuditService(object):
   def log_action(self,function_description, request):
        username='<unauthenticated>'
        if 'REMOTE_USER' in request.META:
-         username=request.META.REMOTE_USER
+         username=request.META['REMOTE_USER']
        self.logger.info('User %s %s'%(username,function_description))
