@@ -18,7 +18,7 @@ class YumRepoAliasHandler(BaseHandler):
     POST_PARAM_VIRTUAL_REPO_NAME = 'name'
 
     repoConfigService = RepoConfigService()
-    repoAuditService = RepoAuditService()
+    audit = RepoAuditService()
 
     def create(self, request, text):
         try:
@@ -33,7 +33,7 @@ class YumRepoAliasHandler(BaseHandler):
             resp.content = 'The destination repository at %s does not exist.' % destination_repo
             return resp
 
-        self.repoAuditService.log_action("created a virtual link from %s to %s"%(virtual_repo_name, destination_repo),request)
+        self.audit.log_action("created a virtual link from %s to %s"%(virtual_repo_name, destination_repo),request)
         response = rc.CREATED
         response.content = result
         return response

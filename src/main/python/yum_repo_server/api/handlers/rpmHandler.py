@@ -33,7 +33,7 @@ class RpmHandler(BaseHandler):
         if not os.path.isfile(rpm_path):
             return rc.NOT_FOUND
         
-        audit.log_action("deleted rpm %s/%s from %s"%(arch, rpm, reponame))
+        self.audit.log_action("deleted rpm %s/%s from %s"%(arch, rpm, reponame),request)
         os.remove(rpm_path)
         return rc.DELETED
 

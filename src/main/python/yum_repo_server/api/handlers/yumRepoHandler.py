@@ -1,6 +1,7 @@
 from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from yum_repo_server.static import serve, ParentDirType
 
 import re
@@ -10,6 +11,7 @@ class YumRepoHandler(BaseHandler):
     NAME_REGEX = '^[a-zA-Z0-9][a-zA-Z0-9_\-\.]*$'
     
     repoConfigService = RepoConfigService()
+    audit = RepoAuditService()
 
     def create(self, request, text):   
         data = request.POST
@@ -43,6 +45,8 @@ class YumRepoHandler(BaseHandler):
             name=request.POST['name'],
             dir=path
         )
+
+        self.audit.log_action("created static repository %s"%name,request)
 
         return resp
 
