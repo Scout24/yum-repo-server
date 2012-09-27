@@ -8,10 +8,12 @@ from django.http import HttpResponseRedirect
 from yum_repo_server.static import serve
 from yum_repo_server.api  import config
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoAuditService import RepoAuditService
 
 class VirtualRepoHandler(BaseHandler):
 
     repoConfigService = RepoConfigService()
+    audit = RepoAuditService()
 
     def read(self, request, reponame, rpm = '/'):
         virtual_reponame = reponame
@@ -43,5 +45,6 @@ class VirtualRepoHandler(BaseHandler):
             resp.content = 'Virtual Repository does not exists!'
             return resp
         
+        self.audit.log_action("deleted virtual repository %s"%(reponame),request)
         shutil.rmtree(repo_path)
         return rc.DELETED

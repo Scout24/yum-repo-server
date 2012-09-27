@@ -8,6 +8,7 @@ from yum_repo_server.rpm.rpmfile import RpmFileException
 from yum_repo_server.rpm.rpmfile import RpmValidationException
 from yum_repo_server.static import serve
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from django.core.files.uploadedfile import TemporaryUploadedFile 
 from piston.handler import BaseHandler
 from piston.utils import rc
@@ -19,6 +20,7 @@ from yum_repo_server.api.config import get_non_deletable_repositories
 class StaticRepoHandler(BaseHandler):
     
     repoConfigService = RepoConfigService()
+    audit = RepoAuditService()
     TEMP_DIR = yum_repo_server.settings.REPO_CONFIG['TEMP_DIR']
 
     def create(self, request, reponame):
@@ -37,7 +39,7 @@ class StaticRepoHandler(BaseHandler):
             return rc.BAD_REQUEST
         response = rc.CREATED
         response.content = 'Successfully uploaded '+ os.path.basename(resultingName) + ' into repository: ' + reponame[:-1]
-
+        self.audit.log_action("uploaded rpm %s to %s"%(os.path.basename(resultingName), reponame),request)
         return response
     
     def delete(self, request, reponame):
@@ -53,6 +55,7 @@ class StaticRepoHandler(BaseHandler):
         if reponame in get_non_deletable_repositories():
             return self._bad_request('repository can not be deleted')
         
+        self.audit.log_action("deleted static repository %s"%reponame,request)
         shutil.rmtree(repo_path)
         return rc.DELETED
     

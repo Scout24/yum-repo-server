@@ -1,6 +1,7 @@
 from piston.handler import BaseHandler
 from piston.utils import rc
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoAuditService import RepoAuditService
 import os
 import shutil
 from yum_repo_server.api.services.rpmService import create_rpm_file_object,\
@@ -8,6 +9,7 @@ from yum_repo_server.api.services.rpmService import create_rpm_file_object,\
 
 class RpmPropagationHandler(BaseHandler):
     config = RepoConfigService()
+    audit = RepoAuditService()
     
     def create(self, request):
         data = request.POST
@@ -43,7 +45,8 @@ class RpmPropagationHandler(BaseHandler):
         destination_rpm_parent_dir = os.path.dirname(destination_rpm_path)
         if not os.path.exists(destination_rpm_parent_dir):
             os.mkdir(destination_rpm_parent_dir)
-        
+
+        self.audit.log_action("propagated rpm %s/%s from %s to %s"%(source_arch, rpm, source_repo,destination),request)
         shutil.move(source_rpm_path, destination_rpm_path)
         
         resp = rc.CREATED
