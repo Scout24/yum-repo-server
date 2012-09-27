@@ -5,6 +5,7 @@ from yum_repo_server.api.services.repoConfigService import RepoConfigService, \
     RepoNotFoundException
 from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from yum_repo_server.static import serve, ParentDirType
+import logging
 
 
 class RequestFailException(Exception):
