@@ -52,7 +52,7 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         return self.repoclient().createLinkToVirtualRepo(virtual_reponame, destination_reponame)
 
     def repoclient(self):
-        return HttpClient(self.live_server_host, self.live_server_port)
+        return HttpClient(self.live_server_host, self.live_server_port,"Integration Test")
 
     def determine_repo_path(self, reponame):
         projectDir = self.determineAbsolutePathToProject()

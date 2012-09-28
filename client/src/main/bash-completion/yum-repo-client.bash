@@ -34,7 +34,7 @@ _repocomplete()
     ### commands (options that can be used only once)
     oneshotopts="create uploadto generatemetadata linktostatic linktovirtual deletevirtual deletestatic deleterpm propagate redirectto tag taglist querystatic queryvirtual untag"
     ### options that can appear anywhere
-    opts="--hostname=${repohost} --port=${repoport} --username=${username}"
+    opts="--hostname=${repohost} --port=${repoport} --username=${username} --message=\"your_message\""
 
 
     case "${prevprevprev}" in
