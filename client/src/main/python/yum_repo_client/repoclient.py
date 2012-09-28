@@ -24,10 +24,12 @@ class HttpClient(object):
     
     username = None
     password = None
+    message = None
     
-    def __init__(self, hostname, port):
+    def __init__(self, hostname, port, message=None):
         self.hostname = hostname
         self.port = port
+        self.message=message
 
     def queryStatic(self,params):
         urlparams = urllib.urlencode(params)
@@ -118,13 +120,14 @@ class HttpClient(object):
         return response
 
     def doHttpPost(self, extPath, postdata='', headers=None):
+        if postdata and self.message:
+          postdata+='&YRS_MESSAGE='+str(self.message)
         if not headers: headers = {}
         headers['User-Agent'] = self.USER_AGENT
         
         if self.username is not None:
             auth = 'Basic ' + string.strip(base64.encodestring(self.username + ':' + self.password))
             headers['Authorization'] = auth
-        
         try:
             httpServ = httplib.HTTPConnection(self.hostname, self.port)
             httpServ.connect()
@@ -188,7 +191,7 @@ class CommandLineClient(object):
         self.options = CommandLineClientOptionsExtractor()
         self.options.extract_and_remove_options_from_arguments(self.arguments)
         
-        self.httpClient = HttpClient(hostname=self.options.hostname, port=self.options.port)
+        self.httpClient = HttpClient(hostname=self.options.hostname, port=self.options.port,message=self.options.message)
         self.initOperations()
 
 
@@ -465,6 +468,7 @@ class CommandLineClient(object):
         --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
         --port=<port> : port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml
         --username=<username> : username to use basic authentication. You will be prompted for the password.
+        --message=<message> : adds a justification to your request. It will be visible in the audit.
         """
         return 1
 
@@ -530,6 +534,7 @@ class CommandLineClientOptionsExtractor(object):
     username = None
     hostname = None
     port = None
+    message = None
     
     def _set_hostname(self, hostname):
         self.hostname = hostname
@@ -542,11 +547,15 @@ class CommandLineClientOptionsExtractor(object):
         
     def _set_username(self, username):
         self.username = username
+
+    def _set_message(self, message):
+        self.message = message
     
     _options = {
         'hostname' : _set_hostname,
         'port' : _set_port,
         'username' : _set_username,
+        'message' : _set_message,
     }
 
     def extract_and_remove_options_from_arguments(self, arguments):
