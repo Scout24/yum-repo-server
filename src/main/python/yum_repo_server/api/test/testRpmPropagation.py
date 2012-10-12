@@ -21,14 +21,16 @@ class TestRpmPropagation(BaseIntegrationTestCase):
         source = self.createNewRepoAndAssertValid()
         target = self.createNewRepoAndAssertValid()
         self.repoclient().uploadRpm(source, 'src/test/resources/test-artifact.rpm')
-        response=self.repoclient().propagate_rpm(source, 'noarch/package-does-not-exist', target)
+        post_data = 'source=%s/noarch/foobar&destination=%s'%(source,target)
+        response = self.doHttpPost('/propagation/', post_data)
         self.assertEquals(httplib.BAD_REQUEST, response.status)
 
     def test_propagate_unexisting_rpm_by_file_is_bad_request(self):
         source = self.createNewRepoAndAssertValid()
         target = self.createNewRepoAndAssertValid()
         self.repoclient().uploadRpm(source, 'src/test/resources/test-artifact.rpm')
-        response=self.repoclient().propagate_rpm(source, 'noarch/package-does-not-exist-123-456_2.rpm', target)
+        post_data = 'source=%s/noarch/foobar-123-456.noarch.rpm&destination=%s'%(source,target)
+        response = self.doHttpPost('/propagation/', post_data)
         self.assertEquals(httplib.BAD_REQUEST, response.status)
         
     def test_propagate_rpm_by_name(self):

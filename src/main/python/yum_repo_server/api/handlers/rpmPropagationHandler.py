@@ -37,6 +37,9 @@ class RpmPropagationHandler(BaseHandler):
         
         rpm = self._determine_rpm_file_name(os.path.join(source_repo_path, source_arch), rpm)
         
+        if not rpm:
+            return self._build_bad_response('rpm_file could not be found.')
+        
         source_rpm_path = os.path.join(source_repo_path, source_arch, rpm)
         destination_rpm_path = os.path.join(destination_repo_path, source_arch, rpm)
         if not os.path.exists(source_rpm_path):
