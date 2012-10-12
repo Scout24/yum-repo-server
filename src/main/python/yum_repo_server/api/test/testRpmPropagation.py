@@ -16,6 +16,20 @@ class TestRpmPropagation(BaseIntegrationTestCase):
         
         self.assertEquals(location_field, response.getheader('Location'))
         self.assertEquals(httplib.OK, self.helper.do_http_get(destination_rpm_url).status, 'Could not get the rpm via the expected destination path.')
+
+    def test_propagate_unexisting_rpm_by_name_is_bad_request(self):
+        source = self.createNewRepoAndAssertValid()
+        target = self.createNewRepoAndAssertValid()
+        self.repoclient().uploadRpm(source, 'src/test/resources/test-artifact.rpm')
+        response=self.repoclient().propagate_rpm(source, 'noarch/package-does-not-exist', target)
+        self.assertEquals(httplib.BAD_REQUEST, response.status)
+
+    def test_propagate_unexisting_rpm_by_file_is_bad_request(self):
+        source = self.createNewRepoAndAssertValid()
+        target = self.createNewRepoAndAssertValid()
+        self.repoclient().uploadRpm(source, 'src/test/resources/test-artifact.rpm')
+        response=self.repoclient().propagate_rpm(source, 'noarch/package-does-not-exist-123-456_2.rpm', target)
+        self.assertEquals(httplib.BAD_REQUEST, response.status)
         
     def test_propagate_rpm_by_name(self):
         first_repo = self.createNewRepoAndAssertValid()
