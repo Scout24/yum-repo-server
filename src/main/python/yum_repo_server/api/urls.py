@@ -1,5 +1,3 @@
-import os
-
 from yum_repo_server.api.handlers.yumRepoHandler import YumRepoHandler
 from yum_repo_server.api.handlers.yumRepoAliasHandler import YumRepoAliasHandler
 from yum_repo_server.api.handlers.staticRepoHandler import StaticRepoHandler

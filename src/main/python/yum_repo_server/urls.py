@@ -1,5 +1,3 @@
-import os
-
 from django.conf.urls.defaults import *
 from yum_repo_server import settings
 from django.http import HttpResponseRedirect
