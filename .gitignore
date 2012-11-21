@@ -7,3 +7,6 @@ target
 *.egg-info
 *.iml
 *~
+
+# ignoring virtual environment directory
+ve
