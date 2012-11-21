@@ -1,7 +1,6 @@
 from yum_repo_server.api  import config
 import os
 import yaml
-import rpm
 import re
 import subprocess
 from yum_repo_server.settings import REPO_CONFIG

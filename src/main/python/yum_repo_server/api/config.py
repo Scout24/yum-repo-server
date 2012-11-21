@@ -1,6 +1,5 @@
 from yum_repo_server.settings import REPO_CONFIG
 import os
-import unittest
 
 def get_repo_dir():
     return REPO_CONFIG.get('REPO_DIR')

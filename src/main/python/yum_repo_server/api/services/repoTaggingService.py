@@ -1,4 +1,3 @@
-import logging
 import os
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 import lockfile

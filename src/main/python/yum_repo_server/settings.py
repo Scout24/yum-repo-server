@@ -1,6 +1,5 @@
 # Django settings for yum_repo_server project.
 import os
-import os.path
 import yaml
 import tempfile
 
