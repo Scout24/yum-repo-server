@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - "2.6"
+  - "2.7"
+  - "3.2"
+  - "pypy"
+
+env:
+  - DJANGO=1.3.1
+
+before_script:
+  - sudo apt-get install python-pycurl python-yaml python-lxml python-nose createrepo python-rpm
+
+install:
+  - pip install Django==$DJANGO APScheduler teamcity-messages django-piston nose python-daemon lockfile stdeb
+
+script: "python setup.py test"
