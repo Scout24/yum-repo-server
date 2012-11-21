@@ -14,5 +14,6 @@ before_script:
 
 install:
   - pip install Django==$DJANGO APScheduler teamcity-messages django-piston nose python-daemon lockfile stdeb PyYAML
+  - sudo apt-get install python-rpm
 
 script: "python setup.py test"
