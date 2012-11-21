@@ -6,6 +6,9 @@ python:
   - "3.2"
   - "pypy"
 
+virtualenv:
+  system_site_packages: true
+
 env:
   - DJANGO=1.3.1
 
