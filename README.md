@@ -37,7 +37,7 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
         python-lxml \\  
         python-django \\  
         python-django-piston \\  
-        python-nose \\
+        python-nose \\  
         createrepo \\  
         python-rpm \\  
         python-daemon \\  
