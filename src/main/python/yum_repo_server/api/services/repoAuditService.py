@@ -1,4 +1,3 @@
-from django.http import HttpRequest
 import logging
 
 class RepoAuditService(object):

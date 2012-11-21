@@ -1,7 +1,6 @@
 import os
 import shutil
 import rpm
-import sys
 import time
 
 
