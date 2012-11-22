@@ -7,7 +7,7 @@ target
 *.iml
 *~
 
-# ignoring coverage configuration file
+# ignoring coverage data file
 .coverage
 
 # ignoring pycharm meta data
