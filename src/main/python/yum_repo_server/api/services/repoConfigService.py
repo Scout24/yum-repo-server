@@ -71,15 +71,16 @@ class RepoConfigService(object):
         return config.get_repo_dir()
 
     def getStaticRepoDir(self, reponame=''):
-        static_path=config.get_repo_dir() + '/static/'
+        static_path = config.get_repo_dir() + '/static/'
+
         if not os.path.exists(static_path): 
             os.makedirs(static_path)
         
         if '..' in reponame:
-            raise ValueError('reponame is not allowed to contain ..')
-            
-        
-        repo_path=static_path+reponame
+            raise ValueError('Repository name {0} is not allowed. String ".." forbidden in repository name.'.format(reponame))
+
+        repo_path = static_path + reponame
+
         return repo_path
 
     def getVirtualRepoDir(self, reponame=''):
