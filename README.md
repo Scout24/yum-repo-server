@@ -45,6 +45,7 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
         python-stdeb  
     pypi-install APScheduler  
     pypi-install teamcity-messages
+    pypi-install mockito
     </code>  
     as these modules are not part of Ubuntu (see http://pypi.python.org/pypi/stdeb for more info).
 
@@ -53,7 +54,7 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 sudo apt-get install python-rpm python-lxml python2.7-dev python-pycurl PyYAML  
 virtualenv --system-site-packages ve  
 . ve/bin/activate  
-pip install django==1.3 django-piston nose python-daemon lockfile stdeb
+pip install django==1.3 django-piston nose python-daemon lockfile stdeb mockito
 ```
 
 * Build it : <code>python setup.py build</code>
