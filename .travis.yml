@@ -13,6 +13,6 @@ before_script:
   - sudo apt-get install python-pycurl python-yaml python-lxml python-nose createrepo python-rpm
 
 install:
-  - pip install Django==$DJANGO APScheduler teamcity-messages django-piston nose python-daemon lockfile stdeb PyYAML
+  - pip install Django==$DJANGO APScheduler teamcity-messages django-piston nose python-daemon lockfile stdeb PyYAML mockito
 
 script: "python setup.py test"
