@@ -11,15 +11,7 @@ class PropagationException(BaseException):
     """
         to be raised when a propagation error occurs
     """
-
-    def as_response(self):
-        """
-            @return: BAD_REQUEST HTTP response with error message
-        """
-        resp = rc.BAD_REQUEST
-        resp.content = self.__str__()
-        return resp
-
+    pass
 
 class RpmPropagationHandler(BaseHandler):
     config = RepoConfigService()
@@ -72,8 +64,8 @@ class RpmPropagationHandler(BaseHandler):
 
             return resp
 
-        except PropagationException as exception:
-            return exception.as_response()
+        except BaseException as e:
+            return self._convert_exception_to_response(e)
 
     def _determine_rpm_file_name(self, directory, rpm):
         if create_rpm_file_object(rpm) is not None:
@@ -81,3 +73,10 @@ class RpmPropagationHandler(BaseHandler):
         
         return RpmService().get_latest_rpm(rpm, directory)
 
+    def _convert_exception_to_response(self, exception):
+        """
+            @return: BAD_REQUEST HTTP response with error message
+        """
+        resp = rc.BAD_REQUEST
+        resp.content = str(exception)
+        return resp
