@@ -9,6 +9,9 @@ from yum_repo_server.api.services.repoAuditService import RepoAuditService
 
 from yum_repo_server.api.services.rpmService import create_rpm_file_object, RpmService
 
+DESTINATION_KEY = 'destination'
+SOURCE_KEY = 'source'
+
 class PropagationException(BaseException):
     """
         to be raised when a propagation error occurs
@@ -16,19 +19,20 @@ class PropagationException(BaseException):
     pass
 
 class RpmPropagationHandler(BaseHandler):
+
     config = RepoConfigService()
     audit = RepoAuditService()
 
     def _validate_post_data(self, data):
-        if not data.has_key('source') or not data.has_key('destination'):
-            raise PropagationException('source and destination attribute must be set.')
+        if not data.has_key(SOURCE_KEY) or not data.has_key(DESTINATION_KEY):
+            raise PropagationException('{0} and {1} attribute must be set.'.format(SOURCE_KEY, DESTINATION_KEY))
 
-        if not re.match(r".+/.+/.+", data['source']):
-            raise PropagationException('source format is not valid. (repo_name/architecture/rpm-name)')
+        if not re.match(r".+/.+/.+", data[SOURCE_KEY]):
+            raise PropagationException('{0} format is not valid. (repo_name/architecture/rpm-name)'.format(SOURCE_KEY))
 
-        destination = data['destination']
+        destination = data[DESTINATION_KEY]
         if '/' in destination or str(destination).startswith('.'):
-            raise PropagationException('destination must not contain slashes.')
+            raise PropagationException('{0} must not contain slashes.'.format(DESTINATION_KEY))
 
 
     def create(self, request):
@@ -37,17 +41,17 @@ class RpmPropagationHandler(BaseHandler):
         try:
             self._validate_post_data(data)
 
-            source_repo, source_arch, rpm = data['source'].split('/')
+            source_repo, source_arch, rpm = data[SOURCE_KEY].split('/')
             source_repo_path = self.config.getStaticRepoDir(source_repo)
 
             if not os.path.exists(source_repo_path):
-                raise PropagationException('source repository does not exist.')
+                raise PropagationException('{0} repository does not exist.'.format(SOURCE_KEY))
 
-            destination = data['destination']
+            destination = data[DESTINATION_KEY]
 
             destination_repo_path = self.config.getStaticRepoDir(destination)
             if not os.path.exists(destination_repo_path):
-                raise PropagationException('destination repository does not exist')
+                raise PropagationException('{0} repository does not exist'.format(DESTINATION_KEY))
 
             rpm = self._determine_rpm_file_name(os.path.join(source_repo_path, source_arch), rpm)
 
@@ -66,7 +70,7 @@ class RpmPropagationHandler(BaseHandler):
             shutil.move(source_rpm_path, destination_rpm_path)
 
             resp = rc.CREATED
-            resp['Location'] = os.path.join('/repo', data['destination'], source_arch, rpm)
+            resp['Location'] = os.path.join('/repo', data[DESTINATION_KEY], source_arch, rpm)
 
             return resp
 
