@@ -12,7 +12,7 @@ class CsvListingHandler(BaseHandler):
 
     config = RepoConfigService()
 
-    def read(self, request,repodir=''):
+    def read(self, request, repodir=''):
         if not self._valid(repodir):
             response = rc.BAD_REQUEST
             response.write("You are not allowed to look into %s" % repodir)
