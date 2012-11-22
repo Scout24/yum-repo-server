@@ -1,12 +1,14 @@
 build
 dist
-.*
 !.gitignore
 target
 *.pyc
 *.egg-info
 *.iml
 *~
+
+# ignoring pycharm meta data
+.idea
 
 # ignoring virtual environment directory
 ve
