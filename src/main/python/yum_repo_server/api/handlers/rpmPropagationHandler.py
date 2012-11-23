@@ -1,11 +1,13 @@
 import os
 import re
+import traceback
 
 from piston.handler import BaseHandler
 from piston.utils import rc
 
 from yum_repo_server.api.services.repoPropagationService import RepoPropagationService
 from yum_repo_server.api.services.repoAuditService import RepoAuditService
+
 
 DESTINATION_KEY = 'destination'
 SOURCE_KEY = 'source'
@@ -58,5 +60,7 @@ class RpmPropagationHandler(BaseHandler):
             @return: BAD_REQUEST HTTP response with error message
         """
         resp = rc.BAD_REQUEST
-        resp.content = str(exception)
+        error_message = str(exception)
+        stack_trace = traceback.format_exc()
+        resp.content = "Message: {0}.\nTrace: {1}.".format(error_message, stack_trace)
         return resp

@@ -11,11 +11,12 @@ class PropagationException(BaseException):
     pass
 
 class RepoPropagationService(object):
-    config = RepoConfigService()
+    repoConfigService = RepoConfigService()
+    rpmService = RpmService()
 
     def propagatePackage(self, package_name, source_repository_name, destination_repository_name, package_architecture):
-        source_repo_path = self.config.getStaticRepoDir(source_repository_name)
-        destination_repo_path = self.config.getStaticRepoDir(destination_repository_name)
+        source_repo_path = self.repoConfigService.getStaticRepoDir(source_repository_name)
+        destination_repo_path = self.repoConfigService.getStaticRepoDir(destination_repository_name)
 
         if not os.path.exists(source_repo_path):
             raise PropagationException('source repository does not exist.')
@@ -42,13 +43,13 @@ class RepoPropagationService(object):
 
     def _determine_rpm_file_name(self, directory, rpm):
         if create_rpm_file_object(rpm) is None:
-            result = RpmService().get_latest_rpm(rpm, directory)
-        else:
-            result = rpm
+            latest_rpm = self.rpmService.get_latest_rpm(rpm, directory)
 
-        if result is None:
-            raise PropagationException('rpm_file could not be found.')
+            if latest_rpm is None:
+                raise PropagationException('rpm file for {0} could not be found in {1}'.format(rpm, directory))
 
-        return result
+            return latest_rpm
+
+        return rpm
 
 
