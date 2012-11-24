@@ -31,27 +31,16 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 
 
 ## Getting started
-* Dependencies:  
-    <code>sudo apt-get install python-pycurl \\  
-        python-yaml \\  
-        python-lxml \\  
-        python-django \\  
-        python-django-piston \\  
-        python-nose \\  
-        createrepo \\  
-        python-rpm \\  
-        python-daemon \\  
-        python-lockfile \\  
-        python-stdeb  
-    pypi-install APScheduler  
-    pypi-install teamcity-messages
-    pypi-install mockito
-    </code>  
-    as these modules are not part of Ubuntu (see http://pypi.python.org/pypi/stdeb for more info).
-
-* If you want to install in a virtualenv, remember to use the system-site-packages switch to make the modules that are not on PyPi available: 
-   ```bash
-sudo apt-get install python-rpm python-lxml python2.7-dev python-pycurl PyYAML  
+* Install the packages that are not part of PyPi :
+```
+sudo apt-get install python-rpm
+python-lxml
+python2.7-dev  
+python-pycurl  
+PyYAML
+```
+* Install the pip packages in a virtualenv (remember to use the system-site-packages switch to make the modules that are not on PyPi available to the virtualenv)
+```bash
 virtualenv --system-site-packages ve  
 . ve/bin/activate  
 pip install django==1.3 django-piston nose python-daemon lockfile stdeb mockito
