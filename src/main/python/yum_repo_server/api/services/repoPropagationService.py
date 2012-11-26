@@ -14,25 +14,25 @@ class RepoPropagationService(object):
     repoConfigService = RepoConfigService()
     rpmService = RpmService()
 
-    def propagatePackage(self, package_name, source_repository_name, destination_repository_name, package_architecture):
-        source_repo_path = self.repoConfigService.getStaticRepoDir(source_repository_name)
-        destination_repo_path = self.repoConfigService.getStaticRepoDir(destination_repository_name)
+    def propagatePackage(self, package_name, source_repository, destination_repository, architecture):
 
+        source_repo_path = self.repoConfigService.getStaticRepoDir(source_repository)
         if not os.path.exists(source_repo_path):
-            raise PropagationException('source repository does not exist.')
+            raise PropagationException("Static source repository '{0}' does not exist.".format(source_repository))
 
+        destination_repo_path = self.repoConfigService.getStaticRepoDir(destination_repository)
         if not os.path.exists(destination_repo_path):
-            raise PropagationException('destination repository does not exist')
+            raise PropagationException("Static destination repository '{0}' does not exist.".format(destination_repository))
 
-        source_architecture_path = os.path.join(source_repo_path, package_architecture)
+        source_architecture_path = os.path.join(source_repo_path, architecture)
         file_name = self._determine_rpm_file_name(source_architecture_path, package_name)
 
-        source_rpm_path = os.path.join(source_repo_path, package_architecture, file_name)
-        destination_rpm_parent_dir = os.path.join(destination_repo_path, package_architecture)
+        source_rpm_path = os.path.join(source_repo_path, architecture, file_name)
+        destination_rpm_parent_dir = os.path.join(destination_repo_path, architecture)
         destination_rpm_path = os.path.join(destination_rpm_parent_dir, file_name)
 
         if not os.path.exists(source_rpm_path):
-            raise PropagationException('rpm_file could not be found.')
+            raise PropagationException("Package '{0}' could not be found.".format(source_rpm_path))
 
         if not os.path.exists(destination_rpm_parent_dir):
             os.mkdir(destination_rpm_parent_dir)
@@ -52,4 +52,23 @@ class RepoPropagationService(object):
 
         return rpm
 
+
+    def propagateRepository(self, source_repository, destination_repository):
+        source_path = self.repoConfigService.getStaticRepoDir(source_repository)
+        if not os.path.exists(source_path):
+            raise PropagationException("Static source repository '{0}' does not exist.".format(source_repository))
+
+        destination_path = self.repoConfigService.getStaticRepoDir(destination_repository)
+        if not os.path.exists(destination_path):
+            raise PropagationException("Static destination repository '{0}' does not exist.".format(destination_repository))
+
+        architectures = os.listdir(source_path)
+        if len(architectures) > 0:
+            architecture = architectures[0]
+            architecture_path = os.path.join(source_path, architecture)
+            package = os.listdir(architecture_path)[0]
+
+            source_package_path = os.path.join(architecture_path, package)
+            destination_package_path = os.path.join(destination_path, architecture, package)
+            shutil.move(source_package_path, destination_package_path)
 
