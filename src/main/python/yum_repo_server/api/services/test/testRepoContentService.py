@@ -57,7 +57,7 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path)
 
-    def test_should_return_two_packages_from_archicture_directory(self):
+    def test_should_return_two_packages_from_architecture_directory(self):
         repository_path="/path/to/repository"
         repository = "testrepo"
         package1 = "spam.rpm"
