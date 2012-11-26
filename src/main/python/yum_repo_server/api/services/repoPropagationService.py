@@ -46,7 +46,7 @@ class RepoPropagationService(object):
             latest_rpm = self.rpmService.get_latest_rpm(rpm, directory)
 
             if latest_rpm is None:
-                raise PropagationException('rpm file for {0} could not be found in {1}'.format(rpm, directory))
+                raise PropagationException("Package for {0} could not be found in {1}".format(rpm, directory))
 
             return latest_rpm
 
