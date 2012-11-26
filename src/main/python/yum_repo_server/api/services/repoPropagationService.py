@@ -2,6 +2,7 @@ import os
 import shutil
 
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoContentService import RepoContentService
 from yum_repo_server.api.services.rpmService import create_rpm_file_object, RpmService
 
 class PropagationException(BaseException):
@@ -12,15 +13,14 @@ class PropagationException(BaseException):
 
 class RepoPropagationService(object):
     repoConfigService = RepoConfigService()
+    repoContentService = RepoContentService()
     rpmService = RpmService()
 
     def propagatePackage(self, package_name, source_repository, destination_repository, architecture):
-
         source_repo_path = self.determine_repository_path(source_repository)
-        source_architecture_path = os.path.join(source_repo_path, architecture)
-
         destination_repo_path = self.determine_repository_path(destination_repository)
 
+        source_architecture_path = os.path.join(source_repo_path, architecture)
         file_name = self._determine_rpm_file_name(source_architecture_path, package_name)
 
         source_rpm_path = os.path.join(source_repo_path, architecture, file_name)
@@ -50,18 +50,14 @@ class RepoPropagationService(object):
 
 
     def propagateRepository(self, source_repository, destination_repository):
-        source_path = self.determine_repository_path(source_repository)
-        destination_path = self.determine_repository_path(destination_repository)
+        destination_repository_path = self.determine_repository_path(destination_repository)
 
-        architectures = os.listdir(source_path)
-        if len(architectures) > 0:
-            architecture = architectures[0]
-            architecture_path = os.path.join(source_path, architecture)
-            package = os.listdir(architecture_path)[0]
+        packages_to_propagate = self.repoContentService.list_packages(source_repository)
 
-            source_package_path = os.path.join(architecture_path, package)
-            destination_package_path = os.path.join(destination_path, architecture, package)
-            shutil.move(source_package_path, destination_package_path)
+        for package_architecture, package_path in packages_to_propagate:
+            destination_path = os.path.join(destination_repository_path, package_architecture)
+
+            shutil.move(package_path, destination_path)
 
     def determine_repository_path(self, repository_name):
         repository_path = self.repoConfigService.getStaticRepoDir(repository_name)

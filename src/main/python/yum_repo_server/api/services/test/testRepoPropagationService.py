@@ -4,10 +4,13 @@ from unittest import TestCase
 from mockito import when, verify, any as any_value, unstub
 from yum_repo_server.api.services.repoPropagationService import RepoPropagationService, PropagationException
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
+from yum_repo_server.api.services.repoContentService import RepoContentService
 from yum_repo_server.api.services.rpmService import RpmService
 import yum_repo_server
 
 class TestRepoPropagationService(TestCase):
+    def setUp(self):
+        self.service = RepoPropagationService()
 
     def tearDown(self):
         unstub()
@@ -15,8 +18,6 @@ class TestRepoPropagationService(TestCase):
     def test_should_propagate_package_using_rpm_service(self):
         package_name = "package_name"
         architecture = "architecture"
-
-        service = RepoPropagationService()
 
         source_repository_name = "source-repository-name"
         source_path = "source-static-repository-path"
@@ -31,7 +32,7 @@ class TestRepoPropagationService(TestCase):
         when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
 
 
-        actual_file_name = service.propagatePackage(package_name, source_repository_name, destination_repository_name, architecture)
+        actual_file_name = self.service.propagatePackage(package_name, source_repository_name, destination_repository_name, architecture)
 
 
         self.assertEqual(package_name, actual_file_name)
@@ -67,10 +68,8 @@ class TestRepoPropagationService(TestCase):
         when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
         when(RpmService).get_latest_rpm(any_value(), any_value()).thenReturn(full_package_name)
 
-        service = RepoPropagationService()
 
-
-        actual_file_name = service.propagatePackage(package_name, source_repository_name, destination_repository_name, architecture)
+        actual_file_name = self.service.propagatePackage(package_name, source_repository_name, destination_repository_name, architecture)
 
 
         self.assertEqual(full_package_name, actual_file_name)
@@ -93,63 +92,65 @@ class TestRepoPropagationService(TestCase):
 
     def test_should_propagate_empty_repository(self):
         source_repository = "source-repo"
-        source_repository_path = "source-static-repository-path"
         destination_repository = "destination-repo"
         destination_repository_path = "destination-static-repository-path"
 
-        service = RepoPropagationService()
-
-        when(yum_repo_server.api.services.repoPropagationService.os.path).exists(any_value()).thenReturn(True)
-        when(RepoPropagationService).determine_repository_path(source_repository).thenReturn(source_repository_path)
+        when(RepoContentService).list_packages("source-repo").thenReturn([])
         when(RepoPropagationService).determine_repository_path(destination_repository).thenReturn(destination_repository_path)
-        when(yum_repo_server.api.services.repoPropagationService.os).listdir(source_repository_path).thenReturn([])
 
-        service.propagateRepository(source_repository, destination_repository)
+        self.service.propagateRepository(source_repository, destination_repository)
 
     def test_should_propagate_repository_with_one_package(self):
-        source_repository = "source-repo"
-        source_repository_path = "source-static-repository-path"
-        architecture = "arch"
-        architecture_path = os.path.join(source_repository_path, architecture)
-        package = "spam.rpm"
-        package_path = os.path.join(architecture_path, package)
+        architecture = "arch1"
         destination_repository_path = "destination-static-repository-path"
         destination_repository = "destination-repo"
-        destination_path = os.path.join(destination_repository_path, architecture, package)
+        package_path = os.path.join("source-repository-path", architecture, "spam.rpm")
 
-        when(RepoPropagationService).determine_repository_path(source_repository).thenReturn(source_repository_path)
         when(RepoPropagationService).determine_repository_path(destination_repository).thenReturn(destination_repository_path)
-        when(yum_repo_server.api.services.repoPropagationService.os).listdir(source_repository_path).thenReturn([architecture])
-        when(yum_repo_server.api.services.repoPropagationService.os).listdir(architecture_path).thenReturn([package])
-        when(yum_repo_server.api.services.repoPropagationService.shutil).move(package_path, destination_path).thenReturn(None)
-
-        service = RepoPropagationService()
+        when(RepoContentService).list_packages(any_value()).thenReturn([(architecture, package_path)])
+        when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
 
 
-        service.propagateRepository(source_repository, destination_repository)
+        self.service.propagateRepository("source-repo", destination_repository)
 
 
-        verify(RepoPropagationService).determine_repository_path(source_repository)
         verify(RepoPropagationService).determine_repository_path(destination_repository)
-        verify(yum_repo_server.api.services.repoPropagationService.os).listdir(source_repository_path)
-        verify(yum_repo_server.api.services.repoPropagationService.os).listdir(architecture_path)
+        verify(RepoContentService).list_packages("source-repo")
+        destination_path = os.path.join(destination_repository_path, architecture)
         verify(yum_repo_server.api.services.repoPropagationService.shutil).move(package_path, destination_path)
+
+    def test_should_propagate_repository_with_two_packages(self):
+        destination_repository_path = "destination-static-repository-path"
+        destination_repository = "destination-repo"
+        package_path1 = os.path.join("source-repository-path", "arch1", "spam.rpm")
+        package_path2 = os.path.join("source-repository-path", "arch2", "egg.rpm")
+
+        when(RepoPropagationService).determine_repository_path(destination_repository).thenReturn(destination_repository_path)
+        when(RepoContentService).list_packages(any_value()).thenReturn([("arch1", package_path1), ("arch2", package_path2)])
+        when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
+
+
+        self.service.propagateRepository("source-repo", destination_repository)
+
+
+        verify(RepoPropagationService).determine_repository_path(destination_repository)
+        verify(RepoContentService).list_packages("source-repo")
+        destination_path1 = os.path.join(destination_repository_path, "arch1")
+        verify(yum_repo_server.api.services.repoPropagationService.shutil).move(package_path1, destination_path1)
+        destination_path2 = os.path.join(destination_repository_path, "arch2")
+        verify(yum_repo_server.api.services.repoPropagationService.shutil).move(package_path2, destination_path2)
 
     def test_should_raise_exception_when_repository_path_does_not_exist(self):
         when(RepoConfigService).getStaticRepoDir("repository").thenReturn("path/to/repository")
         when(yum_repo_server.api.services.repoPropagationService.os.path).exists("path/to/repository").thenReturn(False)
 
-        service = RepoPropagationService()
-
-        self.assertRaises(PropagationException, service.determine_repository_path, "repository")
+        self.assertRaises(PropagationException, self.service.determine_repository_path, "repository")
 
     def test_should_return_repository_path(self):
         when(RepoConfigService).getStaticRepoDir("repository").thenReturn("path/to/repository")
         when(yum_repo_server.api.services.repoPropagationService.os.path).exists("path/to/repository").thenReturn(True)
 
-        service = RepoPropagationService()
-
-        actual_path = service.determine_repository_path("repository")
+        actual_path = self.service.determine_repository_path("repository")
 
         self.assertEqual("path/to/repository", actual_path)
 

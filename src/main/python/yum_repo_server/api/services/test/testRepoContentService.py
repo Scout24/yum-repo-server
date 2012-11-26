@@ -8,6 +8,8 @@ from yum_repo_server.api.services.repoConfigService import RepoConfigService
 import yum_repo_server
 
 class TestRepoContentService(TestCase):
+    def setUp(self):
+        self.service = RepoContentService()
 
     def tearDown(self):
         unstub()
@@ -22,9 +24,7 @@ class TestRepoContentService(TestCase):
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3]).thenReturn([])
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
 
-        service = RepoContentService()
-
-        actual_packages = service.list_packages(repository)
+        actual_packages = self.service.list_packages(repository)
 
         self.assertEqual([], actual_packages)
 
@@ -45,13 +45,11 @@ class TestRepoContentService(TestCase):
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path).thenReturn([package])
 
-        service = RepoContentService()
+
+        actual_packages = self.service.list_packages(repository)
 
 
-        actual_packages = service.list_packages(repository)
-
-
-        self.assertEqual([(architecture, package)], actual_packages)
+        self.assertEqual([(architecture, os.path.join(repository_path, architecture, package))], actual_packages)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
@@ -65,18 +63,17 @@ class TestRepoContentService(TestCase):
         packages = [package1, package2]
         architecture = "arch1"
         architecture_path = os.path.join(repository_path, architecture)
+        path_to_package2 = os.path.join(repository_path, architecture, package2)
+        path_to_package1 = os.path.join(repository_path, architecture, package1)
 
         when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture])
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path).thenReturn(packages)
 
-        service = RepoContentService()
 
+        actual_packages = self.service.list_packages(repository)
 
-        actual_packages = service.list_packages(repository)
-
-
-        self.assertEqual([(architecture, package1), (architecture, package2)], actual_packages)
+        self.assertEqual([(architecture, path_to_package1), (architecture, path_to_package2)], actual_packages)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
@@ -91,19 +88,19 @@ class TestRepoContentService(TestCase):
         architecture_path1 = os.path.join(repository_path, architecture1)
         architecture2 = "arch2"
         architecture_path2 = os.path.join(repository_path, architecture2)
+        path_to_package1 = os.path.join(repository_path, architecture1, package1)
+        path_to_package2 = os.path.join(repository_path, architecture2, package2)
 
         when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture1, architecture2])
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path1).thenReturn([package1])
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path2).thenReturn([package2])
 
-        service = RepoContentService()
+
+        actual_packages = self.service.list_packages(repository)
 
 
-        actual_packages = service.list_packages(repository)
-
-
-        self.assertEqual([(architecture1, package1), (architecture2, package2)], actual_packages)
+        self.assertEqual([(architecture1, path_to_package1), (architecture2, path_to_package2)], actual_packages)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
