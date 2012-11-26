@@ -54,8 +54,11 @@ class RepoPropagationService(object):
 
         packages_to_propagate = self.repoContentService.list_packages(source_repository)
 
-        for package_architecture, package_path in packages_to_propagate:
-            destination_path = os.path.join(destination_repository_path, package_architecture)
+        for architecture, package_path in packages_to_propagate:
+            destination_path = os.path.join(destination_repository_path, architecture)
+
+            if not os.path.exists(destination_path):
+                os.makedirs(destination_path)
 
             shutil.move(package_path, destination_path)
 

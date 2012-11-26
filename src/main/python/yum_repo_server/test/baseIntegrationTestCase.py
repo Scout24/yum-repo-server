@@ -1,11 +1,10 @@
 import httplib
-import time
 import os, shutil
 import yum_repo_server
+from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.test.liveserver import LiveServerTestCase
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_client.repoclient import HttpClient
-import pycurl
 from yum_repo_server.test.integrationTestHelper import IntegrationTestHelper
 
 
@@ -41,6 +40,12 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         response = self.create_virtual_repo_from_static_repo(virtual_reponame, static_repo_name)
         self.assertEquals(response.status, httplib.CREATED)
         return static_repo_name, virtual_reponame
+
+    def assert_repository_contains(self, repository, architecture, file_name):
+        repository_path = RepoConfigService().getStaticRepoDir(repository)
+        path_to_file = os.path.join(repository_path, architecture, file_name)
+        repository_contains_file = os.path.exists(path_to_file)
+        self.assertTrue(repository_contains_file)
 
     def create_virtual_repo(self, virtual_reponame, destination_reponame):
         return self.repoclient().createVirtualRepo(virtual_reponame, destination_reponame)
