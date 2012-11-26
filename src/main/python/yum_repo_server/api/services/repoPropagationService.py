@@ -63,9 +63,11 @@ class RepoPropagationService(object):
             destination_package_path = os.path.join(destination_path, architecture, package)
             shutil.move(source_package_path, destination_package_path)
 
-    def determine_repository_path(self, source_repository):
-        source_path = self.repoConfigService.getStaticRepoDir(source_repository)
-        if not os.path.exists(source_path):
-            raise PropagationException("Static repository '{0}' does not exist.".format(source_repository))
-        return source_path
+    def determine_repository_path(self, repository_name):
+        repository_path = self.repoConfigService.getStaticRepoDir(repository_name)
+
+        if not os.path.exists(repository_path):
+            raise PropagationException("Static repository '{0}' does not exist.".format(repository_name))
+
+        return repository_path
 

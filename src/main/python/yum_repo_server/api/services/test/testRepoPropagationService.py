@@ -208,3 +208,23 @@ class TestRepoPropagationService(TestCase):
         verify(yum_repo_server.api.services.repoPropagationService.os).listdir(architecture_path)
         verify(yum_repo_server.api.services.repoPropagationService.shutil).move(package_path, destination_path)
 
+    def test_should_raise_exception_when_repository_path_does_not_exist(self):
+        when(RepoConfigService).getStaticRepoDir("repository").thenReturn("path/to/repository")
+        when(yum_repo_server.api.services.repoPropagationService.os.path).exists("path/to/repository").thenReturn(False)
+
+        service = RepoPropagationService()
+
+        self.assertRaises(PropagationException, service.determine_repository_path, "repository")
+
+    def test_should_return_repository_path(self):
+        when(RepoConfigService).getStaticRepoDir("repository").thenReturn("path/to/repository")
+        when(yum_repo_server.api.services.repoPropagationService.os.path).exists("path/to/repository").thenReturn(True)
+
+        service = RepoPropagationService()
+
+        actual_path = service.determine_repository_path("repository")
+
+        self.assertEqual("path/to/repository", actual_path)
+
+        verify(RepoConfigService).getStaticRepoDir("repository")
+        verify(yum_repo_server.api.services.repoPropagationService.os.path).exists("path/to/repository")
