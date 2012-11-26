@@ -32,13 +32,14 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 
 ## Getting started
 * Install the packages that are not part of PyPi :
-```
+```bash
 sudo apt-get install python-rpm
 python-lxml
 python2.7-dev  
 python-pycurl  
 PyYAML
 ```
+
 * Install the pip packages in a virtualenv (remember to use the system-site-packages switch to make the modules that are not on PyPi available to the virtualenv)
 ```bash
 virtualenv --system-site-packages ve  
