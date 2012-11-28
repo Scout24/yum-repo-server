@@ -12,6 +12,7 @@ from test.testCsvListing import TestCsvListing
 from test.testVirtualRepo import TestVirtualRepo
 from test.testRepoClient import TestRepoClient
 from yum_repo_server.api.test.testRpmPropagation import TestRpmPropagation
+from yum_repo_server.api.test.testRepoPropagation import TestRepoPropagation
 from yum_repo_server.api.services.test.tests import *
 from teamcity_test_runner_extension.teamcityTestRunner import ExtendedTeamcityTestRunner
 
