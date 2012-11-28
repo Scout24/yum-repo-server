@@ -192,7 +192,7 @@ class RepoConfigService(object):
         if not os.path.isdir(repo_cache_dir):
             os.makedirs(repo_cache_dir)
         
-        command = "createrepo -t sha --update -v -d -c %s %s " % (repo_cache_dir, full_path_to_repo)
+        command = "createrepo -s sha --update -v -d -c %s %s " % (repo_cache_dir, full_path_to_repo)
         lockfile = self.getRepoLockFile(reponame)
         try:
             open(lockfile, 'w').close() 
