@@ -119,6 +119,12 @@ class HttpClient(object):
         self.assertResponse(response, httplib.CREATED)
         return response
 
+    def propagate_repo(self, source_repository, destination_repository):
+        post_data = 'source=' + source_repository + "&destination=" + destination_repository
+        response = self.doHttpPost('/repo-propagation/', post_data)
+        self.assertResponse(response, httplib.CREATED)
+        return response
+
     def doHttpPost(self, extPath, postdata='', headers=None):
         if postdata and self.message:
           postdata+='&YRS_MESSAGE='+str(self.message)
@@ -252,6 +258,23 @@ class CommandLineClient(object):
         try:
             response = self.httpClient.propagate_rpm(fromrepo, rpm_arch_slash_name, torepo)
             print "INFO: move to location: " + response.getheader("Location")
+            return 0
+        except Exception, e:
+            print e
+            return 1
+
+    def propagateRepo(self):
+        if len(self.arguments) < 4:
+            print "ERROR: Please specify source repository and destination repository"
+            return self.showHelp()
+
+        source_repository = self.arguments[2]
+        destination_repository = self.arguments[3]
+
+        try:
+            print "INFO: propagating repository {0} to {1}".format(source_repository, destination_repository)
+            response = self.httpClient.propagate_repo(source_repository, destination_repository)
+            print "INFO: finished propagation."
             return 0
         except Exception, e:
             print e
@@ -457,6 +480,7 @@ class CommandLineClient(object):
         linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
         linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
         propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
+        propagaterepo <source_repository> <destination_repository> : Propagates all packages in source_repository to destination_repository
         querystatic  [-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
         queryvirtual [-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories
         redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
@@ -483,6 +507,7 @@ class CommandLineClient(object):
                 'deletestatic' : CommandLineClient.deleteStaticRepo,
                 'deleterpm' : CommandLineClient.deleteRpms,
                 'propagate' : CommandLineClient.propagateRpm,
+                'propagaterepo' : CommandLineClient.propagateRepo,
                 'redirectto' : CommandLineClient.redirectTo,
                 'tag' : CommandLineClient.tag,
                 'untag' : CommandLineClient.untag,

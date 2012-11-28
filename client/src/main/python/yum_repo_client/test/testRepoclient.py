@@ -78,4 +78,4 @@ class TestCommandLineClientOptionsExtractor(unittest.TestCase):
             self.fail('An equality sign is necessary for option/argument assignment.')
         except OptionParsingException:
             pass
-    
+

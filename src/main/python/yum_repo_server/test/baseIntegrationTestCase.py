@@ -42,10 +42,12 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         return static_repo_name, virtual_reponame
 
     def assert_repository_contains(self, repository, architecture, file_name):
-        repository_path = RepoConfigService().getStaticRepoDir(repository)
-        path_to_file = os.path.join(repository_path, architecture, file_name)
-        repository_contains_file = os.path.exists(path_to_file)
-        self.assertTrue(repository_contains_file)
+        repository_contains_file = self._repository_contains(architecture, file_name, repository)
+        self.assertTrue(repository_contains_file, "Repository {0} does not contain file {2}/{1}".format(repository, file_name, architecture))
+
+    def assert_repository_does_not_contain(self, repository, architecture, file_name):
+        repository_contains_file = self._repository_contains(architecture, file_name, repository)
+        self.assertFalse(repository_contains_file, "Repository {0} contains file {2}/{1}".format(repository, file_name, architecture))
 
     def create_virtual_repo(self, virtual_reponame, destination_reponame):
         return self.repoclient().createVirtualRepo(virtual_reponame, destination_reponame)
@@ -126,3 +128,10 @@ class BaseIntegrationTestCase(LiveServerTestCase):
                 fpath = cleanupPath + fname
                 if os.path.exists(fpath):
                     shutil.rmtree(fpath)
+
+    def _repository_contains(self, architecture, file_name, repository):
+        repository_path = RepoConfigService().getStaticRepoDir(repository)
+        path_to_file = os.path.join(repository_path, architecture, file_name)
+        repository_contains_file = os.path.exists(path_to_file)
+        return repository_contains_file
+

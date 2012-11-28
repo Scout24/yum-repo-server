@@ -194,12 +194,19 @@ class SystemTestRepoPropagationService(BaseIntegrationTestCase):
     def setUp(self):
         self.service = RepoPropagationService()
 
+    def test_should_propagate_empty_repository(self):
+        source_repo = self.createNewRepoAndAssertValid()
+        destination_repo = self.createNewRepoAndAssertValid()
+
+        self.service.propagateRepository(source_repo, destination_repo)
+
     def test_should_propagate_repository_with_one_package(self):
-        source = self.createNewRepoAndAssertValid()
-        destination = self.createNewRepoAndAssertValid()
-        self.upload_testfile(source, "src/test/resources/test-artifact.rpm")
+        source_repo = self.createNewRepoAndAssertValid()
+        destination_repo = self.createNewRepoAndAssertValid()
 
-        self.service.propagateRepository(source, destination)
+        self.upload_testfile(source_repo, "src/test/resources/test-artifact.rpm")
 
-        self.assert_repository_contains(destination, "noarch", "test-artifact-1.2-1.noarch.rpm")
+        self.service.propagateRepository(source_repo, destination_repo)
+
+        self.assert_repository_contains(destination_repo, "noarch", "test-artifact-1.2-1.noarch.rpm")
 
