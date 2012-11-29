@@ -41,10 +41,12 @@ class RepoNotFoundException(Exception):
 class RepoConfigService(object):
     ALIAS_METADATA_FILENAME = "repo.yaml"
     METADATA_GENERATION_FILENAME = "metadata-generation.yaml"
+    TAG_FILENAME = 'tags.txt'
+
     rpm_service = RpmService()
 
     def getTagsFileForStaticRepo(self, static_reponame):
-        return os.path.join(self.getStaticRepoDir(static_reponame),'tags.txt')
+        return os.path.join(self.getStaticRepoDir(static_reponame), self.TAG_FILENAME)
 
     def getMetaDataGenerationFilePathRelativeToRepoDirByRepoName(self, static_reponame):
         return self.getStaticRepoDir() + '/' + static_reponame + '/' + self.METADATA_GENERATION_FILENAME

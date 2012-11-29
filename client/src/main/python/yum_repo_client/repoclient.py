@@ -273,7 +273,7 @@ class CommandLineClient(object):
 
         try:
             print "INFO: propagating repository {0} to {1}".format(source_repository, destination_repository)
-            response = self.httpClient.propagate_repo(source_repository, destination_repository)
+            self.httpClient.propagate_repo(source_repository, destination_repository)
             print "INFO: finished propagation."
             return 0
         except Exception, e:
