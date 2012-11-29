@@ -30,4 +30,3 @@ class TestRepoPropagation(BaseIntegrationTestCase):
 
         self.assert_repository_does_not_contain(source_repo, "noarch", "test-artifact-1.2-1.noarch.rpm")
         self.assert_repository_contains(destination_repo, "noarch", "test-artifact-1.2-1.noarch.rpm")
-

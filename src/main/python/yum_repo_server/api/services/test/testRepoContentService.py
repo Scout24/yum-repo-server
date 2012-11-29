@@ -22,6 +22,7 @@ class TestRepoContentService(TestCase):
         architecture3 = "arch3"
 
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3]).thenReturn([])
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
 
         actual_packages = self.service.list_packages(repository)
@@ -43,6 +44,10 @@ class TestRepoContentService(TestCase):
         tags_file = "tags.txt"
 
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3, tags_file]).thenReturn([])
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1)).thenReturn(True)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2)).thenReturn(True)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3)).thenReturn(True)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(tags_file).thenReturn(False)
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
 
         actual_packages = self.service.list_packages(repository)
@@ -54,6 +59,10 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, tags_file))
         verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, tags_file))
 
     def test_should_return_empty_list_when_meta_data_scheduling_is_enabled(self):
@@ -65,6 +74,10 @@ class TestRepoContentService(TestCase):
         metadata_generation = "metadata-generation.yaml"
 
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3, metadata_generation]).thenReturn([])
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1)).thenReturn(True)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2)).thenReturn(True)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3)).thenReturn(True)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, metadata_generation)).thenReturn(False)
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
 
         actual_packages = self.service.list_packages(repository)
@@ -76,9 +89,13 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3))
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, metadata_generation))
         verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, metadata_generation))
 
-    def test_should_return_one_package_from_archicture_directory(self):
+    def test_should_return_one_package_from_architecture_directory(self):
         repository_path="/path/to/repository"
         repository = "testrepo"
         package = "spam.rpm"
@@ -87,6 +104,7 @@ class TestRepoContentService(TestCase):
 
         when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture])
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path).thenReturn([package])
 
 
@@ -97,6 +115,7 @@ class TestRepoContentService(TestCase):
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
+        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path)
 
     def test_should_return_two_packages_from_architecture_directory(self):
@@ -113,6 +132,7 @@ class TestRepoContentService(TestCase):
         when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture])
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path).thenReturn(packages)
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
 
 
         actual_packages = self.service.list_packages(repository)
@@ -139,6 +159,7 @@ class TestRepoContentService(TestCase):
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path1).thenReturn([package1])
         when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path2).thenReturn([package2])
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
 
 
         actual_packages = self.service.list_packages(repository)
