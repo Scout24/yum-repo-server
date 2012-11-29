@@ -14,7 +14,16 @@ class RepoContentService(object):
             @return: a list of tuples (first element is the architecture name, second element is the package file name)
         """
         repository_path = self.repoConfigService.getStaticRepoDir(repository_name)
-        available_architectures = os.listdir(repository_path)
+
+        files_in_repository = os.listdir(repository_path)
+
+        if self.repoConfigService.TAG_FILENAME in files_in_repository:
+            files_in_repository.remove(self.repoConfigService.TAG_FILENAME )
+
+        if self.repoConfigService.METADATA_GENERATION_FILENAME in files_in_repository:
+            files_in_repository.remove(self.repoConfigService.METADATA_GENERATION_FILENAME)
+
+        available_architectures = files_in_repository
         packages_in_repository = []
 
         for architecture in available_architectures:

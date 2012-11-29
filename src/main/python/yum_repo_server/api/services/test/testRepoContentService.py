@@ -1,7 +1,7 @@
 import os
 
 from unittest import TestCase
-from mockito import unstub, when, verify, any as any_value
+from mockito import unstub, when, verify, never, any as any_value
 from yum_repo_server.api.services.repoContentService import RepoContentService
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 
@@ -33,6 +33,50 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
         verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
+
+    def test_should_return_empty_list_when_repository_is_tagged(self):
+        repository_path="/path/to/repository"
+        repository = "testrepo"
+        architecture1 = "arch1"
+        architecture2 = "arch2"
+        architecture3 = "arch3"
+        tags_file = "tags.txt"
+
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3, tags_file]).thenReturn([])
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
+
+        actual_packages = self.service.list_packages(repository)
+
+        self.assertEqual([], actual_packages)
+
+        verify(RepoConfigService).getStaticRepoDir(repository)
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
+        verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, tags_file))
+
+    def test_should_return_empty_list_when_meta_data_scheduling_is_enabled(self):
+        repository_path="/path/to/repository"
+        repository = "testrepo"
+        architecture1 = "arch1"
+        architecture2 = "arch2"
+        architecture3 = "arch3"
+        metadata_generation = "metadata-generation.yaml"
+
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3, metadata_generation]).thenReturn([])
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
+
+        actual_packages = self.service.list_packages(repository)
+
+        self.assertEqual([], actual_packages)
+
+        verify(RepoConfigService).getStaticRepoDir(repository)
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
+        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
+        verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, metadata_generation))
 
     def test_should_return_one_package_from_archicture_directory(self):
         repository_path="/path/to/repository"
