@@ -15,15 +15,15 @@ class RepoContentService(object):
         """
         repository_path = self.repoConfigService.getStaticRepoDir(repository_name)
 
+
         files_in_repository = os.listdir(repository_path)
+        available_architectures = []
 
-        if self.repoConfigService.TAG_FILENAME in files_in_repository:
-            files_in_repository.remove(self.repoConfigService.TAG_FILENAME )
+        for potential_dir in files_in_repository:
 
-        if self.repoConfigService.METADATA_GENERATION_FILENAME in files_in_repository:
-            files_in_repository.remove(self.repoConfigService.METADATA_GENERATION_FILENAME)
+            if os.path.isdir(os.path.join(repository_path, potential_dir)):
+                available_architectures.append(potential_dir)
 
-        available_architectures = files_in_repository
         packages_in_repository = []
 
         for architecture in available_architectures:
