@@ -49,10 +49,11 @@ class RepoPropagationService(object):
         return rpm
 
 
-    def propagateRepository(self, source_repository, destination_repository):
+    def propagate_repository(self, source_repository, destination_repository):
         destination_repository_path = self.determine_repository_path(destination_repository)
 
         packages_to_propagate = self.repoContentService.list_packages(source_repository)
+        propagated_packages = []
 
         for package_path in packages_to_propagate:
             architecture_path = os.path.dirname(package_path)
@@ -63,6 +64,9 @@ class RepoPropagationService(object):
                 os.makedirs(destination_path)
 
             shutil.move(package_path, destination_path)
+            propagated_packages.append(package_path)
+
+        return propagated_packages
 
     def determine_repository_path(self, repository_name):
         repository_path = self.repoConfigService.getStaticRepoDir(repository_name)

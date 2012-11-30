@@ -1,6 +1,8 @@
 import os
-from yum_repo_server.api.services.repoConfigService import RepoConfigService
 import lockfile
+
+from yum_repo_server.api.services.repoConfigService import RepoConfigService
+
 class IsNotAStaticRepoException(Exception):
   pass
 
@@ -15,7 +17,6 @@ class NoSuchTagException(Exception):
 
 class RepoTaggingService(object):
     config=RepoConfigService()
-
 
     def tagRepo(self, static_reponame, tag):
       repo = self.config.getStaticRepoDir(static_reponame)
