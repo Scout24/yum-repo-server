@@ -55,7 +55,8 @@ class RepoPropagationService(object):
         packages_to_propagate = self.repoContentService.list_packages(source_repository)
 
         for package_path in packages_to_propagate:
-            architecture = os.path.basename(os.path.dirname(package_path))
+            architecture_path = os.path.dirname(package_path)
+            architecture = os.path.basename(architecture_path)
             destination_path = os.path.join(destination_repository_path, architecture)
 
             if not os.path.exists(destination_path):
