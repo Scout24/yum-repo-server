@@ -20,9 +20,9 @@ class RepoContentService(object):
         available_architectures = []
 
         for potential_dir in files_in_repository:
-
-            if os.path.isdir(os.path.join(repository_path, potential_dir)):
-                available_architectures.append(potential_dir)
+            if potential_dir != "repodata":
+                if os.path.isdir(os.path.join(repository_path, potential_dir)):
+                    available_architectures.append(potential_dir)
 
         packages_in_repository = []
 
