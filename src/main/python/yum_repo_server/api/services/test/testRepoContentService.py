@@ -18,9 +18,9 @@ class TestRepoContentService(TestCase):
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([])
         when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn("/path/to/repository")
 
-        actual_packages = self.service.list_architectures("testrepo")
+        actual_architectures = self.service.list_architectures("testrepo")
 
-        self.assertEqual({}, actual_packages)
+        self.assertEqual([], actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir("testrepo")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
@@ -32,7 +32,7 @@ class TestRepoContentService(TestCase):
 
         actual_architectures = self.service.list_architectures("testrepo")
 
-        self.assertEqual({}, actual_architectures)
+        self.assertEqual([], actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir("testrepo")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
@@ -55,7 +55,7 @@ class TestRepoContentService(TestCase):
 
         actual_architectures = self.service.list_architectures(repository)
 
-        self.assertEqual({}, actual_architectures)
+        self.assertEqual([], actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
@@ -84,7 +84,7 @@ class TestRepoContentService(TestCase):
 
         actual_architectures = self.service.list_architectures(repository)
 
-        self.assertEqual({}, actual_architectures)
+        self.assertEqual([], actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
@@ -104,7 +104,7 @@ class TestRepoContentService(TestCase):
         actual_architectures = self.service.list_architectures("testrepo")
 
 
-        self.assertEqual({"architecture": "/path/to/repository/architecture"}, actual_architectures)
+        self.assertEqual(["/path/to/repository/architecture"], actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir("testrepo")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
@@ -121,7 +121,7 @@ class TestRepoContentService(TestCase):
         actual_architectures = self.service.list_architectures("testrepo")
 
 
-        self.assertEqual({"architecture1": "/path/to/repository/architecture1", "architecture2": "/path/to/repository/architecture2"}, actual_architectures)
+        self.assertEqual(["/path/to/repository/architecture1", "/path/to/repository/architecture2"], actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir("testrepo")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
@@ -138,7 +138,7 @@ class TestRepoContentService(TestCase):
         verify(RepoContentService).list_architectures(any_value())
 
     def test_should_return_one_package_from_architecture_directory(self):
-        when(RepoContentService).list_architectures(any_value()).thenReturn({"architecture":"/path/to/repository/architecture"})
+        when(RepoContentService).list_architectures(any_value()).thenReturn(["/path/to/repository/architecture"])
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["spam.rpm"])
 
         actual_packages = self.service.list_packages("testrepo")
@@ -149,7 +149,7 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
 
     def test_should_return_two_packages_from_one_architecture_directory(self):
-        when(RepoContentService).list_architectures(any_value()).thenReturn({"architecture":"/path/to/repository/architecture"})
+        when(RepoContentService).list_architectures(any_value()).thenReturn(["/path/to/repository/architecture"])
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["spam.rpm", "egg.rpm"])
 
         actual_packages = self.service.list_packages("testrepo")
@@ -161,14 +161,14 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
 
     def test_should_return_two_packages_from_multiple_architecture_directories(self):
-        when(RepoContentService).list_architectures(any_value()).thenReturn({"architecture1": "/path/to/repository/architecture1", "architecture2": "/path/to/repository/architecture2"})
+        when(RepoContentService).list_architectures(any_value()).thenReturn(["/path/to/repository/architecture1", "/path/to/repository/architecture2"])
         when(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1").thenReturn(["spam.rpm"])
         when(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2").thenReturn(["egg.rpm"])
 
         actual_packages = self.service.list_packages("testrepo")
 
-        self.assertEqual([("architecture2", "/path/to/repository/architecture2/egg.rpm"),
-                          ("architecture1", "/path/to/repository/architecture1/spam.rpm")], actual_packages)
+        self.assertEqual([("architecture1", "/path/to/repository/architecture1/spam.rpm"),
+                          ("architecture2", "/path/to/repository/architecture2/egg.rpm")], actual_packages)
 
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2")

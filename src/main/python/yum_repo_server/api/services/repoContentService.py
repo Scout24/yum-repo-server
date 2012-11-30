@@ -12,19 +12,20 @@ class RepoContentService(object):
 
     def list_architectures(self, repository_name):
         """
-            @return: a dictionary which maps the architecture name to the corresponding repository path
+            @return: list of architecture paths
         """
         repository_path = self.repoConfigService.getStaticRepoDir(repository_name)
-        files_in_repository = os.listdir(repository_path)
+        directories_in_repository = os.listdir(repository_path)
 
-        available_architectures = {}
+        available_architectures = []
 
-        for potential_dir in files_in_repository:
-            architecture_path = os.path.join(repository_path, potential_dir)
+        for directory in directories_in_repository:
+            architecture_path = os.path.join(repository_path, directory)
 
-            if potential_dir != self.METADATA_DIRECTORY and os.path.isdir(architecture_path):
-                if len(os.listdir(architecture_path)) > 0:
-                    available_architectures[potential_dir] = architecture_path
+            if directory != self.METADATA_DIRECTORY:
+                if os.path.isdir(architecture_path):
+                    if len(os.listdir(architecture_path)) > 0:
+                        available_architectures.append(architecture_path)
 
         return available_architectures
 
@@ -35,12 +36,11 @@ class RepoContentService(object):
         available_architectures = self.list_architectures(repository_name)
         packages_in_repository = []
 
-        for architecture in available_architectures:
-            architecture_path = available_architectures[architecture]
+        for architecture_path in available_architectures:
             packages_in_architecture_dir = os.listdir(architecture_path)
 
             for package in packages_in_architecture_dir:
                 package_path = os.path.join(architecture_path, package)
-                packages_in_repository.append((architecture, package_path))
+                packages_in_repository.append((os.path.basename(architecture_path), package_path))
 
         return packages_in_repository
