@@ -6,6 +6,7 @@ class RepoContentService(object):
     """
         Service to retrieve information about the content of a repository.
     """
+    METADATA_DIRECTORY = "repodata"
 
     repoConfigService = RepoConfigService()
 
@@ -20,8 +21,10 @@ class RepoContentService(object):
 
         for potential_dir in files_in_repository:
             architecture_path = os.path.join(repository_path, potential_dir)
-            if potential_dir != "repodata" and os.path.isdir(architecture_path):
-                available_architectures[potential_dir] = architecture_path
+
+            if potential_dir != self.METADATA_DIRECTORY and os.path.isdir(architecture_path):
+                if len(os.listdir(architecture_path)) > 0:
+                    available_architectures[potential_dir] = architecture_path
 
         return available_architectures
 
