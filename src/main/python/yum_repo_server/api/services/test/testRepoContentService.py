@@ -144,7 +144,7 @@ class TestRepoContentService(TestCase):
         actual_packages = self.service.list_packages("testrepo")
 
 
-        self.assertEqual([("architecture", "/path/to/repository/architecture/spam.rpm")], actual_packages)
+        self.assertEqual(["/path/to/repository/architecture/spam.rpm"], actual_packages)
 
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
 
@@ -155,8 +155,7 @@ class TestRepoContentService(TestCase):
         actual_packages = self.service.list_packages("testrepo")
 
 
-        self.assertEqual([("architecture", "/path/to/repository/architecture/spam.rpm"),
-                          ("architecture", "/path/to/repository/architecture/egg.rpm")], actual_packages)
+        self.assertEqual(["/path/to/repository/architecture/spam.rpm", "/path/to/repository/architecture/egg.rpm"], actual_packages)
 
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
 
@@ -167,8 +166,7 @@ class TestRepoContentService(TestCase):
 
         actual_packages = self.service.list_packages("testrepo")
 
-        self.assertEqual([("architecture1", "/path/to/repository/architecture1/spam.rpm"),
-                          ("architecture2", "/path/to/repository/architecture2/egg.rpm")], actual_packages)
+        self.assertEqual(["/path/to/repository/architecture1/spam.rpm", "/path/to/repository/architecture2/egg.rpm"], actual_packages)
 
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2")
