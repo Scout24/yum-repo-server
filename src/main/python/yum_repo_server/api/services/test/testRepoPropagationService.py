@@ -106,7 +106,7 @@ class TestRepoPropagationService(TestCase):
         package_path = os.path.join("source-repository-path", architecture, "spam.rpm")
 
         when(RepoPropagationService).determine_repository_path(destination_repository).thenReturn(destination_path)
-        when(RepoContentService).list_packages(any_value()).thenReturn([(architecture, package_path)])
+        when(RepoContentService).list_packages(any_value()).thenReturn([package_path])
         when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
         when(yum_repo_server.api.services.repoPropagationService.os.path).exists(any_value()).thenReturn(True)
 
@@ -128,7 +128,7 @@ class TestRepoPropagationService(TestCase):
         package_path2 = os.path.join("source-repository-path", "arch2", "egg.rpm")
 
         when(RepoPropagationService).determine_repository_path(destination_repository).thenReturn(destination_repository_path)
-        when(RepoContentService).list_packages(any_value()).thenReturn([("arch1", package_path1), ("arch2", package_path2)])
+        when(RepoContentService).list_packages(any_value()).thenReturn([package_path1, package_path2])
         when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
         when(yum_repo_server.api.services.repoPropagationService.os.path).exists(any_value()).thenReturn(True)
 
@@ -153,7 +153,7 @@ class TestRepoPropagationService(TestCase):
         package_path2 = os.path.join("source-repository-path", "arch2", "egg.rpm")
 
         when(RepoPropagationService).determine_repository_path(destination_repository).thenReturn(destination_repository_path)
-        when(RepoContentService).list_packages(any_value()).thenReturn([("arch1", package_path1), ("arch2", package_path2)])
+        when(RepoContentService).list_packages(any_value()).thenReturn([package_path1, package_path2])
         when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
         when(yum_repo_server.api.services.repoPropagationService.os.path).exists(any_value()).thenReturn(False)
         when(yum_repo_server.api.services.repoPropagationService.os).makedirs(any_value()).thenReturn(None)

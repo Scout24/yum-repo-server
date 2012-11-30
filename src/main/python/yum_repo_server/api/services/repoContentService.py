@@ -41,6 +41,6 @@ class RepoContentService(object):
 
             for package in packages_in_architecture_dir:
                 package_path = os.path.join(architecture_path, package)
-                packages_in_repository.append((os.path.basename(architecture_path), package_path))
+                packages_in_repository.append(package_path)
 
         return packages_in_repository
