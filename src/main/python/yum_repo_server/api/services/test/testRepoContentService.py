@@ -14,28 +14,31 @@ class TestRepoContentService(TestCase):
     def tearDown(self):
         unstub()
 
-    def test_should_return_empty_list_when_no_packages_in_repository(self):
-        repository_path="/path/to/repository"
-        repository = "testrepo"
-        architecture1 = "arch1"
-        architecture2 = "arch2"
-        architecture3 = "arch3"
+    def test_should_return_empty_dictionary_when_no_architectures_in_repository(self):
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([])
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn("/path/to/repository")
 
-        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3]).thenReturn([])
+        actual_packages = self.service.list_architectures("testrepo")
+
+        self.assertEqual({}, actual_packages)
+
+        verify(RepoConfigService).getStaticRepoDir("testrepo")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
+
+    def test_should_return_empty_dictionary_when_no_packages_in_architecture_directories(self):
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn("/path/to/repository")
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["architecture1"]).thenReturn([])
 
-        actual_packages = self.service.list_packages(repository)
+        actual_architectures = self.service.list_architectures("testrepo")
 
-        self.assertEqual([], actual_packages)
+        self.assertEqual({}, actual_architectures)
 
-        verify(RepoConfigService).getStaticRepoDir(repository)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
+        verify(RepoConfigService).getStaticRepoDir("testrepo")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1")
 
-    def test_should_return_empty_list_when_repository_is_tagged(self):
+    def test_should_return_empty_dictionary_when_repository_is_empty_but_directory_contains_file(self):
         repository_path="/path/to/repository"
         repository = "testrepo"
         architecture1 = "arch1"
@@ -43,16 +46,16 @@ class TestRepoContentService(TestCase):
         architecture3 = "arch3"
         tags_file = "tags.txt"
 
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3, tags_file]).thenReturn([])
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1)).thenReturn(True)
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2)).thenReturn(True)
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3)).thenReturn(True)
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(tags_file).thenReturn(False)
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
 
-        actual_packages = self.service.list_packages(repository)
+        actual_architectures = self.service.list_architectures(repository)
 
-        self.assertEqual([], actual_packages)
+        self.assertEqual({}, actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
@@ -65,37 +68,7 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, tags_file))
         verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, tags_file))
 
-    def test_should_return_empty_list_even_if_meta_data_scheduling_is_enabled(self):
-        repository_path="/path/to/repository"
-        repository = "testrepo"
-        architecture1 = "arch1"
-        architecture2 = "arch2"
-        architecture3 = "arch3"
-        metadata_generation = "metadata-generation.yaml"
-
-        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, architecture3, metadata_generation]).thenReturn([])
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1)).thenReturn(True)
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2)).thenReturn(True)
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3)).thenReturn(True)
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, metadata_generation)).thenReturn(False)
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
-
-        actual_packages = self.service.list_packages(repository)
-
-        self.assertEqual([], actual_packages)
-
-        verify(RepoConfigService).getStaticRepoDir(repository)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture1))
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture2))
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(os.path.join(repository_path, architecture3))
-        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1))
-        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2))
-        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture3))
-        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, metadata_generation))
-        verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, metadata_generation))
-
-    def test_should_return_empty_list_even_if_meta_data_has_been_generated(self):
+    def test_should_return_empty_dictionary_even_if_meta_data_has_been_generated(self):
         repository_path="/path/to/repository"
         repository = "testrepo"
         architecture1 = "arch1"
@@ -103,16 +76,15 @@ class TestRepoContentService(TestCase):
         repodata_directory = "repodata"
         metadata_xml_file = "repomd.xml"
 
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
         when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn([architecture1, architecture2, repodata_directory, metadata_xml_file]).thenReturn([])
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1)).thenReturn(True)
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2)).thenReturn(True)
         when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, repodata_directory)).thenReturn(True)
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, metadata_xml_file)).thenReturn(False)
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
 
-        actual_packages = self.service.list_packages(repository)
+        actual_architectures = self.service.list_architectures(repository)
 
-        self.assertEqual([], actual_packages)
+        self.assertEqual({}, actual_architectures)
 
         verify(RepoConfigService).getStaticRepoDir(repository)
         verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
@@ -121,81 +93,83 @@ class TestRepoContentService(TestCase):
         verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture1))
         verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture2))
         verify(yum_repo_server.api.services.repoContentService.os.path, never).isdir(os.path.join(repository_path, repodata_directory))
-        verify(yum_repo_server.api.services.repoContentService.os, never).listdir(os.path.join(repository_path, metadata_xml_file))
+
+    def test_should_return_dictionary_with_one_architecture_when_second_directory_is_empty(self):
+
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn("/path/to/repository")
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["architecture"]).thenReturn(["spam.rpm", "egg.rpm"])
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
+
+
+        actual_architectures = self.service.list_architectures("testrepo")
+
+
+        self.assertEqual({"architecture": "/path/to/repository/architecture"}, actual_architectures)
+
+        verify(RepoConfigService).getStaticRepoDir("testrepo")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
+
+
+    def test_should_return_dictionary_with_two_architectures(self):
+
+        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn("/path/to/repository")
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["architecture1", "architecture2"]).thenReturn(["spam1.rpm", "egg1.rpm"]).thenReturn(["spam2.rpm", "egg2.rpm"])
+        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
+
+
+        actual_architectures = self.service.list_architectures("testrepo")
+
+
+        self.assertEqual({"architecture1": "/path/to/repository/architecture1", "architecture2": "/path/to/repository/architecture2"}, actual_architectures)
+
+        verify(RepoConfigService).getStaticRepoDir("testrepo")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2")
+
+
+    def test_should_return_empty_list_when_no_packages_in_repository(self):
+        when(RepoContentService).list_architectures(any_value()).thenReturn([])
+
+        actual_packages = self.service.list_packages("testrepo")
+
+        self.assertEqual([], actual_packages)
+        verify(RepoContentService).list_architectures(any_value())
 
     def test_should_return_one_package_from_architecture_directory(self):
-        repository_path="/path/to/repository"
-        repository = "testrepo"
-        package = "spam.rpm"
-        architecture = "arch1"
-        architecture_path = os.path.join(repository_path, architecture)
+        when(RepoContentService).list_architectures(any_value()).thenReturn({"architecture":"/path/to/repository/architecture"})
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["spam.rpm"])
 
-        when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture])
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
-        when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path).thenReturn([package])
+        actual_packages = self.service.list_packages("testrepo")
 
 
-        actual_packages = self.service.list_packages(repository)
+        self.assertEqual([("architecture", "/path/to/repository/architecture/spam.rpm")], actual_packages)
+
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
+
+    def test_should_return_two_packages_from_one_architecture_directory(self):
+        when(RepoContentService).list_architectures(any_value()).thenReturn({"architecture":"/path/to/repository/architecture"})
+        when(yum_repo_server.api.services.repoContentService.os).listdir(any_value()).thenReturn(["spam.rpm", "egg.rpm"])
+
+        actual_packages = self.service.list_packages("testrepo")
 
 
-        self.assertEqual([(architecture, os.path.join(repository_path, architecture, package))], actual_packages)
+        self.assertEqual([("architecture", "/path/to/repository/architecture/spam.rpm"),
+                          ("architecture", "/path/to/repository/architecture/egg.rpm")], actual_packages)
 
-        verify(RepoConfigService).getStaticRepoDir(repository)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
-        verify(yum_repo_server.api.services.repoContentService.os.path).isdir(os.path.join(repository_path, architecture))
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path)
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture")
 
-    def test_should_return_two_packages_from_architecture_directory(self):
-        repository_path="/path/to/repository"
-        repository = "testrepo"
-        package1 = "spam.rpm"
-        package2 = "egg.rpm"
-        packages = [package1, package2]
-        architecture = "arch1"
-        architecture_path = os.path.join(repository_path, architecture)
-        path_to_package2 = os.path.join(repository_path, architecture, package2)
-        path_to_package1 = os.path.join(repository_path, architecture, package1)
+    def test_should_return_two_packages_from_multiple_architecture_directories(self):
+        when(RepoContentService).list_architectures(any_value()).thenReturn({"architecture1": "/path/to/repository/architecture1", "architecture2": "/path/to/repository/architecture2"})
+        when(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1").thenReturn(["spam.rpm"])
+        when(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2").thenReturn(["egg.rpm"])
 
-        when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture])
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
-        when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path).thenReturn(packages)
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
+        actual_packages = self.service.list_packages("testrepo")
 
+        self.assertEqual([("architecture2", "/path/to/repository/architecture2/egg.rpm"),
+                          ("architecture1", "/path/to/repository/architecture1/spam.rpm")], actual_packages)
 
-        actual_packages = self.service.list_packages(repository)
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1")
+        verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2")
 
-        self.assertEqual([(architecture, path_to_package1), (architecture, path_to_package2)], actual_packages)
-
-        verify(RepoConfigService).getStaticRepoDir(repository)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path)
-
-    def test_should_return_two_packages_from_two_different_architecture_directories(self):
-        repository_path="/path/to/repository"
-        repository = "testrepo"
-        package1 = "spam.rpm"
-        package2 = "egg.rpm"
-        architecture1 = "arch1"
-        architecture_path1 = os.path.join(repository_path, architecture1)
-        architecture2 = "arch2"
-        architecture_path2 = os.path.join(repository_path, architecture2)
-        path_to_package1 = os.path.join(repository_path, architecture1, package1)
-        path_to_package2 = os.path.join(repository_path, architecture2, package2)
-
-        when(yum_repo_server.api.services.repoContentService.os).listdir(repository_path).thenReturn([architecture1, architecture2])
-        when(RepoConfigService).getStaticRepoDir(any_value()).thenReturn(repository_path)
-        when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path1).thenReturn([package1])
-        when(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path2).thenReturn([package2])
-        when(yum_repo_server.api.services.repoContentService.os.path).isdir(any_value()).thenReturn(True)
-
-
-        actual_packages = self.service.list_packages(repository)
-
-
-        self.assertEqual([(architecture1, path_to_package1), (architecture2, path_to_package2)], actual_packages)
-
-        verify(RepoConfigService).getStaticRepoDir(repository)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(repository_path)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path1)
-        verify(yum_repo_server.api.services.repoContentService.os).listdir(architecture_path2)
