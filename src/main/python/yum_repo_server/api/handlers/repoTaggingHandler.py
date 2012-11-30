@@ -1,10 +1,12 @@
 import string
+import re
+
 from piston.handler import BaseHandler
 from piston.utils import rc
+
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from yum_repo_server.api.services.repoTaggingService import RepoTaggingService,CouldNotLockTagsException,NotFoundException,NoSuchTagException
-import re
 
 
 class RequestFailException(Exception):

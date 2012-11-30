@@ -3,6 +3,7 @@ import traceback
 from piston.utils import rc
 from piston.handler import BaseHandler
 
+from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from yum_repo_server.api.services.repoPropagationService import RepoPropagationService
 
 SOURCE_KEY = "source"
@@ -17,6 +18,7 @@ class ValidationException(BaseException):
 
 class RepoPropagationHandler(BaseHandler):
     repoPropagationService = RepoPropagationService()
+    repoAuditService = RepoAuditService()
 
     def create(self, request):
         try:
@@ -27,7 +29,10 @@ class RepoPropagationHandler(BaseHandler):
             source_repository = data[SOURCE_KEY]
             destination_repository = data[DESTINATION_KEY]
 
-            self.repoPropagationService.propagateRepository(source_repository, destination_repository)
+            propagated_packages = self.repoPropagationService.propagate_repository(source_repository, destination_repository)
+            message = "Propagated repository {0} to {1}, packages: {2}".format(source_repository, destination_repository, propagated_packages)
+            self.repoAuditService.log_action(message, request)
+
             return rc.CREATED
 
         except BaseException as exception:
