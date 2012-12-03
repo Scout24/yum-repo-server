@@ -65,13 +65,13 @@ class UpdateVersionFile(Command):
 
 setup(
     name = "yum-repo-server",
-    version = "1.2",
-    author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke",
-    author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de",
+    version = "1.3",
+    author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke, Michael Gruber, Marcel Wolf",
+    author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de, michael.gruber@immobilienscout24.de, marcel.wolf@immobilienscout24.de",
     description = ("The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API."),
     license = "GNU GPL v3",
     keywords = "yum repository createrepo staging api",
-    url = "https://github.com/is24-herold/yum-repo-server",
+    url = "https://github.com/ImmobilienScout24/yum-repo-server",
     packages=['yum_repo_server', 'yum_repo_server.api', 'yum_repo_server.daemon', 'yum_repo_server.rpm', 'yum_repo_server.api.handlers', 'yum_repo_server.api.services'],
     package_dir = {'' : 'src/main/python'},
     long_description=("The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API."),
@@ -90,5 +90,5 @@ setup(
         get_data_files_for('src/main/python/yum_repo_server/templates', '/opt/yum_repo_server/templates'),
     test_suite = "yum_repo_server.test.runtests.runtests",
     cmdclass={'clean' : completeClean, 'update_version_file' : UpdateVersionFile},
+    install_requires=['Django==1.3', 'django-piston', 'nose', 'python-daemon', 'lockfile', 'stdeb', 'mockito']
 )
-
