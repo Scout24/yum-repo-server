@@ -24,14 +24,14 @@ class RepoContentService(object):
 
             if directory != self.METADATA_DIRECTORY:
                 if os.path.isdir(architecture_path):
-                    if len(os.listdir(architecture_path)) > 0:
+                    if not self._directory_is_empty(architecture_path):
                         available_architectures.append(architecture_path)
 
         return available_architectures
 
     def list_packages(self, repository_name):
         """
-            @return: a list of tuples (first element is the architecture name, second element is the package file name)
+            @return: list of package paths
         """
         available_architectures = self.list_architectures(repository_name)
         packages_in_repository = []
@@ -44,3 +44,7 @@ class RepoContentService(object):
                 packages_in_repository.append(package_path)
 
         return packages_in_repository
+
+    def _directory_is_empty(self, path):
+        files_in_directory = os.listdir(path)
+        return len(files_in_directory) == 0
