@@ -33,7 +33,10 @@ class RepoPropagationHandler(BaseHandler):
             message = "Propagated repository {0} to {1}, packages: {2}".format(source_repository, destination_repository, propagated_packages)
             self.repoAuditService.log_action(message, request)
 
-            return rc.CREATED
+            response = rc.CREATED
+            response.content = message
+
+            return response
 
         except BaseException as exception:
             return self.convert_exception_to_response(exception)
