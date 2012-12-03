@@ -17,8 +17,8 @@ class RepoPropagationService(object):
     rpmService = RpmService()
 
     def propagatePackage(self, package_name, source_repository, destination_repository, architecture):
-        source_repo_path = self.determine_repository_path(source_repository)
-        destination_repo_path = self.determine_repository_path(destination_repository)
+        source_repo_path = self._determine_repository_path(source_repository)
+        destination_repo_path = self._determine_repository_path(destination_repository)
 
         source_architecture_path = os.path.join(source_repo_path, architecture)
         file_name = self._determine_rpm_file_name(source_architecture_path, package_name)
@@ -37,20 +37,9 @@ class RepoPropagationService(object):
 
         return file_name
 
-    def _determine_rpm_file_name(self, directory, rpm):
-        if create_rpm_file_object(rpm) is None:
-            latest_rpm = self.rpmService.get_latest_rpm(rpm, directory)
-
-            if latest_rpm is None:
-                raise PropagationException("Package for {0} could not be found in {1}".format(rpm, directory))
-
-            return latest_rpm
-
-        return rpm
-
 
     def propagate_repository(self, source_repository, destination_repository):
-        destination_repository_path = self.determine_repository_path(destination_repository)
+        destination_repository_path = self._determine_repository_path(destination_repository)
 
         packages_to_propagate = self.repoContentService.list_packages(source_repository)
         propagated_packages = []
@@ -68,11 +57,22 @@ class RepoPropagationService(object):
 
         return propagated_packages
 
-    def determine_repository_path(self, repository_name):
+    def _determine_repository_path(self, repository_name):
         repository_path = self.repoConfigService.getStaticRepoDir(repository_name)
 
         if not os.path.exists(repository_path):
             raise PropagationException("Static repository '{0}' does not exist.".format(repository_name))
 
         return repository_path
+
+    def _determine_rpm_file_name(self, directory, rpm):
+        if create_rpm_file_object(rpm) is None:
+            latest_rpm = self.rpmService.get_latest_rpm(rpm, directory)
+
+            if latest_rpm is None:
+                raise PropagationException("Package for {0} could not be found in {1}".format(rpm, directory))
+
+            return latest_rpm
+
+        return rpm
 
