@@ -170,4 +170,3 @@ class TestRepoContentService(TestCase):
 
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture1")
         verify(yum_repo_server.api.services.repoContentService.os).listdir("/path/to/repository/architecture2")
-
