@@ -90,5 +90,5 @@ setup(
         get_data_files_for('src/main/python/yum_repo_server/templates', '/opt/yum_repo_server/templates'),
     test_suite = "yum_repo_server.test.runtests.runtests",
     cmdclass={'clean' : completeClean, 'update_version_file' : UpdateVersionFile},
-    install_requires=['Django>=1.3', 'django-piston', 'nose', 'python-daemon', 'lockfile', 'stdeb', 'mockito']
+    install_requires=['Django>=1.3', 'django-piston', 'python-daemon', 'lockfile', 'stdeb', 'mockito']
 )
