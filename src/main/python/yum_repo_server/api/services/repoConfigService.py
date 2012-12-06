@@ -35,6 +35,9 @@ class MetaDataGenerationConfig(object):
 
 
 class RepoNotFoundException(Exception):
+    """
+        to be raised when the repository path does not exist.
+    """
     pass
 
 
@@ -84,6 +87,14 @@ class RepoConfigService(object):
         repo_path = static_path + reponame
 
         return repo_path
+
+    def determine_static_repository_path(self, repository_name):
+        static_path = self.getStaticRepoDir(repository_name)
+
+        if not os.path.exists(static_path):
+            raise RepoNotFoundException("Could not find path for repository {0}".format(repository_name))
+
+        return static_path
 
     def getVirtualRepoDir(self, reponame=''):
         virtual_path=config.get_repo_dir() + '/virtual/'

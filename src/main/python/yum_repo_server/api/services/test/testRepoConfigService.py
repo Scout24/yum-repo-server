@@ -1,8 +1,11 @@
 import os
 import shutil
+
+from mockito import when, verify, unstub, any as any_value
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from unittest import TestCase
 
+import yum_repo_server
 
 class TestRepoConfigService(TestCase):
     targetDir = os.getcwd() + '/target/static/test-cleanup-dir'
@@ -11,6 +14,7 @@ class TestRepoConfigService(TestCase):
                       'rss-5-1.1.noarch.rpm',
                       'rss-7-1.4.noarch.rpm',
                       'rss-4-1.1.noarch.rpm']
+
 
     def test_doCleanup(self):
         os.makedirs(self.testRepo)
@@ -63,3 +67,29 @@ class TestRepoConfigService(TestCase):
     def touchRpms(self, testRepo):
         for repo in self.rpm_file_names:
             open(testRepo + '/' + repo, 'w').close()
+
+    def test_should_raise_exception_when_repository_directory_does_not_exist(self):
+        service = RepoConfigService()
+
+        when(service).getStaticRepoDir(any_value()).thenReturn("path/to/repository")
+        when(yum_repo_server.api.services.repoConfigService.os.path).exists(any_value()).thenReturn(False)
+
+        self.assertRaises(Exception, service.determine_static_repository_path, ())
+
+        unstub()
+
+
+    def test_should_determine_repository_path(self):
+        service = RepoConfigService()
+
+        when(service).getStaticRepoDir(any_value()).thenReturn("path/to/repository")
+        when(yum_repo_server.api.services.repoConfigService.os.path).exists(any_value()).thenReturn(True)
+
+        actual_repository_path = service.determine_static_repository_path("repository-name")
+
+        self.assertEqual("path/to/repository", actual_repository_path)
+
+        verify(service).getStaticRepoDir("repository-name")
+        verify(yum_repo_server.api.services.repoConfigService.os.path).exists("path/to/repository")
+
+        unstub()
