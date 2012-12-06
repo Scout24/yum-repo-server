@@ -17,8 +17,8 @@ class RepoPropagationService(object):
     rpmService = RpmService()
 
     def propagatePackage(self, package_name, source_repository, destination_repository, architecture):
-        source_repo_path = self._determine_repository_path(source_repository)
-        destination_repo_path = self._determine_repository_path(destination_repository)
+        source_repo_path = self.repoConfigService.determine_static_repository_path(source_repository)
+        destination_repo_path = self.repoConfigService.determine_static_repository_path(destination_repository)
 
         source_architecture_path = os.path.join(source_repo_path, architecture)
         file_name = self._determine_rpm_file_name(source_architecture_path, package_name)
@@ -39,7 +39,7 @@ class RepoPropagationService(object):
 
 
     def propagate_repository(self, source_repository, destination_repository):
-        destination_repository_path = self._determine_repository_path(destination_repository)
+        destination_repository_path = self.repoConfigService.determine_static_repository_path(destination_repository)
 
         packages_to_propagate = self.repoContentService.list_packages(source_repository)
         propagated_packages = []
@@ -56,14 +56,6 @@ class RepoPropagationService(object):
             propagated_packages.append(package_path)
 
         return propagated_packages
-
-    def _determine_repository_path(self, repository_name):
-        repository_path = self.repoConfigService.getStaticRepoDir(repository_name)
-
-        if not os.path.exists(repository_path):
-            raise PropagationException("Static repository '{0}' does not exist.".format(repository_name))
-
-        return repository_path
 
     def _determine_rpm_file_name(self, directory, rpm):
         if create_rpm_file_object(rpm) is None:
