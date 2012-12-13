@@ -27,8 +27,10 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 * The virtual repository system provides an additional layer of abstraction over repositories and allows you to create "fake" (virtual) repositories that forward any requests they obtain to a real repository.
   * Since consumers cannot differentiate between virtual and regular repositories, it is possible to change the repositories used by hosts dynamically in one simple operation (instead of fiddling on the file system level in <code>/etc/yum/repos.d/</code> for instance).
     * As a consequence, the virtual repository system enables you to use one (virtual) repository for a group of hosts, and change the link as needed, e.G. when updating packages.
-* The yum-repo-server comes with built-in cleanup and metadata generation routines, meaning you do not need to use other tools (like CRON jobs) to manage repositories
+* The yum-repo-server comes with built-in cleanup and metadata generation routines, meaning you do not need to use other tools (like CRON jobs) to manage repositories  
 
+## License  
+The yum-repo-server is licensed under the [GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.html)
 
 ## Getting started
 * Install the packages that are not part of PyPi :
@@ -181,14 +183,14 @@ python setup.py bdist_rpm
 </code>
 to get an rpm of the yum-repo-client.
 ### Installing the yum-repo-client
-If you have build a rpm file in the step above, then you can install it as usual.
+If you have built a rpm file in the step above, then you can install it as usual.
 Without the rpm file you can install the yum-repo-client with:
 <code>
 python setup.py install
 </code>
 ### Using the yum-repo-client
 Simply call 
-<code> [you@yourhost ~]$ repoclient </code> 
+<code>repoclient</code> 
 to display the help text that includes call syntax and operation description
 ### Setting the defaults
 To set the default host and port used by the yum-repo-client, you need to edit (or create) the file `/etc/yum-repo-client.yaml`.
@@ -196,6 +198,3 @@ This file should contain the following entries :
 `DEFAULT_HOST : localhost`  
 `DEFAULT_PORT : 8000`  
 The configuration above is for usage with the django development server (not for production use!).
-
-
-### Extending or customizing the yum-repo-client
