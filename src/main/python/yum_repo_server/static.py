@@ -18,6 +18,7 @@ from django.template import loader, Context
 from django.utils.http import http_date, parse_http_date
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoTaggingService import RepoTaggingService
+from yum_repo_server.settings import REPO_CONFIG
 
 RANGE_PATTERN = '^bytes=(\d{1,9})-(\d{0,9})$'
 
@@ -63,8 +64,13 @@ def serve_file(fullpath, request):
         response['Accept-Ranges'] = 'bytes'
         response['Content-Range'] = 'bytes %d-%d/%d' % (start_byte, last_byte, statobj.st_size)
     else:
-        response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
         content_length = statobj.st_size
+        if REPO_CONFIG['XSENDFILE'] is 'true':
+            response = HttpResponse(mimetype=mimetype)
+            response['X-Sendfile'] = fullpath
+        else:
+            response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
+
 
     response["Last-Modified"] = http_date(statobj.st_mtime)
     response["Content-Length"] = content_length
