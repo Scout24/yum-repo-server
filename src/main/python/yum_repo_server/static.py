@@ -68,6 +68,7 @@ def serve_file(fullpath, request):
         if REPO_CONFIG['XSENDFILE'] is 'true':
             response = HttpResponse(mimetype=mimetype)
             response['X-Sendfile'] = fullpath
+            response['Used-Sendfile'] = 'true'
         else:
             response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
 
