@@ -65,12 +65,13 @@ def serve_file(fullpath, request):
         response['Content-Range'] = 'bytes %d-%d/%d' % (start_byte, last_byte, statobj.st_size)
     else:
         content_length = statobj.st_size
-        if REPO_CONFIG['XSENDFILE'] is 'true':
+        if 'XSENDFILE' in REPO_CONFIG and REPO_CONFIG['XSENDFILE'] is 'true':
             response = HttpResponse(mimetype=mimetype)
             response['X-Sendfile'] = fullpath
             response['Used-Sendfile'] = 'true'
         else:
             response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
+            response['Used-Sendfile'] = 'false'
 
 
     response["Last-Modified"] = http_date(statobj.st_mtime)
