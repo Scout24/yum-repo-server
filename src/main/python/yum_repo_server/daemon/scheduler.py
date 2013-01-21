@@ -46,7 +46,7 @@ class MetaDataGenerationScheduler():
         try:
             if rpm_max_keep != None:
                 didCleanUp=True
-                self.configService.doCleanup(repoDir, rpm_max_keep)
+                self.configService.doCleanup(reponame, repoDir, rpm_max_keep)
                 logging.info("job RpmCleanup on "+reponame+" took "+str(monitor.get_execution_time_until_now_seconds())+" seconds")
             self.configService.doCreateRepo(repoDir, reponame)
             monitor.job_finishes()

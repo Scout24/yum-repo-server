@@ -21,7 +21,7 @@ class TestRepoConfigService(TestCase):
         self.touchRpms(self.testRepo)
 
         try:
-            RepoConfigService().doCleanup(self.targetDir, 3)
+            RepoConfigService().doCleanup("", self.targetDir, 3)
             self.assertFalse(os.path.exists(self.testRepo + '/rss-4-1.1.noarch.rpm'))
         finally:
             shutil.rmtree(self.targetDir)
@@ -31,14 +31,14 @@ class TestRepoConfigService(TestCase):
         self.touchRpms(self.testRepo)
 
         try:
-            RepoConfigService().doCleanup(self.targetDir, 0)
+            RepoConfigService().doCleanup("", self.targetDir, 0)
             self.assertTrue(os.path.exists(self.testRepo + '/rss-4-1.1.noarch.rpm'), 'rpm-file was deleted.')
         finally:
             shutil.rmtree(self.targetDir)
         
     def test_do_cleanup_should_raise_valueError_when_rpm_max_keep_is_not_an_integer(self):
         try:
-            RepoConfigService().doCleanup(self.targetDir, '3')
+            RepoConfigService().doCleanup("", self.targetDir, '3')
             self.fail('do cleanup should check, that rpm_max_keep is an integer.')
         except ValueError:
             pass
