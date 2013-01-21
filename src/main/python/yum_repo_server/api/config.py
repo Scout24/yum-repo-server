@@ -21,4 +21,12 @@ def get_non_deletable_repositories(config_file=REPO_CONFIG['NON_DELETABLE_REPOSI
     filtered_list = filter(_valid_repository_name, repository_list)
     
     return filtered_list
-    
+
+def is_mongo_update_enabled():
+    return REPO_CONFIG['MONGO_UPDATE']
+
+def get_mongo_update_host():
+    return REPO_CONFIG['MONGO_UPDATE_HOST']
+
+def get_mongo_update_prefix():
+    return REPO_CONFIG['MONGO_UDPATE_PREFIX']

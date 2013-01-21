@@ -144,6 +144,9 @@ REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos',
                 'SERVER_LOGGING_CONF': '/etc/yum-repo-server/serverLogging.conf',
                 'NON_DELETABLE_REPOSITORIES': '/etc/yum-repo-server/non-deletable-repositories',
                 'XSENDFILE' : False,
+                'MONGO_UPDATE' : False,
+                'MONGO_UPDATE_HOST' : 'mongo.update.host',
+                'MONGO_UDPATE_PREFIX' : '/files'
                }
 
 # get config file
