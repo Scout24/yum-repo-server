@@ -3,6 +3,7 @@ import os
 import yaml
 import re
 import subprocess
+from yum_repo_server.api.services.mongo import MongoUpdater
 from yum_repo_server.settings import REPO_CONFIG
 import logging
 from yum_repo_server.api.services.rpmService import RpmService, compare_rpm_files
@@ -47,6 +48,8 @@ class RepoConfigService(object):
     TAG_FILENAME = 'tags.txt'
 
     rpm_service = RpmService()
+
+    _mongo_updater = MongoUpdater()
 
     def getTagsFileForStaticRepo(self, static_reponame):
         return os.path.join(self.getStaticRepoDir(static_reponame), self.TAG_FILENAME)
@@ -160,7 +163,7 @@ class RepoConfigService(object):
         virtual_repo_path_prefix = config.get_repo_dir() + "/virtual"
         return destination.startswith(virtual_repo_path_prefix)
 
-    def doCleanup(self, full_path_to_repo, rpm_max_keep):
+    def doCleanup(self, repoName, full_path_to_repo, rpm_max_keep):
         if type(rpm_max_keep) is not int:
             raise ValueError('rpm_max_keep must be an integer.')
         
@@ -172,9 +175,9 @@ class RepoConfigService(object):
             arc_dirs = os.listdir(full_path_to_repo)
             for architecture in arc_dirs:
                 path_to_arc_repo = full_path_to_repo + '/' + architecture
-                if(os.path.isdir(path_to_arc_repo) and not architecture == 'repodata'):
+                if os.path.isdir(path_to_arc_repo) and not architecture == 'repodata':
                     rpms_to_delete = self._find_rpms_to_delete(os.listdir(path_to_arc_repo), rpm_max_keep)
-                    self._delete_rpm_list(path_to_arc_repo, rpms_to_delete)
+                    self._delete_rpm_list(repoName, path_to_arc_repo, rpms_to_delete)
                     
     def _find_rpms_to_delete(self, file_name_list, rpm_max_keep):
         grouped_rpms = self.rpm_service.get_rpm_files_grouped_by_name(file_name_list)
@@ -190,9 +193,11 @@ class RepoConfigService(object):
             
         return list_of_rpms_to_delete
 
-    def _delete_rpm_list(self, path_to_arc_repo, rpms_to_delete):
+    def _delete_rpm_list(self, repoName, path_to_arc_repo, rpms_to_delete):
+        arch = os.path.basename(path_to_arc_repo)
         for rpm_file in rpms_to_delete:
             rpm_to_delete = path_to_arc_repo + '/' + rpm_file.file_name
+            self._mongo_updater.delete(repoName, arch, rpm_file.file_name)
             os.remove(rpm_to_delete)
 
     def getRepoLockFile(self, reponame):
