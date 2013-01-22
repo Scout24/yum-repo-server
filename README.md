@@ -85,11 +85,11 @@ A virtual repository does look exactly like a regular repository for consumers, 
 
 ### Periodic metadata generation
 The metadata generation is located in a YAML file called `metadata-generation.yaml` that lives in the repository it describes.
-The file looks like this :  
+The file looks like this :
 <code>
-generation_type : scheduled  
-generation_interval : 40  
-rpm_max_keep : 3  
+generation_type : scheduled
+generation_interval : 40
+rpm_max_keep : 3
 </code>
 This will schedule a periodic createrepo that will be executed every 40 seconds.
 `rpm_max_keep` means there will also be a cleanup routine before the createrepo that will delete older
@@ -177,13 +177,22 @@ python setup.py test
 </code>
 
 These should always be successfull. 
+#### Build RPM
 Optionally after that you can run:
 <code>
 python setup.py bdist_rpm
 </code>
 to get an rpm of the yum-repo-client.
+#### Build DEB
+To build a DEB package first install python-stdeb and then run:
+<code>
+python setup.py --command-packages=stdeb.command bdist_deb
+</code>
+The resulting deb package will be in the `deb_dist` subfolder. Please keep in mind that in most cases it is not a good idea to build RPMs on Debian as the RPM dependencies can go horribly wrong. Creating Source RPMs should be less problematic.
+
 ### Installing the yum-repo-client
 If you have built a rpm file in the step above, then you can install it as usual.
+
 Without the rpm file you can install the yum-repo-client with:
 <code>
 python setup.py install
@@ -194,7 +203,7 @@ Simply call
 to display the help text that includes call syntax and operation description
 ### Setting the defaults
 To set the default host and port used by the yum-repo-client, you need to edit (or create) the file `/etc/yum-repo-client.yaml`.
-This file should contain the following entries :  
-`DEFAULT_HOST : localhost`  
-`DEFAULT_PORT : 8000`  
+This file should contain the following entries :
+`DEFAULT_HOST : localhost`
+`DEFAULT_PORT : 8000`
 The configuration above is for usage with the django development server (not for production use!).
