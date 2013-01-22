@@ -130,8 +130,7 @@ class HttpClient(object):
           postdata+='&YRS_MESSAGE='+str(self.message)
         if not headers: headers = {}
         headers['User-Agent'] = self.USER_AGENT
-        headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        
+
         if self.username is not None:
             auth = 'Basic ' + string.strip(base64.encodestring(self.username + ':' + self.password))
             headers['Authorization'] = auth
