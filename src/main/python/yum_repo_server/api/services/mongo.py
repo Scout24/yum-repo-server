@@ -28,7 +28,7 @@ class MongoUpdater():
             if response.status != 204 and response.status != 404:
                 raise Exception("Could not delete file %s on %s. Got response: %d" % (self._host, path, response.status))
 
-    def move(self, source_repository, arch, file_name, destination_repository):
+    def propagateRpm(self, source_repository, arch, file_name, destination_repository):
         if self._enabled:
             headers = {
                 'User-Agent': self.USER_AGENT,
