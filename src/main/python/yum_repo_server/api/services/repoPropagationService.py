@@ -36,13 +36,15 @@ class RepoPropagationService(object):
         if not os.path.exists(destination_rpm_parent_dir):
             os.mkdir(destination_rpm_parent_dir)
 
-        self._mongo_updater.propagateRpm(source_repository, architecture, file_name, destination_repository)
+        self._mongo_updater.propagate_rpm(source_repository, architecture, file_name, destination_repository)
         shutil.move(source_rpm_path, destination_rpm_path)
 
         return file_name
 
 
     def propagate_repository(self, source_repository, destination_repository):
+        self._mongo_updater.propagate_repository(source_repository, destination_repository)
+
         destination_repository_path = self.repoConfigService.determine_static_repository_path(destination_repository)
 
         packages_to_propagate = self.repoContentService.list_packages(source_repository)

@@ -28,24 +28,43 @@ class MongoUpdater():
             if response.status != 204 and response.status != 404:
                 raise Exception("Could not delete file %s on %s. Got response: %d" % (self._host, path, response.status))
 
-    def propagateRpm(self, source_repository, arch, file_name, destination_repository):
+    def propagate_rpm(self, source_repository, arch, file_name, destination_repository):
         if self._enabled:
             headers = {
                 'User-Agent': self.USER_AGENT,
                 'Content-Type': 'application/x-www-form-urlencoded',
                 }
-            sourcePath = '/'.join([source_repository, arch, file_name])
-            postdata = 'source=' + sourcePath + '&destination=' + destination_repository
+            source_path = '/'.join([source_repository, arch, file_name])
+            postdata = 'source=%s&destination=%s' % (source_path, destination_repository)
             httpServ = httplib.HTTPConnection(self._host)
             httpServ.connect()
             httpServ.request('POST', '/propagation', postdata, headers)
             response = httpServ.getresponse()
             httpServ.close();
 
-            self.log.info("Propagated RPM propagation request %s to %s and got response %d" % (sourcePath, destination_repository, response.status))
+            self.log.info("Propagated RPM propagation request from %s to %s and got response %d" % (source_path, destination_repository, response.status))
 
             if response.status != 201 and response.status != 404:
                 raise Exception("Could not propagate")
+
+    def propagate_repository(self, source_repository, destination_repository):
+        if self._enabled:
+            headers = {
+                'User-Agent': self.USER_AGENT,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                }
+            postdata = 'source=%s&destination=%s' % (source_repository, destination_repository)
+            httpServ = httplib.HTTPConnection(self._host)
+            httpServ.connect()
+            httpServ.request('POST', '/repo-propagation', postdata, headers)
+            response = httpServ.getresponse()
+            httpServ.close();
+
+            self.log.info("Propagated repository propagation request from %s to %s and got response %d" % (source_repository, destination_repository, response.status))
+
+            if response.status != 201 and response.status != 404:
+                raise Exception("Could not propagate")
+
 
 
 
