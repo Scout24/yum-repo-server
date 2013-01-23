@@ -44,7 +44,7 @@ class MongoUpdater():
 
             self.log.info("Propagated RPM propagation request %s to %s and got response %d" % (sourcePath, destination_repository, response.status))
 
-            if response.status != 200 and response.status != 404:
+            if response.status != 201 and response.status != 404:
                 raise Exception("Could not propagate")
 
 
