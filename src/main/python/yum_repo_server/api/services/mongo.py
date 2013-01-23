@@ -35,10 +35,7 @@ class MongoUpdater():
                 'Content-Type': 'application/x-www-form-urlencoded',
                 }
             sourcePath = '/'.join([source_repository, arch, file_name])
-            postdata = {
-                'source': sourcePath,
-                'destination': destination_repository,
-                }
+            postdata = 'source=' + sourcePath + '&destination=' + destination_repository
             httpServ = httplib.HTTPConnection(self._host)
             httpServ.connect()
             httpServ.request('POST', '/propagation', postdata, headers)
