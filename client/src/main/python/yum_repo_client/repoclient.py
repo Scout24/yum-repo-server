@@ -215,6 +215,9 @@ class CommandLineClient(object):
         if self.options.hostname is None:
             print "ERROR: you must specify a hostname using --hostname=<hostname>"
             return self.showHelp()
+        if self.options.port is None:
+            print "ERROR: you must specify a server port using --port=<port>"
+            return self.showHelp()
 
         operationMethod = self.operations[operation]
         return operationMethod(self)
