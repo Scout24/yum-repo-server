@@ -65,7 +65,7 @@ For production usage we recommend an *apache webserver (httpd)* with *mod_wsgi*.
 ## How it works
 ### Technology
 The yum-repo-server relies on django and piston to handle browser and API requests made through HTTP. You need to put a HTTP web server in front of the yum-repo-server, apache with mod_wsgi will do fine. Most of the scheduling routines use the APScheduler (Advanced Python Scheduler). In order to generate repository metadata, the createrepo package is used.
-Have a look at updaterepo [https://github.com/is24-herold/updaterepo] if you need a more performant createrepo.
+Have a look at updaterepo [https://github.com/heroldus/updaterepo] if you need a more performant createrepo.
 
 ### Repository location
 At the core of the yum-repo-server is a directory that contains repository information and contents.
