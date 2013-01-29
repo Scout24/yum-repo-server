@@ -1,5 +1,6 @@
 import httplib
 import logging
+import pycurl
 from yum_repo_server.api import config
 
 class MongoUpdater():
@@ -64,6 +65,21 @@ class MongoUpdater():
 
             if response.status != 201 and response.status != 404:
                 raise Exception("Could not propagate")
+
+    def uploadRpm(self, reponame, rpmPath):
+        if self._enabled:
+            c = pycurl.Curl()
+            c.setopt(c.POST, 1)
+            url = "http://%s/repo/%s/" % (self._host, self.port, reponame)
+            c.setopt(c.URL,url )
+            c.setopt(c.HTTPPOST, [("rpmFile", (c.FORM_FILE, rpmPath))])
+            c.setopt(pycurl.HTTPHEADER, ['User-Agent: ' + self.USER_AGENT])
+            c.perform()
+            returncode = c.getinfo(pycurl.HTTP_CODE)
+            c.close()
+
+            if returncode != httplib.CREATED:
+                raise Exception("Upload failed.")
 
 
 
