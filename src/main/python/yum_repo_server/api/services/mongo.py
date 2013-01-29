@@ -69,8 +69,10 @@ class MongoUpdater():
     def uploadRpm(self, reponame, rpmPath):
         if self._enabled:
             c = pycurl.Curl()
+            self.log.info("Try to upload rpm %s to repository %s" % (rpmPath, reponame))
             c.setopt(c.POST, 1)
             url = "http://%s/repo/%s/" % (self._host, reponame)
+            self.log.info("Upload url: %s" % url)
             c.setopt(c.URL,url )
             c.setopt(c.HTTPPOST, [("rpmFile", (c.FORM_FILE, rpmPath))])
             c.setopt(pycurl.HTTPHEADER, ['User-Agent: ' + self.USER_AGENT])
@@ -80,10 +82,3 @@ class MongoUpdater():
 
             if returncode != httplib.CREATED:
                 raise Exception("Upload failed.")
-
-
-
-
-
-
-
