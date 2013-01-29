@@ -70,7 +70,7 @@ class MongoUpdater():
         if self._enabled:
             c = pycurl.Curl()
             c.setopt(c.POST, 1)
-            url = "http://%s/repo/%s/" % (self._host, self.port, reponame)
+            url = "http://%s/repo/%s/" % (self._host, reponame)
             c.setopt(c.URL,url )
             c.setopt(c.HTTPPOST, [("rpmFile", (c.FORM_FILE, rpmPath))])
             c.setopt(pycurl.HTTPHEADER, ['User-Agent: ' + self.USER_AGENT])
