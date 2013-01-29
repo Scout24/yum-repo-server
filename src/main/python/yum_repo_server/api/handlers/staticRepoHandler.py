@@ -3,6 +3,7 @@ import os
 import time
 import sys
 import uuid
+from yum_repo_server.api.services.mongo import MongoUpdater
 from yum_repo_server.rpm.rpmfile import RpmFileHandler
 from yum_repo_server.rpm.rpmfile import RpmFileException
 from yum_repo_server.rpm.rpmfile import RpmValidationException
@@ -22,6 +23,7 @@ class StaticRepoHandler(BaseHandler):
     repoConfigService = RepoConfigService()
     audit = RepoAuditService()
     TEMP_DIR = yum_repo_server.settings.REPO_CONFIG['TEMP_DIR']
+    _mongo_updater = MongoUpdater()
 
     def create(self, request, reponame):
         tempFilename = self._save_as_temp_file(request)
@@ -37,9 +39,13 @@ class StaticRepoHandler(BaseHandler):
             if os.path.exists(tempFilename):
                 os.remove(tempFilename)
             return rc.BAD_REQUEST
+
+        self._mongo_updater.uploadRpm(reponame[:-1], resultingName)
+
         response = rc.CREATED
         response.content = 'Successfully uploaded '+ os.path.basename(resultingName) + ' into repository: ' + reponame[:-1]
         self.audit.log_action("uploaded rpm %s to %s"%(os.path.basename(resultingName), reponame),request)
+
         return response
     
     def delete(self, request, reponame):
