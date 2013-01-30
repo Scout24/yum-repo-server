@@ -1,5 +1,6 @@
 import os
 import shutil
+from yum_repo_server.api.services.mongo import MongoUpdater
 
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoContentService import RepoContentService
@@ -15,6 +16,8 @@ class RepoPropagationService(object):
     repoConfigService = RepoConfigService()
     repoContentService = RepoContentService()
     rpmService = RpmService()
+
+    _mongo_updater = MongoUpdater()
 
     def propagatePackage(self, package_name, source_repository, destination_repository, architecture):
         source_repo_path = self.repoConfigService.determine_static_repository_path(source_repository)
@@ -33,12 +36,15 @@ class RepoPropagationService(object):
         if not os.path.exists(destination_rpm_parent_dir):
             os.mkdir(destination_rpm_parent_dir)
 
+        self._mongo_updater.propagate_rpm(source_repository, architecture, file_name, destination_repository)
         shutil.move(source_rpm_path, destination_rpm_path)
 
         return file_name
 
 
     def propagate_repository(self, source_repository, destination_repository):
+        self._mongo_updater.propagate_repository(source_repository, destination_repository)
+
         destination_repository_path = self.repoConfigService.determine_static_repository_path(destination_repository)
 
         packages_to_propagate = self.repoContentService.list_packages(source_repository)
