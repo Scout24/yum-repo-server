@@ -47,12 +47,8 @@ class TestCommandLineClientOptionsExtractor(unittest.TestCase):
     def test_ValueError_when_port_is_not_an_int(self):
         arguments=['path', '--port=8b0', 'create', 'test-dev']
         
-        try:        
-            extractor = CommandLineClientOptionsExtractor()
-            extractor.extract_and_remove_options_from_arguments(arguments)
-            self.fail('exception because of wrong argumentFormat not thrown.')
-        except OptionParsingException:
-            pass
+        extractor = CommandLineClientOptionsExtractor()
+        self.assertRaises(OptionParsingException, extractor.extract_and_remove_options_from_arguments, arguments)
     
     def test_do_not_remove_unknown_options(self):
         arguments=['path', '--foo=8b0', 'create', 'test-dev']

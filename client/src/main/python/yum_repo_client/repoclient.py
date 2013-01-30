@@ -130,7 +130,7 @@ class HttpClient(object):
           postdata+='&YRS_MESSAGE='+str(self.message)
         if not headers: headers = {}
         headers['User-Agent'] = self.USER_AGENT
-        
+
         if self.username is not None:
             auth = 'Basic ' + string.strip(base64.encodestring(self.username + ':' + self.password))
             headers['Authorization'] = auth
@@ -214,6 +214,9 @@ class CommandLineClient(object):
             self._readPassword()
         if self.options.hostname is None:
             print "ERROR: you must specify a hostname using --hostname=<hostname>"
+            return self.showHelp()
+        if self.options.port is None:
+            print "ERROR: you must specify a server port using --port=<port>"
             return self.showHelp()
 
         operationMethod = self.operations[operation]
