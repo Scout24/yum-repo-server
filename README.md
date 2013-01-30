@@ -1,3 +1,7 @@
+ATTENTION: Here we work on version 2, feedback is welcome.
+
+![Architecture Overview](https://raw.github.com/ImmobilienScout24/yum-repo-server/version2/docs/Yum-Repo-Server-2.0%20Architecture%20Overview.png)
+
 # yum-repo-server [![Build Status](https://secure.travis-ci.org/ImmobilienScout24/yum-repo-server.png?branch=master)](https://travis-ci.org/ImmobilienScout24/yum-repo-server)
 =================
 The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API.
