@@ -86,11 +86,13 @@ A virtual repository does look exactly like a regular repository for consumers, 
 ### Periodic metadata generation
 The metadata generation is located in a YAML file called `metadata-generation.yaml` that lives in the repository it describes.
 The file looks like this :
-<code>
+
+```yaml
 generation_type : scheduled
 generation_interval : 40
 rpm_max_keep : 3
-</code>
+```
+
 This will schedule a periodic createrepo that will be executed every 40 seconds.
 `rpm_max_keep` means there will also be a cleanup routine before the createrepo that will delete older
 RPMs when there are more than three RPMs with the same canonical name.
