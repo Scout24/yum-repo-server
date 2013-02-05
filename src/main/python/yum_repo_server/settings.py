@@ -8,6 +8,12 @@ from django.core.files.uploadedfile import UploadedFile
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+# According to http://code.google.com/p/modwsgi/wiki/ConfigurationGuidelines#The_Apache_Alias_Directive
+# the SCRIPT_NAME is mostly nonsense. Experiments showed it to be / which seems to be the mount
+# point of the WSGIScriptAlias directive. We set it to "" so that rewriting yum_repo_server URLs works.
+# Without this settings yum_repo_server would redirect to //repo/something/ for directory listings.
+#FORCE_SCRIPT_NAME = ""
+
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
