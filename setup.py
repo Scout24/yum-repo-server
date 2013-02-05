@@ -65,9 +65,9 @@ class UpdateVersionFile(Command):
 
 setup(
     name = "yum-repo-server",
-    version = "1.3",
-    author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke, Michael Gruber, Marcel Wolf",
-    author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de, michael.gruber@immobilienscout24.de, marcel.wolf@immobilienscout24.de",
+    version = "1.4",
+    author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke, Michael Gruber, Marcel Wolf, Schlomo Schapiro",
+    author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de, michael.gruber@immobilienscout24.de, marcel.wolf@immobilienscout24.de, schlomo.schapiro@immobilienscout24.de",
     description = ("The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API."),
     license = "GNU GPL v3",
     keywords = "yum repository createrepo staging api",

@@ -12,7 +12,7 @@ TEMPLATE_DEBUG = DEBUG
 # the SCRIPT_NAME is mostly nonsense. Experiments showed it to be / which seems to be the mount
 # point of the WSGIScriptAlias directive. We set it to "" so that rewriting yum_repo_server URLs works.
 # Without this settings yum_repo_server would redirect to //repo/something/ for directory listings.
-#FORCE_SCRIPT_NAME = ""
+FORCE_SCRIPT_NAME = ""
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
