@@ -82,6 +82,8 @@ class MongoUpdater():
                 
             returncode = c.getinfo(pycurl.HTTP_CODE)
             c.close()
+            
+            self.log.info("Uploaded %s to %s" % (rpmPath, url))
 
             if returncode != httplib.CREATED:
                 self.log.error("Upload to %s failed with return code %d" % (url,returncode))
