@@ -74,9 +74,19 @@ class MongoUpdater():
             c.setopt(c.URL, str(url))
             c.setopt(c.HTTPPOST, [("rpmFile", (c.FORM_FILE, str(rpmPath)))])
             c.setopt(pycurl.HTTPHEADER, ['User-Agent: %s' % self.USER_AGENT])
-            c.perform()
+            c.setopt(c.TIMEOUT, 300)
+            try:
+                c.perform()
+            except Exception, e:
+                self.log.error("Upload to %s failed with Exception: %s" % (url,str(e)))
+                
             returncode = c.getinfo(pycurl.HTTP_CODE)
             c.close()
+            
+            self.log.info("Uploaded %s to %s" % (rpmPath, url))
 
             if returncode != httplib.CREATED:
-                raise Exception("Upload failed with return code %d" % returncode)
+                self.log.error("Upload to %s failed with return code %d" % (url,returncode))
+                raise Exception("Upload to %s failed with return code %d" % (url,returncode))
+            else:
+                self.log.info("Uploaded %s to %s" % (rpmPath, url))
