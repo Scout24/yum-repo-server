@@ -16,3 +16,7 @@ target
 
 # ignoring virtual environment directory
 ve
+
+# ignore eclipse project files
+/.pydevproject
+/.project
