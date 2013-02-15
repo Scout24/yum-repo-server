@@ -41,7 +41,7 @@ class MongoUpdater():
             httpServ.connect()
             httpServ.request('POST', '/propagation', postdata, headers)
             response = httpServ.getresponse()
-            httpServ.close();
+            httpServ.close()
 
             self.log.info("Propagated RPM propagation request from %s to %s and got response %d" % (source_path, destination_repository, response.status))
 
@@ -59,7 +59,7 @@ class MongoUpdater():
             httpServ.connect()
             httpServ.request('POST', '/repo-propagation', postdata, headers)
             response = httpServ.getresponse()
-            httpServ.close();
+            httpServ.close()
 
             self.log.info("Propagated repository propagation request from %s to %s and got response %d" % (source_repository, destination_repository, response.status))
 
