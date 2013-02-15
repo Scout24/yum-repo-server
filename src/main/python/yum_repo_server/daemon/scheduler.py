@@ -12,7 +12,7 @@ class MetaDataGenerationScheduler():
         self.interval = updateIntervalSeconds
         config = {
                     'apscheduler.daemonic': False,
-                    'misfire_grace_time' : 60
+                    'apscheduler.misfire_grace_time' : 60
                  }
         self.sched = Scheduler(config)
         # initialize these per instance.
