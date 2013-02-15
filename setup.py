@@ -52,7 +52,7 @@ class UpdateVersionFile(Command):
         self.release = None
     
     def finalize_options(self):
-        if self.release == None:
+        if self.release is None:
             self.release = 1
     
     def run(self):

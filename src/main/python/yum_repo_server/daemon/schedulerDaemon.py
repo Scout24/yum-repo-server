@@ -49,7 +49,7 @@ def _set_pidfile_path_to_system_argument_if_given():
             pid_file_path = argument.split('=')[1]
             break
             
-    if pid_file_path != None and pid_file_path.strip() != '':
+    if pid_file_path is not None and pid_file_path.strip() != '':
         REPO_CONFIG['SCHEDULER_DAEMON_PIDFILE'] = pid_file_path
 
 def callSchedulerDaemon():
