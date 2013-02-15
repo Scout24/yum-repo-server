@@ -29,8 +29,7 @@ class TestRemoteServer(unittest.TestCase):
         path_to_rpm = "/repo/%s/noarch/test-artifact-1.2-1.noarch.rpm" % (repo_name)
         rpm_url_http_code = helper.do_http_get(path_to_rpm).status
         self.assertTrue(rpm_url_http_code == httplib.OK or rpm_url_http_code == httplib.FOUND)
-        self.assertEquals(httplib.OK, rpm_url_http_code)
-        
+
         repoclient.generateMetadata(repo_name)
         self.assertEquals(httplib.OK, helper.do_http_get('/repo/%s/repodata/repomd.xml' % repo_name).status)
 
