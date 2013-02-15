@@ -10,7 +10,10 @@ import logging
 class MetaDataGenerationScheduler():
     def __init__(self, updateIntervalSeconds=30):
         self.interval = updateIntervalSeconds
-        config = {'apscheduler.daemonic': False}
+        config = {
+                    'apscheduler.daemonic': False,
+                    'misfire_grace_time' : 60
+                 }
         self.sched = Scheduler(config)
         # initialize these per instance.
         self.repo_timestamps = {}
