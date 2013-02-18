@@ -90,3 +90,20 @@ class MongoUpdater():
                 raise Exception("Upload to %s failed with return code %d" % (url,returncode))
             else:
                 self.log.info("Uploaded %s to %s" % (rpmPath, url))
+
+    def deleteRepository(self, reponame):
+        if self._enabled:
+            headers = {
+                'User-Agent': self.USER_AGENT,
+                }
+
+            httpServ = httplib.HTTPConnection(self._host)
+            httpServ.connect()
+            httpServ.request('DELETE', '/repo/' + reponame, None, headers)
+            response = httpServ.getresponse()
+            httpServ.close()
+
+            self.log.info("Propagated repository delete request for repository %s and got response %d" % (reponame, response.status))
+
+            if response.status != 204 and response.status != 404:
+                raise Exception("Could not propagate")
