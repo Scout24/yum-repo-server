@@ -25,7 +25,7 @@ class RpmService(object):
         for rpm_file_name in rpm_file_names:
             rpm_file = create_rpm_file_object(rpm_file_name)
 
-            if rpm_file == None:
+            if rpm_file is None:
                 continue
 
             if not rpm_groups.has_key(rpm_file.name):

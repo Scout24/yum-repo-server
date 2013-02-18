@@ -10,7 +10,10 @@ import logging
 class MetaDataGenerationScheduler():
     def __init__(self, updateIntervalSeconds=30):
         self.interval = updateIntervalSeconds
-        config = {'apscheduler.daemonic': False}
+        config = {
+                    'apscheduler.daemonic': False,
+                    'apscheduler.misfire_grace_time' : 60
+                 }
         self.sched = Scheduler(config)
         # initialize these per instance.
         self.repo_timestamps = {}
@@ -44,7 +47,7 @@ class MetaDataGenerationScheduler():
         rpm_max_keep = argList[2]
         didCleanUp=False
         try:
-            if rpm_max_keep != None:
+            if rpm_max_keep is not None:
                 didCleanUp=True
                 self.configService.doCleanup(reponame, repoDir, rpm_max_keep)
                 logging.info("job RpmCleanup on "+reponame+" took "+str(monitor.get_execution_time_until_now_seconds())+" seconds")
@@ -65,22 +68,22 @@ class MetaDataGenerationScheduler():
             file_path = self.configService.getMetaDataGenerationFilePathRelativeToRepoDirByRepoName(static_dir)
             if not os.path.exists(file_path):
                 if self.repo_timestamps.has_key(static_dir):
-                    logging.debug("unschedule because file does not exist")
+                    logging.debug('Unscheduling for {0} because there is no configuration'.format(static_dir))
                     self.unschedule_by_reponame(static_dir)
                     del self.repo_timestamps[static_dir] #repo is unmanaged now, check back later
                     removedJobs+=1
                 continue
             
             if not static_dir in self.repo_timestamps:
-                logging.debug("new repo found..")
+                logging.debug('Found new repository {0} for scheduling.'.format(static_dir))
                 addedJobs+=1
                 self.repo_timestamps[static_dir] = self.determine_last_modification_time(
                     file_path) #make an entry so we know we processed the repo + remember modification timestamp
                 self.add_job_for_repo(static_dir)
             else: # we already processed the repo because its in the dictionary
-                logging.debug("check for updates in repo config...")
+                logging.debug('Checking for scheduling updates for repository {0}'.format(static_dir))
                 if self.is_more_recent_metadata_generation_file_than(static_dir, self.repo_timestamps[static_dir]):
-                    logging.debug("update job for repo " + static_dir)
+                    logging.debug('Metadata configuration for {0} has changed. Updating it..'.format(static_dir))
                     updatedJobs+=1
                     self.repo_timestamps[static_dir] = self.determine_last_modification_time(file_path)
                     self.unschedule_by_reponame(static_dir)
@@ -99,7 +102,7 @@ class MetaDataGenerationScheduler():
     def unschedule_by_reponame(self, reponame):
         if reponame in self.jobs:
             self.sched.unschedule_job(self.jobs[reponame])
-            del self.jobs[reponame] #remove the job from the job-handle dictionary..
+            del self.jobs[reponame]
 
     def is_more_recent_metadata_generation_file_than(self, repodir, past_timestamp):
         file_path = self.configService.getMetaDataGenerationFilePathRelativeToRepoDirByRepoName(repodir)
@@ -112,7 +115,6 @@ class MetaDataGenerationScheduler():
     def cleanupCacheDir(self):
         cleanupCacheMonitor = JobMonitorer()
         cleanupCacheMonitor.job_starts()
-        logging.info('Start cache cleanup ...')
         cleanupDir = self.configService.getRepoCacheDir()
         
         try:
@@ -140,10 +142,12 @@ class MetaDataGenerationScheduler():
     def add_job_for_repo(self, repo_dir):
         metaDataConfig = self.configService.getMetaDataGenerationConfig(repo_dir)
         if not metaDataConfig:
-            return #exit silently without adding a job
+            return  # exit silently without adding a job
         generation_type = metaDataConfig.getMetaDataGenerationType()
-        if generation_type == 'manual': return #exit silently
-        #if we get here, we know its "scheduled"
+        if generation_type == 'manual':
+            logging.info('Not doing anything for repository {0}, since metadata generation is set to "manual"'.
+                                                                                                    format(repo_dir))
+            return
         generation_interval = metaDataConfig.getMetaDataGenerationInterval()
         generation_interval = int(generation_interval)
         rpm_max_keep = metaDataConfig.getMetaDataGenerationRpmMaxKeep()
