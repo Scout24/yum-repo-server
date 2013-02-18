@@ -60,7 +60,9 @@ class StaticRepoHandler(BaseHandler):
 
         if reponame in get_non_deletable_repositories():
             return self._bad_request('repository can not be deleted')
-        
+
+        self._mongo_updater.deleteRepository(reponame)
+
         self.audit.log_action("deleted static repository %s"%reponame,request)
         shutil.rmtree(repo_path)
         return rc.DELETED
