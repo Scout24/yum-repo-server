@@ -87,7 +87,7 @@ class RpmFile (object):
             self.os = self.hdr['os']
             self.arch = self.hdr['arch']
             self.platform = self.hdr['platform']
-            self.binary = self.hdr['sourcerpm'] != None and self.hdr['sourcerpm'] != "(none)"
+            self.binary = self.hdr['sourcerpm'] is not None and self.hdr['sourcerpm'] != "(none)"
             self.group = self.hdr['group']
             self.size = self.hdr['size']
             self.packager = self.hdr['packager']

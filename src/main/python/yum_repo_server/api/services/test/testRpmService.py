@@ -43,8 +43,8 @@ class TestRpmService(unittest.TestCase):
         rpm_groups = RpmService().get_rpm_files_grouped_by_name(rpms)
         
         self.assertEquals(2, len(rpm_groups))
-        self.assertTrue(rpm_groups['tree'] != None)
-        self.assertTrue(rpm_groups['tree-2'] != None)
+        self.assertTrue(rpm_groups['tree'] is not None)
+        self.assertTrue(rpm_groups['tree-2'] is not None)
     
 
 class TestRpmFileObjectFactoryMethod(unittest.TestCase):

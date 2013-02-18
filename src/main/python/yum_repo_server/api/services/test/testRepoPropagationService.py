@@ -145,7 +145,7 @@ class TestRepoPropagationService(TestCase):
 
         self.assertEqual(["source-repository-path/arch1/spam.rpm"], propagated_packages)
 
-    def test_should_propagate_repository_with_two_packages(self):
+    def test_should_move_existing_packages_when_propagating_repository_with_two_packages(self):
         destination_repository_path = "destination-static-repository-path"
         destination_repository = "destination-repo"
         destination_path1 = os.path.join(destination_repository_path, "arch1")
@@ -181,9 +181,9 @@ class TestRepoPropagationService(TestCase):
         when(yum_repo_server.api.services.repoPropagationService.shutil).move(any_value(), any_value()).thenReturn(None)
         when(yum_repo_server.api.services.repoPropagationService.os.path).exists(any_value()).thenReturn(True)
 
-        propagated_packagaes = self.service.propagate_repository("source-repo", destination_repository)
+        propagated_packages = self.service.propagate_repository("source-repo", destination_repository)
 
-        self.assertEqual(["source-repository-path/arch1/spam.rpm", "source-repository-path/arch2/egg.rpm"], propagated_packagaes)
+        self.assertEqual(["source-repository-path/arch1/spam.rpm", "source-repository-path/arch2/egg.rpm"], propagated_packages)
 
     def test_should_create_destination_directories_when_propagating_repository(self):
         destination_repository_path = "destination-static-repository-path"
