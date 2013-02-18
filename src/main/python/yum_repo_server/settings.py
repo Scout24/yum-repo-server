@@ -152,7 +152,7 @@ REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos',
                 'XSENDFILE' : False,
                 'MONGO_UPDATE' : False,
                 'MONGO_UPDATE_HOST' : 'mongo.update.host',
-                'MONGO_UDPATE_PREFIX' : '/files'
+                'MONGO_UDPATE_PREFIX' : '/repo'
                }
 
 # get config file
