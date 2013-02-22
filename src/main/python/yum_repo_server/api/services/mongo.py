@@ -70,7 +70,7 @@ class MongoUpdater():
         if self._enabled:
             c = pycurl.Curl()
             c.setopt(c.POST, 1)
-            url = "http://%s/repo/%s/" % (self._host, reponame)
+            url = "http://%s%s/%s/" % (self._host, self._prefix, reponame)
             c.setopt(c.URL, str(url))
             c.setopt(c.HTTPPOST, [("rpmFile", (c.FORM_FILE, str(rpmPath)))])
             c.setopt(pycurl.HTTPHEADER, ['User-Agent: %s' % self.USER_AGENT])
@@ -99,7 +99,7 @@ class MongoUpdater():
 
             httpServ = httplib.HTTPConnection(self._host)
             httpServ.connect()
-            httpServ.request('DELETE', '/repo/' + reponame, None, headers)
+            httpServ.request('DELETE', self._prefix + '/' + reponame, None, headers)
             response = httpServ.getresponse()
             httpServ.close()
 
