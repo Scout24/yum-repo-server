@@ -16,6 +16,7 @@ from operator import attrgetter
 from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseNotModified
 from django.template import loader, Context
 from django.utils.http import http_date, parse_http_date
+from yum_repo_server.api.services.mongo import MongoUpdater
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoTaggingService import RepoTaggingService
 from yum_repo_server.settings import REPO_CONFIG
@@ -27,6 +28,7 @@ class ParentDirType(object):
     STATIC=1
     VIRTUAL=2
 
+_mongo_updater = MongoUpdater()
 
 def serve_file(fullpath, request):
     # Respect the If-Modified-Since header.
@@ -65,6 +67,8 @@ def serve_file(fullpath, request):
         response['Content-Range'] = 'bytes %d-%d/%d' % (start_byte, last_byte, statobj.st_size)
     else:
         content_length = statobj.st_size
+        if fullpath.endswith('.rpm') and 'MONGO_REDIRECT_RPMS' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_RPMS']:
+            return _mongo_updater.redirect(fullpath)
         if 'XSENDFILE' in REPO_CONFIG and REPO_CONFIG['XSENDFILE']:
             response = HttpResponse(mimetype=mimetype)
             response['X-Sendfile'] = fullpath

@@ -1,6 +1,7 @@
 import httplib
 import logging
 import pycurl
+from django.http import HttpResponseRedirect
 from yum_repo_server.api import config
 
 class MongoUpdater():
@@ -107,3 +108,7 @@ class MongoUpdater():
 
             if response.status != 204 and response.status != 404:
                 raise Exception("Could not propagate")
+
+    def redirect(self, fullpath):
+        segments = fullpath.split('/')
+        return HttpResponseRedirect('http://' + self._host + self._prefix + '/' + '/'.join(segments[-3:-1]))
