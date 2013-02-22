@@ -111,4 +111,4 @@ class MongoUpdater():
 
     def redirect(self, fullpath):
         segments = fullpath.split('/')
-        return HttpResponseRedirect('http://' + self._host + self._prefix + '/' + '/'.join(segments[-3:-1]))
+        return HttpResponseRedirect('http://' + self._host + self._prefix + '/' + '/'.join(segments[-3:]))
