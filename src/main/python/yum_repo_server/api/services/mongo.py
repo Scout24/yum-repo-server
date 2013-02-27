@@ -100,7 +100,7 @@ class MongoUpdater():
 
             httpServ = httplib.HTTPConnection(self._host)
             httpServ.connect()
-            httpServ.request('DELETE', self._prefix + '/' + reponame, None, headers)
+            httpServ.request('DELETE', self._prefix + '/' + reponame + '/', None, headers)
             response = httpServ.getresponse()
             httpServ.close()
 
