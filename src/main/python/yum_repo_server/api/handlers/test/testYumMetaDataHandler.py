@@ -5,7 +5,6 @@ from mockito import mock, when, verify, unstub, any as any_value
 from yum_repo_server.api.handlers.yumMetaDataHandler import YumMetaDataHandler
 
 class TestYumMetaDataHandler(TestCase):
-
     def setUp(self):
         self._handler = YumMetaDataHandler()
         self._handler.mongoUpdater = mock()
@@ -18,9 +17,9 @@ class TestYumMetaDataHandler(TestCase):
         repo_name = 'repo_name'
 
         when(self._handler.repoConfigService).getStaticRepoDir(repo_name).thenReturn('any')
-        when(os.path).exist('any').thenReturn(False)
-        when(self._handler.mongoUpdater).generate_meta_data('dd').thenReturn(None)
+        when(os.path).exists('any').thenReturn(True)
+        when(self._handler.mongoUpdater).generate_meta_data(repo_name).thenReturn(None)
 
         self._handler.create(None, repo_name)
 
-        verify(self._handler.mongoUpdater).generate_meta_data('dd')
+        verify(self._handler.mongoUpdater).generate_meta_data(repo_name)

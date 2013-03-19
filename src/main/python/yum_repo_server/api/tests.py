@@ -14,6 +14,7 @@ from test.testRepoClient import TestRepoClient
 from yum_repo_server.api.test.testRpmPropagation import TestRpmPropagation
 from yum_repo_server.api.test.testRepoPropagation import TestRepoPropagation
 from yum_repo_server.api.services.test.tests import *
+from yum_repo_server.api.handlers.test.tests import *
 from teamcity_test_runner_extension.teamcityTestRunner import ExtendedTeamcityTestRunner
 
 class TeamCityDjangoTestSuiteRunner(DjangoTestSuiteRunner):
