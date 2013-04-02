@@ -67,7 +67,11 @@ def serve_file(fullpath, request):
         response['Content-Range'] = 'bytes %d-%d/%d' % (start_byte, last_byte, statobj.st_size)
     else:
         content_length = statobj.st_size
-        if fullpath.endswith('.rpm') and 'MONGO_REDIRECT_RPMS' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_RPMS']:
+
+        redirect_rpms_to_mongo = fullpath.endswith('.rpm') and 'MONGO_REDIRECT_RPMS' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_RPMS']
+        redirect_repo_metadata = '/repodata/' in fullpath and (fullpath.endswith('.xml') or fullpath.endswith('.sqlite.bz2')) and 'MONGO_REDIRECT_METADATA' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_METADATA'];
+
+        if redirect_rpms_to_mongo or redirect_repo_metadata:
             return _mongo_updater.redirect(fullpath)
         if 'XSENDFILE' in REPO_CONFIG and REPO_CONFIG['XSENDFILE']:
             response = HttpResponse(mimetype=mimetype)
