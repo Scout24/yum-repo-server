@@ -1,5 +1,6 @@
 import os
 import lockfile
+from lockfile import LockTimeout
 
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 
@@ -30,7 +31,7 @@ class RepoTaggingService(object):
         try:
           lock.acquire(timeout=15) #wait 15sec max
         except LockTimeout:
-          raise CouldNotLogTagsException()
+          raise CouldNotLockTagsException()
       try:  
         fileHandle=open(tagpath,'a')
         fileHandle.write(tag_encoded)
@@ -62,7 +63,7 @@ class RepoTaggingService(object):
         try:
           lock.acquire(timeout=15) #wait 15sec max
         except LockTimeout:
-          raise CouldNotLogTagsException()
+          raise CouldNotLockTagsException()
       try:  
         fileHandle=open(tagpath,'w') #replace instead of appending
         for tag in initialTags:
