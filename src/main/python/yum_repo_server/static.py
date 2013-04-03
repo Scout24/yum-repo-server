@@ -67,12 +67,6 @@ def serve_file(fullpath, request):
         response['Content-Range'] = 'bytes %d-%d/%d' % (start_byte, last_byte, statobj.st_size)
     else:
         content_length = statobj.st_size
-
-        redirect_rpms_to_mongo = fullpath.endswith('.rpm') and 'MONGO_REDIRECT_RPMS' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_RPMS']
-        redirect_repo_metadata = '/repodata/' in fullpath and (fullpath.endswith('.xml') or fullpath.endswith('.sqlite.bz2')) and 'MONGO_REDIRECT_METADATA' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_METADATA'];
-
-        if redirect_rpms_to_mongo or redirect_repo_metadata:
-            return _mongo_updater.redirect(fullpath)
         if 'XSENDFILE' in REPO_CONFIG and REPO_CONFIG['XSENDFILE']:
             response = HttpResponse(mimetype=mimetype)
             response['X-Sendfile'] = fullpath
@@ -125,6 +119,13 @@ def serve(request, path, document_root=None, show_indexes=False, add_virtual = F
                 return HttpResponseRedirect(full_request_path + '/')
             return directory_index(path=newpath, fullpath=fullpath, add_virtual=add_virtual, parent_dir_type=parent_dir_type)
         raise Http404("Directory indexes are not allowed here.")
+
+    redirect_rpms_to_mongo = fullpath.endswith('.rpm') and 'MONGO_REDIRECT_RPMS' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_RPMS']
+    redirect_repo_metadata = '/repodata/' in fullpath and (fullpath.endswith('.xml') or fullpath.endswith('.sqlite.bz2')) and 'MONGO_REDIRECT_METADATA' in REPO_CONFIG and REPO_CONFIG['MONGO_REDIRECT_METADATA'];
+
+    if redirect_rpms_to_mongo or redirect_repo_metadata:
+        return _mongo_updater.redirect(fullpath)
+
     if not os.path.exists(fullpath):
         raise Http404('"%s" does not exist' % fullpath)
 
