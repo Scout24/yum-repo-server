@@ -72,10 +72,14 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         metadatapath = repopath + "repodata/"
         expectedMetadataFiles = ["filelists.xml.gz", "other.xml.gz", "primary.xml.gz", "repomd.xml"]
         for metadataFile in expectedMetadataFiles:
-            pathToMetadataFile = metadatapath + metadataFile
-            self.assertTrue(os.path.exists(pathToMetadataFile),
-                "File " + pathToMetadataFile + " must exist (repo metadata)")
+            self.assertFilenameSuffixExistsInDir(metadatapath, metadataFile)
 
+    def assertFilenameSuffixExistsInDir(self, path, suffix):
+        for filename in os.listdir(path):
+            if filename.endswith(suffix):
+                return
+
+        raise AssertionError('No file with suffix ' + suffix + ' in ' + path)
 
     #the repo replies with name and dir if successful
     def assertCreaterepoReplyValid(self, msg, reponame):
