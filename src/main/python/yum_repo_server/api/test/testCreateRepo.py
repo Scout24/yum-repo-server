@@ -31,11 +31,11 @@ class TestCreateRepo(BaseIntegrationTestCase):
         repo_dir = config.get_repo_dir()
         metadata_dir = repo_dir + Constants.PATH_TO_STATIC_REPO_RELATIVE_TO_PROJECT_DIR + repo_name + Constants.GENERATE_REPO_DATA_POSTFIX
         self.assertTrue(os.path.exists(metadata_dir))
-        self.assertTrue(os.path.exists(metadata_dir + Constants.PRIMARY_XML))
+        self.assertTrue(os.path.exists(self.findPrimary(metadata_dir)))
         self.assert_package_count(metadata_dir, 1)
 
     def assert_package_count(self, metadata_dir, count):
-        f = gzip.open(metadata_dir + Constants.PRIMARY_XML)
+        f = gzip.open(self.findPrimary(metadata_dir))
         try:
             tree = etree.parse(f)
             xpath_result = tree.xpath('/t:metadata/@packages', namespaces={'t' : 'http://linux.duke.edu/metadata/common'})
@@ -43,6 +43,14 @@ class TestCreateRepo(BaseIntegrationTestCase):
             self.assertEquals(int(package_count), count)
         finally:
             f.close()
+
+    def findPrimary(self, path):
+        for filename in os.listdir(path):
+            if filename.endswith('primary.xml.gz'):
+                return os.path.join(path, filename)
+
+        return os.path.join(path, 'primary.xml.gz')
+
 
 
 if __name__ == '__main__':
