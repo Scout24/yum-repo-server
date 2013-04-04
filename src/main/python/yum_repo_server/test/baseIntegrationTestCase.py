@@ -137,7 +137,7 @@ class BaseIntegrationTestCase(LiveServerTestCase):
         repository_path = RepoConfigService().getStaticRepoDir(repository)
         path_to_arch = os.path.join(repository_path, architecture)
 
-        if !os.path.exists(path_to_arch):
+        if not os.path.exists(path_to_arch):
             return False
 
         for file_in_dir in os.listdir(path_to_arch):
