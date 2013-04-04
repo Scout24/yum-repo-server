@@ -19,8 +19,7 @@ class Constants:
     TEST_SCHEDULER_YAML = 'src/test/resources/metadata-generation.yaml'
 
     GENERATE_REPO_DATA_POSTFIX = '/repodata'
-    PRIMARY_XML = '/primary.xml.gz'
-    
+
     #api message constants
     API_MSG_REGEX_MISMATCH = "The provided name is invalid. It must match this regular expression : ^[a-zA-Z0-9][a-zA-Z0-9_\-\.]*$"
     API_MSG_NO_POSTDATA = "POST data missing"
