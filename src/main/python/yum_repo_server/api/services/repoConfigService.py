@@ -118,7 +118,6 @@ class RepoConfigService(object):
                 static_destination = destination_relative_to_repodir[:-1]
             else:
                 static_destination = destination_relative_to_repodir
-            destination = static_destination
         else:
             destination = config.get_repo_dir() + '/' + destination_relative_to_repodir
             destination = self.removeTrailingSlashIfPresent(destination)
@@ -131,7 +130,7 @@ class RepoConfigService(object):
             else:#destination is static -> no need to check for repo.yaml just take destination as is
                 static_destination = '/' + destination_relative_to_repodir
 
-        self._mongo_updater.create_virtual_repo(virtual_reponame, destination)
+        self._mongo_updater.create_virtual_repo(virtual_reponame, destination_relative_to_repodir)
 
         self.create_virtual_repo_skeleton(virtual_reponame)
         return self.writeConfig(virtual_reponame, static_destination)
