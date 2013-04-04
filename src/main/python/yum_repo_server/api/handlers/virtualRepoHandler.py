@@ -5,6 +5,7 @@ import os
 import shutil
 import re
 from django.http import HttpResponseRedirect
+from yum_repo_server.api.services.mongo import MongoUpdater
 from yum_repo_server.static import serve
 from yum_repo_server.api  import config
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
@@ -14,6 +15,7 @@ class VirtualRepoHandler(BaseHandler):
 
     repoConfigService = RepoConfigService()
     audit = RepoAuditService()
+    _mongo_updater = MongoUpdater()
 
     def read(self, request, reponame, rpm = '/'):
         virtual_reponame = reponame
@@ -44,7 +46,9 @@ class VirtualRepoHandler(BaseHandler):
             resp =  rc.NOT_FOUND
             resp.content = 'Virtual Repository does not exists!'
             return resp
-        
+
+        self._mongo_updater.delete_virtual_repo(reponame)
+
         self.audit.log_action("deleted virtual repository %s"%(reponame),request)
         shutil.rmtree(repo_path)
         return rc.DELETED
