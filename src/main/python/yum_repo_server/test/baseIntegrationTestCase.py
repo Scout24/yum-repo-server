@@ -135,7 +135,14 @@ class BaseIntegrationTestCase(LiveServerTestCase):
 
     def _repository_contains(self, architecture, file_name, repository):
         repository_path = RepoConfigService().getStaticRepoDir(repository)
-        path_to_file = os.path.join(repository_path, architecture, file_name)
-        repository_contains_file = os.path.exists(path_to_file)
-        return repository_contains_file
+        path_to_arch = os.path.join(repository_path, architecture)
+
+        if !os.path.exists(path_to_arch):
+            return False
+
+        for file_in_dir in os.listdir(path_to_arch):
+            if file_in_dir.endswith(file_name):
+                return True
+
+        return False
 
