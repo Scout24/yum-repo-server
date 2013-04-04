@@ -102,13 +102,26 @@ class MongoUpdater():
 
     def generate_meta_data(self, reponame):
         if self._enabled:
-            response = self._request_response('POST', self._create_repo_url(reponame, 'repodata'), self._create_headers())
+            response = self._request_response('POST', self._create_repo_url(reponame, 'repodata'),
+                                              self._create_headers())
 
             self.log.info("Propagated generate meta data request for repository %s and got response %d" % (
                 reponame, response.status))
 
             if response.status != 201:
                 raise Exception("Could not propagate command 'generatemetadata'")
+
+    def delete_virtual_repo(self, reponame):
+        if self._enabled:
+            response = self._request_response('DELETE', self._create_repo_url('virtual/' + reponame),
+                                              self._create_headers())
+
+            self.log.info("Propagate delete virtual repo %s and got response %d",
+                          reponame, response.status)
+
+            if response.status != 204:
+                raise Exception("Could not propagate command 'delete virtual repo'. Got reponse code %d with message: %s",
+                                response.status, response.read())
 
     def _create_repo_url(self, reponame, action=''):
         return '/'.join([self._prefix, reponame, action])
