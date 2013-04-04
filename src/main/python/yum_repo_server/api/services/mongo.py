@@ -113,7 +113,7 @@ class MongoUpdater():
 
     def delete_virtual_repo(self, reponame):
         if self._enabled:
-            response = self._request_response('DELETE', self._create_repo_url('virtual/' + reponame),
+            response = self._request_response('DELETE', self._create_repo_url('virtual', reponame),
                                               self._create_headers())
 
             self.log.info("Propagate delete virtual repo %s and got response %d",
@@ -121,6 +121,22 @@ class MongoUpdater():
 
             if response.status != 204:
                 raise Exception("Could not propagate command 'delete virtual repo'. Got reponse code %d with message: %s",
+                                response.status, response.read())
+
+    def create_virtual_repo(self, virtual_reponame, destination):
+        if self._enabled:
+            headers = self._create_headers({'Content-Type': 'application/x-www-form-urlencoded'})
+            postdata = 'name=%s&destination=%s' % (virtual_reponame, destination)
+            httpServ = httplib.HTTPConnection(self._host)
+            httpServ.connect()
+            httpServ.request('POST', self._create_repo_url('virtual'), postdata, headers)
+            response = httpServ.getresponse()
+            httpServ.close()
+
+            self.log.info("Propagated create virtual repository %s linked to %s and got response %d" % (virtual_reponame, destination, response.status))
+
+            if response.status != 201 and response.status != 404:
+                raise Exception("Could not propagate command 'create virtual repo'. Got reponse code %d with message: %s",
                                 response.status, response.read())
 
     def _create_repo_url(self, reponame, action=''):
