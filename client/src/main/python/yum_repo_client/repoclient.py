@@ -11,6 +11,8 @@ import yaml
 import re
 import urllib
 
+from optparse import OptionParser
+
 class RepoException(Exception):
     def __init__(self, value):
         self.value = value
@@ -192,11 +194,39 @@ class CommandLineClient(object):
 
 
     def __init__(self, arguments):
-        self.arguments = arguments
-        
-        self.options = CommandLineClientOptionsExtractor()
-        self.options.extract_and_remove_options_from_arguments(self.arguments)
-        
+        usage = """
+        %prog [options] <command> arg1 ...
+
+Commands:
+    create <reponame>  : Creates a new empty repository on the server
+    deleterpm <reponame> <arch1>/<rpm1> ... <archN>/<rpmN> : Deletes rpms from the server
+    deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
+    deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
+    generatemetadata <reponame> : Generates Yum Metadata for this repository
+    linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
+    linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
+    propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
+    propagaterepo <source_repository> <destination_repository> : Propagates all packages in source_repository to destination_repository
+    querystatic  [-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
+    queryvirtual [-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories
+    redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
+    taglist <repo> : Lists tags for <repo>
+    tag <repo> <tag> : Tags a repo with <tag>
+    untag <repo> <tag> : Removes a <tag> from the repo
+    uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
+
+    """
+
+        self.defaultConfig = DefaultConfigLoader()
+
+        self.parser = OptionParser(usage=usage)
+        self.parser.add_option('-s', '--hostname', default=self.defaultConfig.hostname ,help='hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml')
+        self.parser.add_option('-p', '--port', type='int', default=self.defaultConfig.port ,help='port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml')
+        self.parser.add_option('-u', '--username', help='username to use basic authentication. You will be prompted for the password.')
+        self.parser.add_option('-m', '--message', help='adds a justification to your request. It will be visible in the audit.')
+
+        (self.options, self.arguments) = self.parser.parse_args(arguments)
+
         self.httpClient = HttpClient(hostname=self.options.hostname, port=self.options.port,message=self.options.message)
         self.initOperations()
 
@@ -207,7 +237,7 @@ class CommandLineClient(object):
 
         operation = self.arguments[1]
         if not operation in self.operations:
-            print "ERROR: operation " + operation + " not found."
+            print "ERROR: Command " + operation + " not found."
             return self.showHelp()
 
         if self.options.username is not None:
@@ -471,32 +501,7 @@ class CommandLineClient(object):
             return params
 
     def showHelp(self):
-        print """
-    Yum Repo Server Client Command Line Tool
-    
-    Options:
-        create <reponame>  : Creates a new empty repository on the server
-        deleterpm <reponame> <arch1>/<rpm1> ... <archN>/<rpmN> : Deletes rpms from the server
-        deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
-        deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
-        generatemetadata <reponame> : Generates Yum Metadata for this repository
-        linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
-        linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
-        propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
-        propagaterepo <source_repository> <destination_repository> : Propagates all packages in source_repository to destination_repository
-        querystatic  [-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
-        queryvirtual [-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories
-        redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
-        taglist <repo> : Lists tags for <repo>
-        tag <repo> <tag> : Tags a repo with <tag>
-        untag <repo> <tag> : Removes a <tag> from the repo
-        uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
-
-        --hostname=<hostname> : hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml 
-        --port=<port> : port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml
-        --username=<username> : username to use basic authentication. You will be prompted for the password.
-        --message=<message> : adds a justification to your request. It will be visible in the audit.
-        """
+        self.parser.print_help()
         return 1
 
     def initOperations(self):
@@ -538,7 +543,7 @@ class CommandLineClient(object):
 
 class OptionParsingException(Exception): pass
 
-class CommandLineClientOptionsExtractor(object):
+class DefaultConfigLoader(object):
     '''
         Extracts known options (properties of this class) and removes them from the
         given argument list. Options are marked through two hyphen at the beginning
@@ -559,71 +564,9 @@ class CommandLineClientOptionsExtractor(object):
             finally:
                 f.close()
     
-    username = None
     hostname = None
     port = None
-    message = None
-    
-    def _set_hostname(self, hostname):
-        self.hostname = hostname
 
-    def _set_port(self, port):
-        try:
-            self.port = int(port)
-        except ValueError:
-            raise OptionParsingException('Could not cast %s to an int.' % port)
-        
-    def _set_username(self, username):
-        self.username = username
-
-    def _set_message(self, message):
-        self.message = message
-    
-    _options = {
-        'hostname' : _set_hostname,
-        'port' : _set_port,
-        'username' : _set_username,
-        'message' : _set_message,
-    }
-
-    def extract_and_remove_options_from_arguments(self, arguments):
-        '''
-            Extracts known options (properties of this class) and removes them from the
-            given argument list. Options are marked through two hyphen at the beginning
-            of the argument.
-        '''
-        originalArgs = arguments[:]
-        for argument in originalArgs:
-            if argument.startswith('--'):
-                self._set_known_option_and_remove_it_from_argument_list(argument, arguments)
-    
-
-
-
-    def _set_known_param_value_and_remove_it_from_argument_list(self, paramName, paramValue, argument_list):
-        self._params[paramName]=paramValue
-        argument_list.remove(paramName)
-        argument_list.remove(paramValue)
-
-
-    def _set_known_option_and_remove_it_from_argument_list(self, possible_option, argument_list):
-        '''
-            Sets and removes only known options. The other options will be ignored.
-        '''
-        argumentKey, argumentValue = self._split_argument(possible_option[2:])
-        
-        for optionKey in self._options.keys():
-            if optionKey == argumentKey:
-                self._options.get(optionKey)(self, argumentValue)
-                argument_list.remove(possible_option)
-        
-                        
-    def _split_argument(self, argument):
-        argumentParts = argument.split('=', 1)
-        if len(argumentParts) < 2:
-            raise OptionParsingException('Missing equality sign and value for %s' % argumentParts)
-        
-        return argumentParts[0], argumentParts[1]
 
 def mainMethod():
     exitCode = CommandLineClient(sys.argv).execute()
