@@ -1,11 +1,11 @@
 import httplib
 
-from yum_repo_client.repoclient import RepoException
 from yum_repo_server.test import Constants, unique_repo_name
 from yum_repo_server.test.baseIntegrationTestCase import BaseIntegrationTestCase
-from yum_repo_client.repoclient import CommandLineClient
+from yum_repo_client.commandline import CommandLineClient
 import sys
 import os
+
 
 class TestRepoClient(BaseIntegrationTestCase):
     
