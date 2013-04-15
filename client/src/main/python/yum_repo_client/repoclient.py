@@ -340,6 +340,7 @@ class QueryStaticReposCommand(BasicCommand):
 
     def doRun(self, args):
         response = self.httpClient.queryStatic(self.filterDefaults(args))
+        print response.read()
 
 
 class QueryVirtualReposCommand(BasicCommand):
@@ -354,6 +355,7 @@ class QueryVirtualReposCommand(BasicCommand):
 
     def doRun(self, args):
         response = self.httpClient.queryVirtual(self.filterDefaults(args))
+        print response.read()
 
 
 class RedirectToExternalCommand(BasicCommand):
