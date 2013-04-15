@@ -450,7 +450,7 @@ class CommandLineClient(object):
             self._add_default_arguments(subparser)
             subparser.set_defaults(func=command.run)
 
-        self.arguments = self.parser.parse_args()
+        self.arguments = self.parser.parse_args(arguments[1:])
 
     def execute(self):
         if self.arguments.hostname is None:
