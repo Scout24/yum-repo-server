@@ -11,6 +11,7 @@ from yum_repo_client.repoclient import HttpClient
 from yum_repo_server.test.integrationTestHelper import IntegrationTestHelper
 from yum_repo_server.test import unique_repo_name
 
+
 class TestRemoteServer(unittest.TestCase):
     
     HOST_NAME = os.environ['TESTSERVER_NAME']
@@ -31,7 +32,8 @@ class TestRemoteServer(unittest.TestCase):
         self.assertTrue(rpm_url_http_code == httplib.OK or rpm_url_http_code == httplib.FOUND)
 
         repoclient.generateMetadata(repo_name)
-        self.assertEquals(httplib.OK, helper.do_http_get('/repo/%s/repodata/repomd.xml' % repo_name).status)
+        rpm_url_http_code = helper.do_http_get('/repo/%s/repodata/repomd.xml' % repo_name).status
+        self.assertTrue(rpm_url_http_code == httplib.OK or rpm_url_http_code == httplib.FOUND)
 
 if __name__ == '__main__':
     unittest.main()
