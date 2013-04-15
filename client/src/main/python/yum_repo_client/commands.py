@@ -1,7 +1,7 @@
 import os
 import re
 from yum_repo_client.basiccommand import BasicCommand
-from yum_repo_client.completer import StaticRepoCompleter, VirtualRepoCompleter, RepoTagCompleter
+from yum_repo_client.completer import StaticRepoCompleter, VirtualRepoCompleter, RepoTagCompleter, PathCompleter
 
 
 class CreateStaticRepoCommand(BasicCommand):
@@ -21,7 +21,7 @@ class DeleteRpmCommand(BasicCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('reponame', help='name of the static repository').completer = StaticRepoCompleter()
-        parser.add_argument('path', nargs='+', help='path to a rpm in the following form: <arch>/<filename>')
+        parser.add_argument('path', nargs='+', help='path to a rpm in the following form: <arch>/<filename>').completer = PathCompleter()
 
     def doRun(self, args):
         for rpm_file_name in args.path:
@@ -92,7 +92,7 @@ class PropagateRpmCommand(BasicCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('source_repo', help='name of the source repository').completer = StaticRepoCompleter()
-        parser.add_argument('path', help='path of the rpm inside the repository')
+        parser.add_argument('path', help='path of the rpm inside the repository').completer = PathCompleter()
         parser.add_argument('target_repo', help='name of the target repository').completer = StaticRepoCompleter()
 
     def doRun(self, args):
