@@ -11,7 +11,8 @@ import yaml
 import re
 import urllib
 
-from optparse import OptionParser
+from argparse import ArgumentParser
+
 
 class RepoException(Exception):
     def __init__(self, value):
@@ -36,13 +37,13 @@ class HttpClient(object):
     def queryStatic(self,params):
         urlparams = urllib.urlencode(params)
         response = self.doHttpGet('/repo.txt?%s' % urlparams)
-        self.assertResponse(response,httplib.OK)
+        self.assertResponse(response, httplib.OK)
         return response
 
     def queryVirtual(self,params):
         urlparams = urllib.urlencode(params)
         response = self.doHttpGet('/repo/virtual.txt?'+urlparams)
-        self.assertResponse(response,httplib.OK)
+        self.assertResponse(response, httplib.OK)
         return response
 
     def createStaticRepo(self, reponame):
@@ -187,368 +188,309 @@ class HttpClient(object):
                     "content": response.read()})
 
 
+class BasicCommand(object):
+
+    def run(self, args):
+        self.httpClient = HttpClient(hostname=args.hostname, port=args.port, message=args.message)
+        if args.username is not None:
+            self.httpClient.username = args.username
+            self.httpClient.password = self._readPassword()
+        return self.doRun(args)
+
+    def filterDefaults(self, args):
+        given_params = vars(args)
+        params = {}
+        for key in given_params:
+            if key not in ['username', 'hostname', 'port'] and given_params[key] is not None:
+                params[key] = str(given_params[key])
+
+        return params
+
+    def _readPassword(self):
+        return getpass.getpass()
+
+
+class CreateStaticRepoCommand(BasicCommand):
+    name = 'create'
+    help = '<reponame>  : Creates a new empty repository on the server'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+
+    def doRun(self, args):
+        self.httpClient.createStaticRepo(args.reponame)
+
+
+class DeleteRpmCommand(BasicCommand):
+    name = 'deleterpm'
+    help = '<reponame> <arch1>/<rpm1> ... <archN>/<rpmN> : Deletes rpms from the server'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+        parser.add_argument('path', nargs='+', help='path to a rpm in the following form: <arch>/<filename>')
+
+    def doRun(self, args):
+        for rpm_file_name in args.path:
+            self.httpClient.deleteSingleRpm(args.reponame, rpm_file_name)
+            print '\t' + rpm_file_name
+
+
+class DeleteStaticRepoCommand(BasicCommand):
+    name = 'deletestatic'
+    help = '<static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+
+    def doRun(self, args):
+        self.httpClient.delete_static_repo(args.reponame)
+
+
+class DeleteVirtualRepoCommand(BasicCommand):
+    name = 'deletevirtual'
+    help = '<virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the virtual repository')
+
+    def doRun(self, args):
+        self.httpClient.deleteVirtualRepo(args.reponame)
+
+
+class GenerateMetadataCommand(BasicCommand):
+    name = 'generatemetadata'
+    help = '<reponame> : Generates Yum Metadata for this repository'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+
+    def doRun(self, args):
+        self.httpClient.generateMetadata(args.reponame)
+
+
+class LinkToStaticCommand(BasicCommand):
+    name = 'linktostatic'
+    help = '<virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository'
+
+    def add_arguments(self, parser):
+        parser.add_argument('virtual_reponame', help='name of the virtual repository to create')
+        parser.add_argument('static_reponame', help='name of the static repository to link to')
+
+    def doRun(self, args):
+        self.httpClient.createLinkToStaticRepo(args.virtual_reponame, args.static_reponame)
+
+
+class LinkToVirtualCommand(BasicCommand):
+    name = 'linktovirtual'
+    help = '<virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository'
+
+    def add_arguments(self, parser):
+        parser.add_argument('virtual_reponame', help='name of the virtual repository to create')
+        parser.add_argument('target_virtual_reponame', help='name of the virtual repository to link to')
+
+    def doRun(self, args):
+        self.httpClient.createLinkToVirtualRepo(args.virtual_reponame, args.target_virtual_reponame)
+
+
+class PropagateRpmCommand(BasicCommand):
+    name = 'propagate'
+    help = '<repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2'
+
+    def add_arguments(self, parser):
+        parser.add_argument('source_repo', help='name of the source repository')
+        parser.add_argument('path', help='path of the rpm inside the repository')
+        parser.add_argument('target_repo', help='name of the target repository')
+
+    def doRun(self, args):
+        pattern = re.compile('[\w]+/[\w]+')
+        match = pattern.match(args.path)
+        if match is None:
+            print "ERROR : Your input, '" + args.path + """' did not match the required pattern.
+        It should look like this : <rpm_arch>/<rpm_name>"""
+            return 1
+
+        response = self.httpClient.propagate_rpm(args.source_repo, args.path, args.target_repo)
+        print "INFO: move to location: " + response.getheader("Location")
+
+
+class PropagateRepoCommand(BasicCommand):
+    name = 'propagaterepo'
+    help = '<source_repository> <destination_repository> : Propagates all packages in source_repository to destination_repository'
+
+    def add_arguments(self, parser):
+        parser.add_argument('source_repo', help='name of the source repository')
+        parser.add_argument('dest_repo', help='name of the destination repository')
+
+    def doRun(self, args):
+        print "INFO: propagating repository {0} to {1}".format(args.source_repo, args.dest_repo)
+        self.httpClient.propagate_repo(args.source_repo, args.dest_repo)
+        print "INFO: finished propagation."
+
+
+class QueryStaticReposCommand(BasicCommand):
+    name = 'querystatic'
+    help = '[-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories'
+
+    def add_arguments(self, parser):
+        parser.add_argument('-name', help='regular expression to filter repository names')
+        parser.add_argument('-tag', help='tags the repositories should have')
+        parser.add_argument('-notag', help='tags the repositories should not have')
+        parser.add_argument('-newer', type=int, help='maximal age of the repository in days')
+        parser.add_argument('-older', type=int, help='minimal age of the repository in days')
+
+    def doRun(self, args):
+        response = self.httpClient.queryStatic(self.filterDefaults(args))
+
+
+class QueryVirtualReposCommand(BasicCommand):
+    name = 'queryvirtual'
+    help = '[-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories'
+
+    def add_arguments(self, parser):
+        parser.add_argument('-name', help='regular expression to filter repository names')
+        parser.add_argument('-newer', type=int, help='maximal age of the repository in days')
+        parser.add_argument('-older', type=int, help='minimal age of the repository in days')
+        parser.add_argument('-showDestination', help='whether to show target repositories')
+
+    def doRun(self, args):
+        response = self.httpClient.queryVirtual(self.filterDefaults(args))
+
+
+class RedirectToExternalCommand(BasicCommand):
+    name = 'redirectto'
+    help = '<virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository'
+
+    def add_arguments(self, parser):
+        parser.add_argument('virtual_reponame', help='name of the virtual repository to create')
+        parser.add_argument('redirect_url', help='url of the repository to link to')
+
+    def doRun(self, args):
+        self.httpClient.createVirtualRepo(args.virtual_reponame, args.redirect_url)
+
+
+class GetTagListCommand(BasicCommand):
+    name = 'taglist'
+    help = '<repo> : Lists tags for <repo>'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+
+    def doRun(self, args):
+        response = self.httpClient.tagList(args.reponame)
+        print response.read()
+
+
+class AddTagCommand(BasicCommand):
+    name = 'tag'
+    help = '<repo> <tag> : Tags a repo with <tag>'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+        parser.add_argument('tag', help='tag to set')
+
+    def doRun(self, args):
+        self.httpClient.tagRepo(args.reponame, args.tag)
+
+
+class DeleteTagCommand(BasicCommand):
+    name = 'untag'
+    help = '<repo> <tag> : Removes a <tag> from the repo'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+        parser.add_argument('tag', help='tag to set')
+
+    def doRun(self, args):
+        self.httpClient.untagRepo(args.reponame, args.tag)
+
+
+class UploadRpmCommand(BasicCommand):
+    name = 'uploadto'
+    help = '<reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server'
+
+    def add_arguments(self, parser):
+        parser.add_argument('reponame', help='name of the static repository')
+        parser.add_argument('path', nargs='+', help='local path to a rpm on disk')
+
+    def doRun(self, args):
+        error = False
+        for rpm_file_name in args.path:
+            if not os.path.exists(rpm_file_name):
+                print 'ERROR: %s not found' % rpm_file_name
+                error = True
+                continue
+            self.httpClient.uploadRpm(args.reponame, rpm_file_name)
+            print '\t'
+
+        if error:
+            return 1
+
+
 class CommandLineClient(object):
     operations = {}
     arguments = []
     options = {}
-
+    commands = [CreateStaticRepoCommand(), DeleteRpmCommand(), DeleteStaticRepoCommand(),
+                DeleteVirtualRepoCommand(), GenerateMetadataCommand(), LinkToStaticCommand(),
+                LinkToVirtualCommand(), PropagateRpmCommand(), PropagateRepoCommand(),
+                QueryStaticReposCommand(), QueryVirtualReposCommand(), RedirectToExternalCommand(),
+                GetTagListCommand(), AddTagCommand(), DeleteTagCommand(), UploadRpmCommand()]
 
     def __init__(self, arguments):
-        usage = """
-        %prog [options] <command> arg1 ...
-
-Commands:
-    create <reponame>  : Creates a new empty repository on the server
-    deleterpm <reponame> <arch1>/<rpm1> ... <archN>/<rpmN> : Deletes rpms from the server
-    deletestatic <static_reponame> : Deletes the static repository. Virtual Repositories will still point to this not existing repository.
-    deletevirtual <virtual_reponame> : Deletes the virtual repository, but leaves the static repository untouched
-    generatemetadata <reponame> : Generates Yum Metadata for this repository
-    linktostatic <virtual_reponame> <static_reponame> : Creates a virtual repository linking to a static repository
-    linktovirtual <virtual_reponame> <virtual_reponame> : Creates a virtual repository linking to another virtual repository
-    propagate <repo1> <arch>/<name> <repo2> : Propagates most recent matching rpm from repo1 to repo2
-    propagaterepo <source_repository> <destination_repository> : Propagates all packages in source_repository to destination_repository
-    querystatic  [-name <regex>] [-tag <tag1,tagN>] [-notag <tag1,tagN>] [-newer <days>] [-older <days>] : Query/filter static repositories
-    queryvirtual [-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories
-    redirectto <virtual_reponame> <redirect_url> : Creates a virtual repository redirecting to another external repository
-    taglist <repo> : Lists tags for <repo>
-    tag <repo> <tag> : Tags a repo with <tag>
-    untag <repo> <tag> : Removes a <tag> from the repo
-    uploadto <reponame> <rpm1> ... <rpmN> : Uploads rpms to a dedicated repository on the server
-
-    """
-
         self.defaultConfig = DefaultConfigLoader()
 
-        self.parser = OptionParser(usage=usage)
-        self.parser.add_option('-s', '--hostname', default=self.defaultConfig.hostname ,help='hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml')
-        self.parser.add_option('-p', '--port', type='int', default=self.defaultConfig.port ,help='port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml')
-        self.parser.add_option('-u', '--username', help='username to use basic authentication. You will be prompted for the password.')
-        self.parser.add_option('-m', '--message', help='adds a justification to your request. It will be visible in the audit.')
+        self.parser = ArgumentParser()
+        self._add_default_arguments(self.parser)
 
-        (self.options, self.arguments) = self.parser.parse_args(arguments)
+        subparsers = self.parser.add_subparsers(title='Commands', help='commands')
 
-        self.httpClient = HttpClient(hostname=self.options.hostname, port=self.options.port,message=self.options.message)
-        self.initOperations()
+        for command in self.commands:
+            subparser = subparsers.add_parser(command.name, help=command.help)
+            command.add_arguments(subparser)
+            self._add_default_arguments(subparser)
+            subparser.set_defaults(func=command.run)
 
+        self.arguments = self.parser.parse_args()
 
     def execute(self):
-        if len(self.arguments) < 2:
-            return self.showHelp()
-
-        operation = self.arguments[1]
-        if not operation in self.operations:
-            print "ERROR: Command " + operation + " not found."
-            return self.showHelp()
-
-        if self.options.username is not None:
-            self._readPassword()
-        if self.options.hostname is None:
+        if self.arguments.hostname is None:
             print "ERROR: you must specify a hostname using --hostname=<hostname>"
             return self.showHelp()
-        if self.options.port is None:
+        if self.arguments.port is None:
             print "ERROR: you must specify a server port using --port=<port>"
             return self.showHelp()
 
-        operationMethod = self.operations[operation]
-        return operationMethod(self)
-
-    def queryStatic(self):
-            try:
-                params = self._get_params(self.arguments)
-                response = self.httpClient.queryStatic(params)
-                print response.read()
+        try:
+            res = self.arguments.func(self.arguments)
+            if res:
+                return res
+            else:
                 return 0
-            except Exception, e:
-                print e
-                return 1
-
-    def queryVirtual(self):
-            try:
-                params = self._get_params(self.arguments)
-                response = self.httpClient.queryVirtual(params)
-                print response.read()
-                return 0
-            except Exception, e:
-                print e
-                return 1
-
-    def propagateRpm(self):
-        if len(self.arguments) < 5:
-            print "ERROR: Please specify source, rpm and target repository."
-            return self.showHelp()
-        fromrepo=self.arguments[2]
-        rpm_arch_slash_name=self.arguments[3]
-        torepo=self.arguments[4]
-        
-        #quick sanity check
-        pattern=re.compile('[\w]+/[\w]+')
-        match=pattern.match(rpm_arch_slash_name)
-        if match is None:
-            print "ERROR : Your input, '"+rpm_arch_slash_name+"""' did not match the required pattern.
-        It should look like this : <rpm_arch>/<rpm_name>"""
-            return 1
-
-        try:
-            response = self.httpClient.propagate_rpm(fromrepo, rpm_arch_slash_name, torepo)
-            print "INFO: move to location: " + response.getheader("Location")
-            return 0
         except Exception, e:
             print e
             return 1
-
-    def propagateRepo(self):
-        if len(self.arguments) < 4:
-            print "ERROR: Please specify source repository and destination repository"
-            return self.showHelp()
-
-        source_repository = self.arguments[2]
-        destination_repository = self.arguments[3]
-
-        try:
-            print "INFO: propagating repository {0} to {1}".format(source_repository, destination_repository)
-            self.httpClient.propagate_repo(source_repository, destination_repository)
-            print "INFO: finished propagation."
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def createStaticRepo(self):
-        if len(self.arguments) < 3:
-            print "ERROR: Please specify a reponame."
-            return self.showHelp()
-
-        reponame = self.arguments[2]
-        try:
-            self.httpClient.createStaticRepo(reponame)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def uploadRpms(self):
-        if len(self.arguments) < 4:
-            print "ERROR: Please specify rpm file(s) to upload."
-            return self.showHelp()
-
-        reponame = self.arguments[2]
-        error = False
-        try:
-            for rpm_file_name in self.arguments[3:]:
-                if not os.path.exists(rpm_file_name):
-                    print 'ERROR: %s not found' % rpm_file_name
-                    error = True
-                    continue
-                self.httpClient.uploadRpm(reponame, rpm_file_name)
-                print '\t'
-
-            if error:
-                return 1
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def deleteRpms(self):
-        if len(self.arguments) < 4:
-            print "ERROR: Please specify rpm file to remove."
-            return self.showHelp()
-
-        reponame = self.arguments[2]
-        try:
-            for rpm_file_name in self.arguments[3:]:
-                self.httpClient.deleteSingleRpm(reponame, rpm_file_name)
-                print '\t' + rpm_file_name
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def generateMetadata(self):
-        if len(self.arguments) < 3:
-            print "ERROR: Please specify a reponame."
-            return self.showHelp()
-
-        reponame = self.arguments[2]
-        try:
-            self.httpClient.generateMetadata(reponame)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-        
-    def createLinkToStatic(self):
-        if len(self.arguments) < 4:
-            print "ERROR: Please specify a virtual repository name and a static repository name."
-            return self.showHelp()
-        virtual_reponame = self.arguments[2]        
-        static_reponame = self.arguments[3]
-        try:
-            self.httpClient.createLinkToStaticRepo(virtual_reponame, static_reponame)
-            return 0
-        except Exception, e:
-            print e
-            return 1     
-        
-    def createLinkToVirtual(self):
-        if len(self.arguments) < 4:
-            print "ERROR: Please specify two virtual repository names."
-            return self.showHelp()
-        virtual_reponame = self.arguments[2]        
-        destination_virtual_reponame = self.arguments[3]
-        try:
-            self.httpClient.createLinkToVirtualRepo(virtual_reponame, destination_virtual_reponame)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-        
-    def tagList(self):
-        if len(self.arguments)<3:
-            print "ERROR : Please specify a repository name"
-            return self.showHelp()
-        reponame=self.arguments[2]
-        try:
-            response = self.httpClient.tagList(reponame)
-            print response.read()
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def untag(self):
-        if len(self.arguments)<4:
-            print "ERROR: Please specify a repository name and a tag"
-            return self.showHelp()
-        reponame=self.arguments[2]
-        tag=self.arguments[3]
-
-        try:
-            self.httpClient.untagRepo(reponame,tag)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def tag(self):
-        if len(self.arguments)<4:
-            print "ERROR: Please specify a repository name and a tag"
-            return self.showHelp()
-        reponame=self.arguments[2]
-        tag=self.arguments[3]
-
-        try:
-            self.httpClient.tagRepo(reponame,tag)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-        
-    def deleteStaticRepo(self):
-        if len(self.arguments) < 3:
-            print "ERROR: Please specify a repository name"
-            return self.showHelp()
-        
-        reponame = self.arguments[2]
-        
-        try:
-            self.httpClient.delete_static_repo(reponame)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    def deleteVirtualRepo(self):
-        if len(self.arguments) < 3:
-            print "ERROR: Please specify a repository name"
-            return self.showHelp()
-
-        reponame = self.arguments[2]
-        try:
-            self.httpClient.deleteVirtualRepo(reponame)
-            return 0
-        except Exception, e:
-            print e
-            return 1    
-
-    def redirectTo(self):
-        if len(self.arguments) < 4:
-            print "ERROR Please provide a virtual repository name and redirect target."
-            return self.showHelp()
-        
-        virtual_reponame = self.arguments[2]        
-        destination = self.arguments[3]
-        try:
-            self.httpClient.createVirtualRepo(virtual_reponame, destination)
-            return 0
-        except Exception, e:
-            print e
-            return 1
-
-    #parses -param style parameters from a string array and returns a dictionnary with param:value. The - from the parameter is stripped.
-    def _get_params(self, arguments):
-            params={}
-            upperBound=len(arguments)
-            for i in range(upperBound):
-              argument=arguments[i]      
-              if argument.startswith('-') and not argument.startswith('--'):
-                if i>=len(arguments)-1: # missing parameter value
-                    raise ValueError("PARSING ERROR! Expected a value for parameter '"+arguments[i]+"'")
-                paramName=arguments[i]
-                paramName=paramName[1:] # strip the - from the parameter
-                paramValue=arguments[i+1]
-                params[paramName]=paramValue
-            return params
 
     def showHelp(self):
         self.parser.print_help()
         return 1
-
-    def initOperations(self):
-        self.operations = {
-                'create': CommandLineClient.createStaticRepo, 
-                'uploadto': CommandLineClient.uploadRpms,
-                'generatemetadata' : CommandLineClient.generateMetadata,
-                'linktostatic' : CommandLineClient.createLinkToStatic,
-                'linktovirtual' : CommandLineClient.createLinkToVirtual,
-                'deletevirtual' : CommandLineClient.deleteVirtualRepo,
-                'deletestatic' : CommandLineClient.deleteStaticRepo,
-                'deleterpm' : CommandLineClient.deleteRpms,
-                'propagate' : CommandLineClient.propagateRpm,
-                'propagaterepo' : CommandLineClient.propagateRepo,
-                'redirectto' : CommandLineClient.redirectTo,
-                'tag' : CommandLineClient.tag,
-                'untag' : CommandLineClient.untag,
-                'taglist' : CommandLineClient.tagList,
-                'querystatic' : CommandLineClient.queryStatic,
-                'queryvirtual' : CommandLineClient.queryVirtual,
-        }
-
-
-    def assertResponse(self, response, expectedStatus):
-        if response.status != expectedStatus:
-            print "ERROR: Got unexpected status code %(status)d . Response: %(content)s" % {"status": response.status,
-                                                                                            "content": response.read()}
-            return 1
-        else:
-            print "\n" + response.read() + "\n"
-            return 0
         
-    def _readPassword(self):
-        password = getpass.getpass()
-        self.httpClient.username = self.options.username
-        self.httpClient.password = password
-
+    def _add_default_arguments(self, parser):
+        group = parser.add_argument_group('global settings')
+        group.add_argument('-s', '--hostname', default=self.defaultConfig.hostname ,help='hostname of the yum repo server. Default: set by /etc/yum-repo-client.yaml')
+        group.add_argument('-p', '--port', type=int, default=self.defaultConfig.port ,help='port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml')
+        group.add_argument('-u', '--username', help='username to use basic authentication. You will be prompted for the password.')
+        group.add_argument('-m', '--message', help='adds a justification to your request. It will be visible in the audit.')
 
 
 class OptionParsingException(Exception): pass
 
+
 class DefaultConfigLoader(object):
-    '''
+    """
         Extracts known options (properties of this class) and removes them from the
         given argument list. Options are marked through two hyphen at the beginning
         of the argument.
-    '''
+    """
     def __init__(self):
         if 'YUM_REPO_CLIENT_CONFIG' in os.environ:
             config_filename = os.environ['YUM_REPO_CLIENT_CONFIG']
@@ -574,4 +516,4 @@ def mainMethod():
 
 if __name__ == '__main__':
     mainMethod()
-    
+
