@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from yum_repo_client.repoclient import DefaultConfigLoader
+from yum_repo_client.commandline import DefaultConfigLoader
 
 
 class TestDefaultConfigLoader(unittest.TestCase):
