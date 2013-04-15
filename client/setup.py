@@ -73,7 +73,7 @@ setup(
     data_files=[('/etc/bash_completion.d', [find_in_parent('src/main/bash-completion/yum-repo-client.bash')])],
     entry_points={
         'console_scripts': [
-            'repoclient = yum_repo_client.repoclient:mainMethod',
+            'repoclient = yum_repo_client.commandline:mainMethod',
         ],
     },
 )
