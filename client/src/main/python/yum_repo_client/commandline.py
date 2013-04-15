@@ -6,6 +6,7 @@ import argcomplete
 import yaml
 from argparse import ArgumentParser
 from yum_repo_client.commands import *
+from yum_repo_client.completer import UsernameCompleter
 
 
 class CommandLineClient(object):
@@ -64,7 +65,7 @@ class CommandLineClient(object):
         group.add_argument('-p', '--port', type=int, default=self.defaultConfig.port,
                            help='port of the yum repo server. Default: 80 unless set by /etc/yum-repo-client.yaml')
         group.add_argument('-u', '--username',
-                           help='username to use basic authentication. You will be prompted for the password.')
+                           help='username to use basic authentication. You will be prompted for the password.').completer = UsernameCompleter()
         group.add_argument('-m', '--message',
                            help='adds a justification to your request. It will be visible in the audit.')
 

@@ -1,3 +1,4 @@
+import getpass
 from yum_repo_client.repoclient import HttpClient
 
 
@@ -26,6 +27,16 @@ class RepoTagCompleter(object):
         response = self.httpClient.tagList(parsed_args.reponame)
         tag_str = response.read()
         return (tag for tag in tag_str.splitlines() if tag.startswith(prefix))
+
+
+class UsernameCompleter(object):
+
+    def __call__(self, prefix, parsed_args, **kwargs):
+        user = getpass.getuser()
+        if user.startswith(prefix):
+            return (user, )
+        else:
+            return ()
 
 
 
