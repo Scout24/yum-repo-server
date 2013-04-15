@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 import os
 import sys
-from setuptools import setup
-import distutils
 import shutil
 from distutils.command.clean import clean
 
+from setuptools import setup
 
-commands={}
+
+commands = {}
 
 ''' 
     Need to do this, in order to use the TeamcityTestRunner without installing it first. 
@@ -16,60 +16,64 @@ commands={}
 '''
 if os.path.exists('src/main/python/teamcity_test_runner_extension'):
     sys.path.insert(0, 'src/main/python')
-    
+
     from teamcity_test_runner_extension.teamcityTestRunner import TeamcityTestRunnerCommand
+
     commands['test'] = TeamcityTestRunnerCommand
-    
+
+
 class completeClean(clean):
     def run(self):
         if os.path.exists(self.build_base):
             shutil.rmtree(self.build_base)
-            
+
         dist_dir = 'dist'
         if os.path.exists(dist_dir):
             shutil.rmtree(dist_dir)
-            
+
         egg_dir = 'src/main/python/yum_repo_client.egg-info'
         if os.path.exists(egg_dir):
             shutil.rmtree(egg_dir)
-        
-        
+
+
 commands['clean'] = completeClean
 
-def find_in_parent(path, max_depth = 6):
+
+def find_in_parent(path, max_depth=6):
     depth = 0
     p = path
     while not os.path.exists(p):
         if depth == max_depth:
             raise Exception("Could not find path %s in %s" % (path, os.curdir))
         p = '../' + p
-        
+
     return p
 
+
 setup(
-    name = "yum-repo-client",
-    version = "1.1",
-    author = "Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke",
-    author_email = "sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de",
-    description = ("The yum-repo-client is a command line interface for the yum repo server."),
-    license = "GNU GPL v3",
-    keywords = "yum repository createrepo staging api command line",
-    url = "https://github.com/is24-herold/yum-repo-server",
+    name="yum-repo-client",
+    version="1.1",
+    author="Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke",
+    author_email="sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de",
+    description=("The yum-repo-client is a command line interface for the yum repo server."),
+    license="GNU GPL v3",
+    keywords="yum repository createrepo staging api command line",
+    url="https://github.com/is24-herold/yum-repo-server",
     packages=['yum_repo_client'],
-    long_description = ("The yum-repo-client is a command line interface for the yum repo server."),
-    package_dir = {'' : 'src/main/python'},
-    classifiers = [
+    long_description=("The yum-repo-client is a command line interface for the yum repo server."),
+    package_dir={'': 'src/main/python'},
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Topic :: System :: Operating System",
         "Topic :: Software Development :: Build Tools",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     ],
-    test_suite = "yum_repo_client",
-    cmdclass = commands,
-    data_files = [('/etc/bash_completion.d', [find_in_parent('src/main/bash-completion/yum-repo-client.bash')])],
+    test_suite="yum_repo_client",
+    cmdclass=commands,
+    data_files=[('/etc/bash_completion.d', [find_in_parent('src/main/bash-completion/yum-repo-client.bash')])],
     entry_points={
         'console_scripts': [
-              'repoclient = yum_repo_client.repoclient:mainMethod',
+            'repoclient = yum_repo_client.repoclient:mainMethod',
         ],
     },
 )
