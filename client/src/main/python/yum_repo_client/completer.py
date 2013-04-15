@@ -52,7 +52,7 @@ class PathCompleter(object):
         archs = json.load(response)
 
         if not '/' in prefix:
-            archs = [item['name'] for item in archs['items'] if item['name'].startswith(prefix)]
+            archs = [item['name'] for item in archs['items'] if item['name'].startswith(prefix) and item['name'] != 'repodata']
         else:
             prefix_parts = prefix.split('/')
             archs = [prefix_parts[0]]
@@ -63,7 +63,7 @@ class PathCompleter(object):
             files = json.load(response)
             for item in files['items']:
                 path = arch + '/' + item['filename']
-                if path.startswith(prefix):
+                if path.endswith('.rpm') and path.startswith(prefix):
                     paths.append(path)
 
         return paths
