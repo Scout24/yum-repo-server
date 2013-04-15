@@ -91,5 +91,5 @@ setup(
     test_suite = "yum_repo_server.test.runtests.runtests",
     cmdclass={'clean' : completeClean, 'update_version_file' : UpdateVersionFile},
     install_requires=['Django>=1.3', 'django-piston', 'python-daemon', 'lockfile', 'stdeb', 'mockito', 'pycurl',
-                      'argcomplete']
+                      'argcomplete', 'simplejson']
 )

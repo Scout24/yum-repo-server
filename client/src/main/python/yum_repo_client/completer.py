@@ -1,4 +1,9 @@
 import getpass
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 from yum_repo_client.repoclient import HttpClient
 
 
@@ -39,4 +44,28 @@ class UsernameCompleter(object):
             return ()
 
 
+class PathCompleter(object):
+
+    def __call__(self, prefix, parsed_args, **kwargs):
+        self.httpClient = HttpClient(hostname=parsed_args.hostname, port=parsed_args.port)
+        response = self.httpClient.get_archs(parsed_args.reponame)
+        archs = json.load(response)
+
+        if not '/' in prefix:
+            archs = [item['name'] for item in archs['items'] if item['name'].startswith(prefix)]
+        else:
+            prefix_parts = prefix.split('/')
+            archs = [prefix_parts[0]]
+
+        paths = []
+        for arch in archs:
+            response = self.httpClient.get_files(parsed_args.reponame, arch)
+            files = json.load(response)
+            for item in files['items']:
+                path = arch + '/' + item['filename']
+                if path.startswith(prefix):
+                    paths.append(path)
+
+        return paths
+        #return ('noarch', 'items', str(archs['items']), )
 

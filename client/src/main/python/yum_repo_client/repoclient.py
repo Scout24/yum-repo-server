@@ -120,6 +120,16 @@ class HttpClient(object):
         self.assertResponse(response, httplib.CREATED)
         return response
 
+    def get_archs(self, reponame):
+        response = self.doHttpGet('/repo/' + reponame + '.json')
+        self.assertResponse(response, httplib.OK)
+        return response
+
+    def get_files(self, reponame, arch):
+        response = self.doHttpGet('/repo/' + reponame + '/' + arch + '.json')
+        self.assertResponse(response, httplib.OK)
+        return response
+
     def doHttpPost(self, extPath, postdata='', headers=None):
         if postdata and self.message:
             postdata += '&YRS_MESSAGE=' + str(self.message)
