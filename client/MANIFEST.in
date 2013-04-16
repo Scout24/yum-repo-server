@@ -1,0 +1,3 @@
+
+include src/main/bash-completion/yum-repo-client.bash
+prune src/main/python/yum_repo_client/test
