@@ -41,7 +41,7 @@ commands['clean'] = completeClean
 
 setup(
     name="yum-repo-client",
-    version="1.1",
+    version="1.2",
     author="Sebastian Herold, Kay Vogelgesang, Maximilien Riehl, Eric Ihrke",
     author_email="sebastian.herold@immobilienscout24.de, kay.vogelgesang@immobilienscout24.de, maximilien.riehl@immobilienscout24.de, eric.ihrke@immobilienscout24.de",
     description=("The yum-repo-client is a command line interface for the yum repo server."),
