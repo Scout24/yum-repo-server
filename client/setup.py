@@ -76,4 +76,5 @@ setup(
             'repoclient = yum_repo_client.commandline:mainMethod',
         ],
     },
+    install_requires=['pycurl', 'argcomplete', 'simplejson'],
 )
