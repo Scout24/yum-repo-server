@@ -9,7 +9,7 @@ from setuptools import setup
 
 commands = {}
 
-''' 
+'''
     Need to do this, in order to use the TeamcityTestRunner without installing it first. 
     Add the runner only conditionally, because we don't have it while packaging the repo_client
     as a rpm.
@@ -39,17 +39,6 @@ class completeClean(clean):
 commands['clean'] = completeClean
 
 
-def find_in_parent(path, max_depth=6):
-    depth = 0
-    p = path
-    while not os.path.exists(p):
-        if depth == max_depth:
-            raise Exception("Could not find path %s in %s" % (path, os.curdir))
-        p = '../' + p
-
-    return p
-
-
 setup(
     name="yum-repo-client",
     version="1.1",
@@ -70,7 +59,7 @@ setup(
     ],
     test_suite="yum_repo_client",
     cmdclass=commands,
-    data_files=[('/etc/bash_completion.d', [find_in_parent('src/main/bash-completion/yum-repo-client.bash')])],
+    data_files=[('/etc/bash_completion.d', ['src/main/bash-completion/yum-repo-client.bash'])],
     entry_points={
         'console_scripts': [
             'repoclient = yum_repo_client.commandline:mainMethod',
