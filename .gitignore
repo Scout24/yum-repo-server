@@ -8,6 +8,9 @@ target
 *.iml
 *~
 
+# ignoe virtualenv ve
+/ve
+
 # ignoring coverage data file
 .coverage
 
