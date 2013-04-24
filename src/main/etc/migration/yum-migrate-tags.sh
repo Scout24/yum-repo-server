@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 if [ ! -d $1 ] || [ -z $2 ]; then
 	echo "Usage:    yum-migrate-tags.sh REPOBASEDIR TARGETHOST [--dry]"
-	echo
 	echo "Example:  yum-migrate-tags.sh /data/repo/static/ new-yum.yourdomain.com --dry" 
 	echo ; exit 0
 fi
