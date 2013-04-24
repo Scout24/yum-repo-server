@@ -83,6 +83,7 @@ setup(
     ],
     data_files=[('/etc/init.d', [find_in_parent('src/main/etc/init.d/yum_repo_daemon')])] +
         [('/etc/httpd/conf.d', [find_in_parent('src/main/etc/httpd/conf.d/yum-repo-server_wsgi_bindung.conf')])] +
+        [('/opt/yum_repo_server/migration', ['src/main/etc/migration/yum-migrate-tags.sh'])] + 
         [('/opt/yum_repo_server', ['src/main/python/yum_repo_server/wsgi.py'])] +
         [('/opt/yum_repo_server/daemon', ['src/main/python/yum_repo_server/daemon/schedulerDaemon.py'])] +
         get_data_files_for('src/main/python/yum_repo_server/static', '/opt/yum_repo_server/static') +
