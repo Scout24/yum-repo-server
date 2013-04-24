@@ -139,12 +139,10 @@ class QueryStaticReposCommand(BasicCommand):
 
 class QueryVirtualReposCommand(BasicCommand):
     name = 'queryvirtual'
-    help_text = '[-name <regex>] [-newer <days>] [-older <days>] [-showDestination true] : Query/filter virtual repositories'
+    help_text = '[-name <regex>] [-showDestination true] : Query/filter virtual repositories'
 
     def add_arguments(self, parser):
         parser.add_argument('-name', help='regular expression to filter repository names')
-        parser.add_argument('-newer', type=int, help='maximal age of the repository in days')
-        parser.add_argument('-older', type=int, help='minimal age of the repository in days')
         parser.add_argument('-showDestination', help='whether to show target repositories')
 
     def doRun(self, args):
