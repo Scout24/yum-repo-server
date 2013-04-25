@@ -46,7 +46,7 @@ PyYAML
 ```bash
 virtualenv --system-site-packages ve  
 . ve/bin/activate  
-pip install django==1.3 django-piston nose python-daemon lockfile stdeb mockito
+pip install django==1.3 django-piston nose python-daemon lockfile stdeb mockito argcomplete
 ```
 
 * Build it : <code>python setup.py build</code>
