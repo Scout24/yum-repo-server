@@ -1,5 +1,6 @@
 from piston.handler import BaseHandler
 from piston.utils import rc
+from yum_repo_server.api.services.mongo import MongoUpdater
 from yum_repo_server.api.services.repoConfigService import RepoConfigService
 from yum_repo_server.api.services.repoAuditService import RepoAuditService
 from yum_repo_server.static import serve, ParentDirType
@@ -12,6 +13,7 @@ class YumRepoHandler(BaseHandler):
     
     repoConfigService = RepoConfigService()
     audit = RepoAuditService()
+    _mongo_updater = MongoUpdater() 
 
     def create(self, request, text):   
         data = request.POST
@@ -39,6 +41,7 @@ class YumRepoHandler(BaseHandler):
             return resp
 
         os.makedirs(path)
+        self._mongo_updater.createRepository(name)
 
         resp = rc.CREATED
         resp.content = dict(
@@ -46,9 +49,11 @@ class YumRepoHandler(BaseHandler):
             dir=path
         )
 
-        self.audit.log_action("created static repository %s"%name,request)
-
+        self.audit.log_action("created static repository %s"%name,request)       
         return resp
+    
+    
+    
 
     def read(self, request, text):
         static_path = self.repoConfigService.getStaticRepoDir()
