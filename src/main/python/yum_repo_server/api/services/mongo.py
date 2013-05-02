@@ -25,6 +25,7 @@ class MongoUpdater():
             self.log.info("Propagated delete request %s and got response %d" % (path, response.status))
 
             if response.status != 204 and response.status != 404:
+                self.log.error("Could not propagate delete rpm. Got response code %d" % response.status)
                 raise Exception("Could not delete file %s on %s. Got response: %d" % (self._host, path, response.status))
 
     def propagate_rpm(self, source_repository, arch, file_name, destination_repository):
@@ -41,7 +42,8 @@ class MongoUpdater():
             self.log.info("Propagated RPM propagation request from %s to %s and got response %d" % (source_path, destination_repository, response.status))
 
             if response.status != 201 and response.status != 404:
-                raise Exception("Could not propagate")
+                self.log.error("Could not propagate rpm. Got response code %d" % response.status)
+                raise Exception("Could not propagate rpm")
 
     def propagate_repository(self, source_repository, destination_repository):
         if self._enabled:
@@ -56,7 +58,8 @@ class MongoUpdater():
             self.log.info("Propagated repository propagation request from %s to %s and got response %d" % (source_repository, destination_repository, response.status))
 
             if response.status != 201 and response.status != 404:
-                raise Exception("Could not propagate")
+                self.log.error("Could not propagate repository. Got response code %d" % response.status)
+                raise Exception("Could not propagate repository")
 
     def uploadRpm(self, reponame, rpmPath):
         if self._enabled:
@@ -94,7 +97,25 @@ class MongoUpdater():
             self.log.info("Propagated repository delete request for repository %s and got response %d" % (reponame, response.status))
 
             if response.status != 204 and response.status != 404:
-                raise Exception("Could not propagate")
+                self.log.error("Could not propagate command 'delete repository'. Got response code %d" % response.status)
+                raise Exception("Could not propagate command 'delete repository'")
+
+    def createRepository(self, reponame):
+         if self._enabled:
+            headers = self._create_headers({'Content-Type': 'application/x-www-form-urlencoded'})
+            postdata = "name=%s" % reponame
+            httpServ = httplib.HTTPConnection(self._host)
+            httpServ.connect()
+            httpServ.request('POST','/repo/', postdata, headers)
+            response = httpServ.getresponse()
+            httpServ.close()
+                          
+            self.log.info("Propagated create repository %s" % reponame)
+
+            if response.status != 201 and response.status != 404:
+                self.log.error("Could not propagate command 'create repository'. Got response code %d" % response.status)
+                raise Exception("Could not propagate command 'create repository'. Got response code %d with message: %s",
+                                response.status, response.read())                   
 
     def redirect(self, fullpath):
         segments = fullpath.split('/')
@@ -109,6 +130,7 @@ class MongoUpdater():
                 reponame, response.status))
 
             if response.status != 201:
+                self.log.error("Could not propagate command 'generatemetadata'. Got response code %d" % response.status)
                 raise Exception("Could not propagate command 'generatemetadata'")
 
     def delete_virtual_repo(self, reponame):
@@ -120,6 +142,7 @@ class MongoUpdater():
                           reponame, response.status)
 
             if response.status != 204:
+                self.log.error("Could not propagate command 'delete virtual repo'. Got response code %d" % response.status)
                 raise Exception("Could not propagate command 'delete virtual repo'. Got reponse code %d with message: %s",
                                 response.status, response.read())
 
@@ -136,7 +159,8 @@ class MongoUpdater():
             self.log.info("Propagated create virtual repository %s linked to %s and got response %d" % (virtual_reponame, destination, response.status))
 
             if response.status != 201 and response.status != 404:
-                raise Exception("Could not propagate command 'create virtual repo'. Got reponse code %d with message: %s",
+                self.log.error("Could not propagate command 'create virtual repo'. Got response code %d" % response.status)
+                raise Exception("Could not propagate command 'create virtual repo'. Got response code %d with message: %s",
                                 response.status, response.read())
 
     def _create_repo_url(self, reponame, action=''):
