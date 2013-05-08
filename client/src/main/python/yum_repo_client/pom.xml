@@ -43,6 +43,8 @@
 	      <workingDirectory>src/test/python</workingDirectory>
               <arguments>
                 <argument>testIntegration.py</argument>
+                <argument>${test.yumserver.host}</argument>
+                <argument>${test.repoclient.location}</argument>
               </arguments>
             </configuration>
           </execution>
