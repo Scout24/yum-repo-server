@@ -42,7 +42,7 @@
               <executable>python</executable>
 	      <workingDirectory>src/test/python</workingDirectory>
               <arguments>
-                <argument>repoclient_integration_tests.py</argument>
+                <argument>testIntegration.py</argument>
               </arguments>
             </configuration>
           </execution>
