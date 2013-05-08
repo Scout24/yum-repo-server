@@ -11,11 +11,12 @@ class init:
     YUM_HOST = "devgfs01.dev.is24.loc"
     TEST_REPO_NAME_DEV = "yum-integration-test-repo-dev"
     TEST_REPO_NAME_TUV = "yum-integration-test-repo-tuv"
+    TEST_VIRTUAL_NAME_1 = "yum-integration-test-virtual-repo-1"
 
-    if sys.argv[1]:
+    if len(sys.argv)>1:
         YUM_HOST = str(sys.argv[1])
         print "Use yum server : %s" % YUM_HOST  
-    if sys.argv[2]:
+    if len(sys.argv)>2:
         REPO_CLIENT = str(sys.argv[2])
         print "Use repoclient : %s" % REPO_CLIENT  
 
@@ -24,9 +25,10 @@ class init:
             print "\nAborting: Repoclient not found in %s!\n" % self.REPO_CLIENT
             sys.exit()
 
+
 class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
 
-    def testCreateEmptyRepo(self):
+    def testCreateEmptyRepoDev(self):
         command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_DEV, init.YUM_HOST)
         subprocess.Popen(command, shell=True).wait()
         command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_DEV, init.YUM_HOST)    
@@ -40,15 +42,44 @@ class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
         command = "%s generatemetadata -s %s %s" % (init.REPO_CLIENT, init.YUM_HOST, init.TEST_REPO_NAME_DEV)    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
         time.sleep( 5 )
+        
 
-class  c2_repoclient_removeRpmAndRepoTest(unittest2.TestCase):
- 
-    def testRemoveRPM(self):
-        command = "%s deleterpm -s %s %s noarch/%s " % (init.REPO_CLIENT, init.YUM_HOST, init.TEST_REPO_NAME_DEV, init.RPM)    
+class  c2_repoclient_propagateTest(unittest2.TestCase):
+    
+    def testCreateEmptyRepoTuv(self):    
+        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_TUV, init.YUM_HOST)
+        subprocess.Popen(command, shell=True).wait()
+        command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_TUV, init.YUM_HOST)    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
 
-    def testRemoveRepo(self):
+    def testPropagateRpmToTuv(self):
+        command = "%s propagate %s noarch/%s %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_DEV, init.RPM, init.TEST_REPO_NAME_TUV, init.YUM_HOST)    
+        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)          
+        
+
+class  c3_repoclient_virtualTest(unittest2.TestCase):
+
+    def testCreateVirtualRepo(self):
+        command = "%s linktostatic %s %s -s %s" % (init.REPO_CLIENT, init.TEST_VIRTUAL_NAME_1, init.TEST_REPO_NAME_DEV, init.YUM_HOST)    
+        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)    
+        
+    def testdeleteVirtualRepo(self):
+        command = "%s deletevirtual %s -s %s" % (init.REPO_CLIENT, init.TEST_VIRTUAL_NAME_1, init.YUM_HOST)    
+        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)  
+
+
+class  c4_repoclient_removeRpmAndRepoTest(unittest2.TestCase):
+ 
+    def testRemoveRPM(self):
+        command = "%s deleterpm -s %s %s noarch/%s " % (init.REPO_CLIENT, init.YUM_HOST, init.TEST_REPO_NAME_TUV, init.RPM)    
+        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
+
+    def testRemoveDevRepo(self):
         command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_DEV, init.YUM_HOST)    
+        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
+
+    def testRemoveTuvRepo(self):
+        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_TUV, init.YUM_HOST)    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
 
 
