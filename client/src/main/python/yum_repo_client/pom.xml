@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>de.is24</groupId>
+  <artifactId>gridfs-repoclient-tests</artifactId>
+  <name>Gridfs Repoclient Tests</name>
+  <description>This are integration tests with repoclient for the new yum server</description>
+  <version>1.0</version>
+
+<build>
+ <plugins>
+  <plugin>
+   <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.2.1</version>
+            <executions>
+              <execution>
+                <id>gridfs-repoclient-tests</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>src/test/gridfs-repoclient-tests.sh</executable>
+                  <workingDirectory>${working.directory}</workingDirectory>
+                </configuration>
+              </execution>
+            </executions>
+  </plugin>
+  <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>python-unittest</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>python</executable>
+	      <workingDirectory>src/test/python</workingDirectory>
+              <arguments>
+                <argument>repoclient_integration_tests.py</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+ </plugins>
+</build>
+
+</project>
