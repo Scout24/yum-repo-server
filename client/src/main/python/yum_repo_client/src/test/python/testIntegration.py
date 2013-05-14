@@ -54,7 +54,14 @@ class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
         print "Run test : '%s'" % command    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
         
-
+                                                                                                                
+    def testInListQuerystatic(self):                                                                      
+              command = "%s querystatic -s %s" % (init.REPO_CLIENT, init.YUM_HOST)                              
+              print "Run test : '%s'" % command                                                                 
+              mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                             
+              mystdout = mysub.stdout.read()                                                                    
+              self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
+            
 class  c2_repoclient_propagateRPMTest(unittest2.TestCase):
     
     def testPropagateRpmTo2(self):
@@ -75,24 +82,6 @@ class  c3_repoclient_propagateRepoTest(unittest2.TestCase):
         print "Run test : '%s'" % command    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)         
 
-
-class  c4_repoclient_queryTest(unittest2.TestCase):
-    
-    def testInListQuerystatic(self):
-        command = "%s querystatic -s %s" % (init.REPO_CLIENT, init.YUM_HOST)
-        print "Run test : '%s'" % command 
-        mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        mystdout = mysub.stdout.read()           
-        self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
-        
-    def testQueryInListVirtual(self):
-        command = "%s queryvirtual -s %s" % (init.REPO_CLIENT, init.YUM_HOST)
-        print "Run test : '%s'" % command 
-        mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        mystdout = mysub.stdout.read()           
-        self.assertNotEqual(mystdout.find(init.TEST_VIRTUAL_NAME_1), -1, "command %s failed!" % command)   
-  
-
 class  c5_repoclient_virtualTest(unittest2.TestCase):
             
     def testCreateVirtualRepo1(self):
@@ -109,6 +98,13 @@ class  c5_repoclient_virtualTest(unittest2.TestCase):
         command = "%s linktovirtual %s %s -s %s" % (init.REPO_CLIENT, init.TEST_VIRTUAL_NAME_1, init.TEST_VIRTUAL_NAME_2, init.YUM_HOST)
         print "Run test : '%s'" % command    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command) 
+    
+    def testQueryInListVirtual(self):                                                                    
+             command = "%s queryvirtual -s %s" % (init.REPO_CLIENT, init.YUM_HOST)                            
+             print "Run test : '%s'" % command                                                                
+             mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                            
+             mystdout = mysub.stdout.read()                                                                   
+             self.assertNotEqual(mystdout.find(init.TEST_VIRTUAL_NAME_1), -1, "command %s failed!" % command) 
         
     def testdeleteVirtualRepo1(self):
         command = "%s deletevirtual %s -s %s" % (init.REPO_CLIENT, init.TEST_VIRTUAL_NAME_1, init.YUM_HOST)
