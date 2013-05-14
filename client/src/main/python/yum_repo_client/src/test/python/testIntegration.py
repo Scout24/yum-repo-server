@@ -76,20 +76,22 @@ class  c3_repoclient_propagateRepoTest(unittest2.TestCase):
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)         
 
 
-"""       
 class  c4_repoclient_queryTest(unittest2.TestCase):
     
-    def testQuerystatic(self):
+    def testInListQuerystatic(self):
         command = "%s querystatic -s %s" % (init.REPO_CLIENT, init.YUM_HOST)
-        print "Run test : '%s'" % command            
-        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)  
+        print "Run test : '%s'" % command 
+        mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        mystdout = mysub.stdout.read()           
+        self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
         
-    def testQueryvirtual(self):
-        command = "%s queryvirtual -s %s" % (init.REPO_CLIENT, init.YUM_HOST)
-        print "Run test : '%s'" % command            
-        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)  
-"""
-
+    def testQueryInListVirtual(self):
+        command = "%s queryvirtual-s %s" % (init.REPO_CLIENT, init.YUM_HOST)
+        print "Run test : '%s'" % command 
+        mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        mystdout = mysub.stdout.read()           
+        self.assertNotEqual(mystdout.find(init.TEST_VIRTUAL_NAME_1), -1, "command %s failed!" % command)   
+  
 
 class  c5_repoclient_virtualTest(unittest2.TestCase):
             
@@ -135,8 +137,25 @@ class  c6_repoclient_removeRpmAndRepoTest(unittest2.TestCase):
         command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST)
         print "Run test : '%s'" % command    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
+        
 
-
+class  c7_repoclient_queryNegativeTest(unittest2.TestCase):                                                  
+    def testNotInListQuerystatic(self):                                                                      
+        command = "%s querystatic -s %s" % (init.REPO_CLIENT, init.YUM_HOST)                                 
+        print "Run test : '%s'" % command                                                            
+        mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                                
+        mystdout = mysub.stdout.read()                                                                       
+        self.assertEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)             
+                                                                                                             
+    def testQueryNotInListVirtual(self):                                                                     
+        command = "%s queryvirtual-s %s" % (init.REPO_CLIENT, init.YUM_HOST)                                 
+        print "Run test : '%s'" % command                                                                    
+        mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                                
+        mystdout = mysub.stdout.read()                                                                       
+        self.assertEqual(mystdout.find(init.TEST_VIRTUAL_NAME_1), -1, "command %s failed!" % command)          
+        
+        
+        
 if __name__ == '__main__':
     check = init()
     check.repoclientExists()
