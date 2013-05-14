@@ -29,6 +29,14 @@ class init:
     
  
 class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
+    
+                                                                                                                       
+    def setUp (self):                                                                                                  
+        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)                
+        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()                                    
+        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST)                
+        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()                                    
+    
 
     def testCreateEmptyRepo1(self):
         command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)  
@@ -57,12 +65,7 @@ class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
               mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                             
               mystdout = mysub.stdout.read()                                                                    
               self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
-        
-    def teardown (self):
-        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)           
-        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()     
-        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST)  
-        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()                     
+    
     
 class  c2_repoclient_propagateRPMTest(unittest2.TestCase):
     
