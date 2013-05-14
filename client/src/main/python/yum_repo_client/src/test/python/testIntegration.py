@@ -86,7 +86,7 @@ class  c4_repoclient_queryTest(unittest2.TestCase):
         self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
         
     def testQueryInListVirtual(self):
-        command = "%s queryvirtual-s %s" % (init.REPO_CLIENT, init.YUM_HOST)
+        command = "%s queryvirtual -s %s" % (init.REPO_CLIENT, init.YUM_HOST)
         print "Run test : '%s'" % command 
         mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         mystdout = mysub.stdout.read()           
@@ -148,7 +148,7 @@ class  c7_repoclient_queryNegativeTest(unittest2.TestCase):
         self.assertEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)             
                                                                                                              
     def testQueryNotInListVirtual(self):                                                                     
-        command = "%s queryvirtual-s %s" % (init.REPO_CLIENT, init.YUM_HOST)                                 
+        command = "%s queryvirtual -s %s" % (init.REPO_CLIENT, init.YUM_HOST)                                 
         print "Run test : '%s'" % command                                                                    
         mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                                
         mystdout = mysub.stdout.read()                                                                       
