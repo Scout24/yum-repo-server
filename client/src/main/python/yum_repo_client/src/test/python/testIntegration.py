@@ -25,7 +25,7 @@ class init:
     def repoclientExists(self):
         if not os.path.exists(self.REPO_CLIENT):
             print "\nAborting: Repoclient not found in %s!\n" % self.REPO_CLIENT
-            sys.exit()
+            sys.exit(1)
 
 
 class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
