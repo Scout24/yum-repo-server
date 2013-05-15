@@ -1,6 +1,6 @@
 import subprocess
 import sys
-import unittest2
+import unittest
 import time
 import os
 
@@ -27,7 +27,7 @@ class init:
             print "\nAborting: Repoclient not found in %s!\n" % self.REPO_CLIENT
             sys.exit(1)
     
-class c0_repoClient_createRepoTest(unittest2.TestCase):
+class c0_repoClient_createRepoTest(unittest.TestCase):
     
     def setUp(self):
         command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)
@@ -45,7 +45,7 @@ class c0_repoClient_createRepoTest(unittest2.TestCase):
          print "Run test : '%s'" % command                                                                           
          self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)          
         
-class c1_repoClient_uploadRPMTest(unittest2.TestCase):
+class c1_repoClient_uploadRPMTest(unittest.TestCase):
 
     def testUploadRPM(self):    
         command = "%s uploadto -s %s %s %s" % (init.REPO_CLIENT, init.YUM_HOST, init.TEST_REPO_NAME_1, init.RPM_WITH_PATH)
@@ -65,7 +65,7 @@ class c1_repoClient_uploadRPMTest(unittest2.TestCase):
               mystdout = mysub.stdout.read()                                                                    
               self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
 
-class  c2_repoClient_propagateRPMTest(unittest2.TestCase):
+class  c2_repoClient_propagateRPMTest(unittest.TestCase):
     
     def testPropagateRpmTo2(self):
         command = "%s propagate %s noarch/%s %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.RPM, init.TEST_REPO_NAME_2, init.YUM_HOST)
@@ -78,14 +78,14 @@ class  c2_repoClient_propagateRPMTest(unittest2.TestCase):
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)  
 
         
-class  c3_repoClient_propagateRepoTest(unittest2.TestCase):
+class  c3_repoClient_propagateRepoTest(unittest.TestCase):
 
     def testPropagateRepo2ToRepo1(self):
         command = "%s propagaterepo %s %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.TEST_REPO_NAME_1, init.YUM_HOST)
         print "Run test : '%s'" % command    
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)         
 
-class  c5_repoClient_virtualTest(unittest2.TestCase):
+class  c5_repoClient_virtualTest(unittest.TestCase):
             
     def testCreateVirtualRepo1(self):
         command = "%s linktostatic %s %s -s %s" % (init.REPO_CLIENT, init.TEST_VIRTUAL_NAME_1, init.TEST_REPO_NAME_1, init.YUM_HOST)
@@ -120,7 +120,7 @@ class  c5_repoClient_virtualTest(unittest2.TestCase):
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)   
 
 
-class  c6_repoClient_removeRpmAndRepoTest(unittest2.TestCase):
+class  c6_repoClient_removeRpmAndRepoTest(unittest.TestCase):
  
     def testRemoveRPM(self):
         command = "%s deleterpm -s %s %s noarch/%s " % (init.REPO_CLIENT, init.YUM_HOST, init.TEST_REPO_NAME_1, init.RPM)
@@ -138,7 +138,7 @@ class  c6_repoClient_removeRpmAndRepoTest(unittest2.TestCase):
         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
         
 
-class  c7_repoClient_queryNegativeTest(unittest2.TestCase):                                                  
+class  c7_repoClient_queryNegativeTest(unittest.TestCase):                                                  
     def testNotInListQuerystatic(self):                                                                      
         command = "%s querystatic -s %s" % (init.REPO_CLIENT, init.YUM_HOST)                                 
         print "Run test : '%s'" % command                                                            
@@ -159,4 +159,4 @@ if __name__ == '__main__':
     check = init()
     check.repoclientExists()
     sys.argv=[sys.argv[0]]
-    unittest2.main()
+    unittest.main()
