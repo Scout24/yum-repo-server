@@ -27,26 +27,25 @@ class init:
             print "\nAborting: Repoclient not found in %s!\n" % self.REPO_CLIENT
             sys.exit(1)
     
- 
-class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
+class c0_repoclient_createRepoTest(unittest2.TestCase):
     
-                                                                                                                       
-    def setUp (self):                                                                                                  
-        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)                
-        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()                                    
-        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST)                
-        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()                                    
-    
-
-    def testCreateEmptyRepo1(self):
-        command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)  
-        print "Run test : '%s'" % command 
-        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
-
-    def testCreateEmptyRepo2(self):    
-        command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST)
-        print "Run test : '%s'" % command    
-        self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)
+    def setUp(self):
+        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)
+        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()
+        command = "%s deletestatic %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST) 
+        subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb')).wait()
+        
+    def testCreateEmptyRepo1(self):                                                                                 
+         command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_1, init.YUM_HOST)                   
+         print "Run test : '%s'" % command                                                                           
+         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)          
+     
+    def testCreateEmptyRepo2(self):                                                                                 
+         command = "%s create %s -s %s" % (init.REPO_CLIENT, init.TEST_REPO_NAME_2, init.YUM_HOST)                   
+         print "Run test : '%s'" % command                                                                           
+         self.assertEquals(subprocess.Popen(command, shell=True).wait(), 0, "command %s failed!" % command)          
+        
+class c1_repoclient_uploadRPMTest(unittest2.TestCase):
 
     def testUploadRPM(self):    
         command = "%s uploadto -s %s %s %s" % (init.REPO_CLIENT, init.YUM_HOST, init.TEST_REPO_NAME_1, init.RPM_WITH_PATH)
@@ -65,8 +64,7 @@ class c1_repoclient_createRepoAndUploadRPMTest(unittest2.TestCase):
               mysub = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)                             
               mystdout = mysub.stdout.read()                                                                    
               self.assertNotEqual(mystdout.find(init.TEST_REPO_NAME_1), -1, "command %s failed!" % command)   
-    
-    
+
 class  c2_repoclient_propagateRPMTest(unittest2.TestCase):
     
     def testPropagateRpmTo2(self):
