@@ -1,0 +1,22 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+           http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd ">
+  
+  <http>
+    <http-basic />
+
+    <intercept-url pattern="/**" access="ROLE_USER" method="POST" />
+    <intercept-url pattern="/**" access="ROLE_USER" method="PUT" />
+    <intercept-url pattern="/**" access="ROLE_USER" method="DELETE" />
+
+    <custom-filter position="PRE_AUTH_FILTER" ref="whiteListAuthenticationFilter" />
+  </http>
+
+  <authentication-manager alias="authenticationManager">
+    <authentication-provider ref="whiteListAuthenticationProvider" />
+    <authentication-provider ref="pamAuthenticationProvider" />
+  </authentication-manager>
+
+</beans:beans>
