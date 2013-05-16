@@ -1,8 +1,0 @@
-REPO_DIR : target
-TEMP_DIR : target/tmp
-DAEMON_USER : webadmin
-DAEMON_GROUP : admins
-REPO_CACHE_DIR: /tmp
-SCHEDULER_DAEMON_PIDFILE : target/schedulerDaemon.pid
-SERVER_LOGGING_CONF : src/test/resources/serverLogging.conf
-SCHEDULER_DAEMON_LOGGING_CONF : src/test/resources/schedulerDaemonLogging.conf
