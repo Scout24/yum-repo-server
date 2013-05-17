@@ -23,6 +23,7 @@
     <arquillian.version>1.0.3.Final</arquillian.version>
     <shrinkwrap.resolver.version>2.0.0-beta-3</shrinkwrap.resolver.version>
     <jackson.version>2.2.0</jackson.version>
+    <embedded.mongodb.version>2.4.1</embedded.mongodb.version>
   </properties>
 
   <prerequisites>
@@ -362,7 +363,7 @@
             <artifactId>maven-surefire-plugin</artifactId>     
             <version>${failsafe.plugin.version}</version>
             <configuration>
-              <skipTests>true</skipTests>
+              <skipTests>true</skipTests>              
             </configuration>
           </plugin>
           <plugin>
@@ -377,7 +378,8 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
-				          <systemPropertyVariables>
+				  <systemPropertyVariables>
+                    <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
                     <remoteContainerUrl>${remote.container.url}</remoteContainerUrl>
                   </systemPropertyVariables>
                   <parallel>classes</parallel>
@@ -568,6 +570,7 @@
         </executions>
         <configuration>
           <systemPropertyVariables>
+            <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
             <de.flapdoodle.embed.io.tmpdir>${project.build.directory}</de.flapdoodle.embed.io.tmpdir>
           </systemPropertyVariables>
         </configuration>
