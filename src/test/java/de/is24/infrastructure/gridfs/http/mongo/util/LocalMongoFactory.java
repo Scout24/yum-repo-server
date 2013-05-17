@@ -16,9 +16,11 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.io.directories.FixedPath;
 import de.flapdoodle.embed.process.io.directories.PlatformTempDir;
+import de.flapdoodle.embed.process.io.progress.LoggingProgressListener;
 import de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils;
 import java.io.File;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import static de.flapdoodle.embed.mongo.Command.MongoD;
 import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
@@ -30,6 +32,7 @@ public class LocalMongoFactory {
   private static final String TEMP_DIR = new PlatformTempDir().asFile().getAbsolutePath();
   @VisibleForTesting
   static final FixedPath MONGO_DOWNLOAD_FOLDER = new FixedPath(TEMP_DIR + File.separator + ".embedded-mongo");
+  private static final Logger LOGGER = Logger.getLogger(LocalMongoFactory.class.getCanonicalName());
 
   @VisibleForTesting
   static MongodStarter createMongoStarter() {
@@ -38,8 +41,10 @@ public class LocalMongoFactory {
     de.flapdoodle.embed.process.config.store.DownloadConfigBuilder downloadConfigBuilder =
       new DownloadConfigBuilder() //
       .defaultsForCommand(MongoD) //
+      .progressListener(new LoggingProgressListener(LOGGER, Level.INFO)) //
       .downloadPath("http://fastdl.mongodb.org/") //
-      .artifactStorePath(MONGO_DOWNLOAD_FOLDER).packageResolver(path);
+      .artifactStorePath(MONGO_DOWNLOAD_FOLDER) //
+      .packageResolver(path);
     de.flapdoodle.embed.process.store.ArtifactStoreBuilder download =
       new ArtifactStoreBuilder() //
       .defaults(MongoD) //
@@ -47,7 +52,7 @@ public class LocalMongoFactory {
 
     IRuntimeConfig runtimeConfig =
       new RuntimeConfigBuilder() //
-      .defaultsWithLogger(MongoD, Logger.getLogger(LocalMongoFactory.class.getCanonicalName())) //
+      .defaultsWithLogger(MongoD, LOGGER) //
       .artifactStore(download).build();
     return MongodStarter.getInstance(runtimeConfig);
   }
