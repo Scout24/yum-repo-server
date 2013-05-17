@@ -19,6 +19,7 @@ import de.flapdoodle.embed.process.io.directories.PlatformTempDir;
 import de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils;
 import java.io.File;
 import java.net.UnknownHostException;
+import java.util.logging.Logger;
 import static de.flapdoodle.embed.mongo.Command.MongoD;
 import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
 import static de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter.MONGO_PASSWORD;
@@ -43,7 +44,11 @@ public class LocalMongoFactory {
       new ArtifactStoreBuilder() //
       .defaults(MongoD) //
       .download(downloadConfigBuilder);
-    IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder().defaults(MongoD).artifactStore(download).build();
+
+    IRuntimeConfig runtimeConfig =
+      new RuntimeConfigBuilder() //
+      .defaultsWithLogger(MongoD, Logger.getLogger(LocalMongoFactory.class.getCanonicalName())) //
+      .artifactStore(download).build();
     return MongodStarter.getInstance(runtimeConfig);
   }
 
