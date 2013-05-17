@@ -4,7 +4,6 @@ import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.infrastructure.gridfs.http.web.controller.FileController;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,14 +13,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-
 import static com.mongodb.gridfs.GridFSTestUtil.gridFSDBFile;
 import static org.apache.commons.lang.RandomStringUtils.random;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,11 +36,7 @@ public class FileControllerTest {
   public static final String FILENAME = "file";
   @Mock
   private GridFsService gridFs;
-
   private MockHttpServletResponse httpServletResponse;
-
-  private MockHttpServletRequest httpServletRequest;
-
 
   private FileController fileController;
   public static final String CONTENT_WITH_200_CHARS = random(200, "a");
@@ -55,7 +44,6 @@ public class FileControllerTest {
   @Before
   public void setUp() throws Exception {
     fileController = new FileController(gridFs);
-
     httpServletResponse = new MockHttpServletResponse();
   }
 
@@ -82,7 +70,8 @@ public class FileControllerTest {
   public void deliverFirstBytesWhenByteRangeRequestWithEnd() throws Exception {
     givenGridFSDBFile();
 
-    ResponseEntity<InputStreamResource> response = fileController.deliverRangeOfFile(REPO, ARCH, FILENAME, "bytes=0-100");
+    ResponseEntity<InputStreamResource> response = fileController.deliverRangeOfFile(REPO, ARCH, FILENAME,
+      "bytes=0-100");
 
     assertThat(response.getStatusCode(), is(PARTIAL_CONTENT));
     assertThat(response.getHeaders().get("Accept-Ranges").get(0), is("bytes"));
@@ -136,13 +125,6 @@ public class FileControllerTest {
     fileController.deleteFile(REPO, ARCH, FILENAME, httpServletResponse);
 
     assertThat(httpServletResponse.getStatus(), is(204));
-  }
-
-  @Test
-  public void test() throws UnsupportedEncodingException {
-    String string = URLEncoder.encode("$hallo.test.ich/data", "UTF-8").replace(".", "%2E");
-    System.out.println(string);
-    System.out.println(URLDecoder.decode(string, "UTF-8"));
   }
 
   private void givenGridFSDBFile() throws IOException {

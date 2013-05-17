@@ -1,9 +1,10 @@
 package de.is24.infrastructure.gridfs.http.web;
 
-import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.RPM_DB;
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.newDefaultHttpClientWithCredentials;
-import static org.springframework.core.env.AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME;
-import java.net.URL;
+import com.mongodb.Mongo;
+import de.is24.infrastructure.gridfs.http.Profiles;
+import de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory;
+import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
+import de.is24.infrastructure.gridfs.http.utils.StatsdMockServer;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OverProtocol;
@@ -14,11 +15,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.mongodb.Mongo;
-import de.is24.infrastructure.gridfs.http.Profiles;
-import de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory;
-import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
-import de.is24.infrastructure.gridfs.http.utils.StatsdMockServer;
+import java.net.URL;
+import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.RPM_DB;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.newDefaultHttpClientWithCredentials;
+import static org.springframework.core.env.AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME;
 
 
 public abstract class AbstractContainerAndMongoDBStarter {
@@ -27,8 +27,11 @@ public abstract class AbstractContainerAndMongoDBStarter {
   @ArquillianResource
   protected URL deploymentURL;
 
+  public static final String MONGO_USERNAME = "reposerver";
+  public static final String MONGO_PASSWORD = "reposerver";
+
   @ArquillianResource(AbstractContainerAndMongoDBStarter.class)
-  @MongoCredentials(db = RPM_DB, username = "reposerver", password = "reposerver")
+  @MongoCredentials(db = RPM_DB, username = MONGO_USERNAME, password = MONGO_PASSWORD)
   protected Mongo mongo;
 
   protected static MongoProcessHolder mongoProcessHolder;
