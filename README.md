@@ -1,5 +1,6 @@
 # yum-repo-server [![Build Status](https://travis-ci.org/ImmobilienScout24/yum-repo-server.png?branch=master)](https://travis-ci.org/ImmobilienScout24/yum-repo-server)
-=================
+
+
 The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API.
 
 ## Main features
