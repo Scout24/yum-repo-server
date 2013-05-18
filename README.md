@@ -44,7 +44,7 @@ cd yum-repo-server
 ```
 mvn -Plocal-dev com.github.joelittlejohn.embedmongo:embedmongo-maven-plugin:start org.codehaus.cargo:cargo-maven2-plugin:run
 ```
-* Open http://localhost:8080
+* Open [http://localhost:8080]
 
 ## Production usage
 
