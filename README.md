@@ -67,6 +67,106 @@ and start your application container.
 by providing Java system properties like ```-Dlog4j.configuration=file:///path/to/log4j.xml``` or a combination of
 both property file and system properties, where system properties have a higher priority.
 
+Following properties are available:
+*   *mongodb.serverlist*
+
+    **Required:** Comma separated list of MongoDB server host names.
+
+*   *mongodb.db.name*
+
+    Name of the database on the MongoDB instance.
+
+    *Default:* rpm_db
+
+*   *mongodb.db.user*
+
+    MongoDB username for authentication. ```null``` means no authentication will be used.
+
+    *Default:* ```null```
+
+*   *mongodb.db.user*
+
+    MongoDB password for authentication.
+
+    *Default:* ```null```
+
+*   *mongodb.port*
+
+    Port used to connect to the MongoDB instances.
+
+    *Default:* 27017
+
+*   *graphite.host*
+
+    Host name of a [Graphite](http://graphite.wikidot.com/) monitoring server. ```null``` means no *Graphite* monitoring.
+
+    *Default:* ```null```
+
+*   *graphite.port*
+
+    Port of a [Graphite](http://graphite.wikidot.com/) monitoring server.
+
+    *Default:* 2003
+
+*   *statsd.host*
+
+    Host name of a [Statsd](https://github.com/etsy/statsd/) aggregation server. ```null``` means no *Statsd* monitoring
+
+    *Default:* ```null```
+
+*   *statsd.port*
+
+    Port of a [Statsd](https://github.com/etsy/statsd/) aggregation server.
+
+    *Default:* 8125
+
+*   *typ*
+
+    Server type used as a monitoring prefix.
+
+    *Default:* ```null```
+
+*   *scheduler.poolSize*
+
+    Size of the thread pool used for scheduling tasks. Should be at least *2* or greater depending on your CPU resources.
+
+    *Default:* 10
+    
+*   *metadata.tmp.dir*
+
+    Directory for temporary files during metadata generation. ```null``` means use Java standard temp dir.
+    
+    *Default:* ```null```
+    
+*   *metdata.outdated.survival.time*
+
+    Time in minutes that indicates how long old Yum metadata should be keep to serve client
+that have already downloaded an old *repomd.xml* with references to old database files.
+
+    *Default:* 5
+    
+*   *scheduler.delay*
+
+    Time in seconds of the interval between two repository updates for scheduled repositories.
+    
+    *Default:* 10
+    
+*   *pam.service.name*
+
+    Name of the [PAM](http://en.wikipedia.org/wiki/Pluggable_Authentication_Modules) service used for local authentication.
+    
+    *Default:* password-auth
+    
+*   *security.whitelist.hosts*
+
+    Comma separated host list of hosts that are allowed to perform write operations via REST API without authentication.
+    
+*   *security.loadbalancer.ips*
+
+    Comma separated list of proxy server IPs (e.g. load balancers) that sets the
+[X-Forwarded-For http header](http://en.wikipedia.org/wiki/X-Forwarded-For). If the requests comes from such an IP the
+application will try to determine the source IP by the header field and check if this is an white listed IP (see *security.whitelist.hosts*).
+    
 ## How it works
 
 ### Repository usage
