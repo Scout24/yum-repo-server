@@ -35,13 +35,13 @@ The yum-repo-server is licensed under the [GPLv3](http://www.gnu.org/licenses/qu
 
 ## Getting started
 * Checkout the Repository:
-```bash
+```
 git clone https://github.com/ImmobilienScout24/yum-repo-server
 cd yum-repo-server
 ```
 * Make sure you have [Maven installed](http://maven.apache.org/download.cgi), a standard Java build tool.
 * Start a local and Yum Repo Server in development mode (using a temporary MongoDB):
-```bash
+```
 mvn -Plocal-dev com.github.joelittlejohn.embedmongo:embedmongo-maven-plugin:start org.codehaus.cargo:cargo-maven2-plugin:run
 ```
 * Open http://localhost:8080
