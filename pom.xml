@@ -23,6 +23,8 @@
     <arquillian.version>1.0.3.Final</arquillian.version>
     <shrinkwrap.resolver.version>2.0.0-beta-3</shrinkwrap.resolver.version>
     <jackson.version>2.2.0</jackson.version>
+    <embedded.mongodb.version>2.4.1</embedded.mongodb.version>
+    <java.util.logging.config>de/is24/infrastructure/gridfs/http/log.properties</java.util.logging.config>
   </properties>
 
   <prerequisites>
@@ -239,11 +241,11 @@
       <artifactId>joda-time</artifactId>
       <version>2.2</version>
     </dependency>
-	<dependency>
-		<groupId>commons-collections</groupId>
-		<artifactId>commons-collections</artifactId>
-		<version>3.2.1</version>
-	</dependency>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.1</version>
+    </dependency>
 
     <!-- test dependencies -->
     <dependency>
@@ -251,6 +253,11 @@
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>1.7.5</version>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -362,7 +369,7 @@
             <artifactId>maven-surefire-plugin</artifactId>     
             <version>${failsafe.plugin.version}</version>
             <configuration>
-              <skipTests>true</skipTests>
+              <skipTests>true</skipTests>              
             </configuration>
           </plugin>
           <plugin>
@@ -378,7 +385,9 @@
                 </goals>
                 <configuration>
 				          <systemPropertyVariables>
+                    <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
                     <remoteContainerUrl>${remote.container.url}</remoteContainerUrl>
+                    <java.util.logging.config.file>${java.util.logging.config}</java.util.logging.config.file>
                   </systemPropertyVariables>
                   <parallel>classes</parallel>
                   <threadCount>5</threadCount>
@@ -547,6 +556,18 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${failsafe.plugin.version}</version> 
+        <configuration>
+          <systemPropertyVariables>
+            <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
+            <de.flapdoodle.embed.io.tmpdir>${project.build.directory}</de.flapdoodle.embed.io.tmpdir>
+            <java.util.logging.config.file>${java.util.logging.config}</java.util.logging.config.file>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${failsafe.plugin.version}</version>
         <dependencies>
@@ -567,7 +588,9 @@
         </executions>
         <configuration>
           <systemPropertyVariables>
+            <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
             <de.flapdoodle.embed.io.tmpdir>${project.build.directory}</de.flapdoodle.embed.io.tmpdir>
+            <java.util.logging.config.file>${java.util.logging.config}</java.util.logging.config.file>
           </systemPropertyVariables>
         </configuration>
       </plugin>

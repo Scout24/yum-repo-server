@@ -57,7 +57,6 @@ public abstract class RepositoryInfoControllerIT extends AbstractContainerAndMon
         }
         return false;
       }
-
     };
   }
 
