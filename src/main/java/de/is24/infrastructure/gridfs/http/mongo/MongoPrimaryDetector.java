@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import static java.util.Arrays.asList;
 
 
@@ -18,7 +19,7 @@ import static java.util.Arrays.asList;
 public class MongoPrimaryDetector {
   private Mongo mongo;
   private String localHostname;
-  private final ArrayList<InetAddress> hostAddresses = new ArrayList<>();
+  private final List<InetAddress> hostAddresses = new ArrayList<>();
 
   @Autowired
   public MongoPrimaryDetector(Mongo mongo) {
