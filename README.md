@@ -1,5 +1,6 @@
 # yum-repo-server [![Build Status](https://travis-ci.org/ImmobilienScout24/yum-repo-server.png?branch=master)](https://travis-ci.org/ImmobilienScout24/yum-repo-server)
-=================
+
+
 The yum-repo-server is a server that allows you to host and manage YUM repositories using a RESTful API.
 
 ## Main features
@@ -33,75 +34,154 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 The yum-repo-server is licensed under the [GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.html)
 
 ## Getting started
-* Install the packages that are not part of PyPi :
-```bash
-sudo apt-get install python-rpm
-python-lxml
-python2.7-dev  
-python-pycurl  
-PyYAML
+* Checkout the Repository:
 ```
-
-* Install the pip packages in a virtualenv (remember to use the system-site-packages switch to make the modules that are not on PyPi available to the virtualenv)
-```bash
-virtualenv --system-site-packages ve  
-. ve/bin/activate  
-pip install django==1.3 django-piston nose python-daemon lockfile stdeb mockito argcomplete
+git clone https://github.com/ImmobilienScout24/yum-repo-server
+cd yum-repo-server
 ```
-
-* Build it : <code>python setup.py build</code>
-
-* Run the tests : <code> python setup.py test</code>
-
-* Install it : <code>python setup.py install</code>
-
-* Try it out! Running <code>python manage.py runserver</code> will start up a django developement server (not for production!!) featuring the yum-repo-server.
-	* This development server is fully fledged and you can use it to determine if the yum-repo-server is what you want very quickly.
-	* Use the included yum-repo-client for more comfortable tryouts. (cd into client/ and install it with <code>python setup.py install</code>)
+* Make sure you have [Maven installed](http://maven.apache.org/download.cgi), a standard Java build tool.
+* Start a local and Yum Repo Server in development mode (using a temporary MongoDB):
+```
+mvn -Plocal-dev com.github.joelittlejohn.embedmongo:embedmongo-maven-plugin:start org.codehaus.cargo:cargo-maven2-plugin:run
+```
+* Open [http://localhost:8080]
 
 ## Production usage
-For production usage we recommend an *apache webserver (httpd)* with *mod_wsgi*. If you build a RPM by <code>python setup.py bdist_rpm</code> an apache configuration file is automatically included. But the <code>wsgi.py</code> should work as well with other WSGI-compatible servers like CherryPy, twisted.web, Gunicorn, etc.
 
+For production usage we recommend to build a WAR and to deploy these WAR to your favorite Java application container ([Tomcat](http://tomcat.apache.org/), [Jetty](www.eclipse.org/jetty/), etc.).
+
+### Build a WAR file
+Build a standard Java WAR file:
+```bash
+mvn package
+```
+Now copy the WAR file to your application container e.g. *Tomcat*:
+```bash
+cp -v target/yum-repo-server.war <tomcat-dir>/webapps/ROOT.war
+```
+and start your application container.
+
+### Configuration
+
+*Yum Repo Server* can be configured by a configuration file called ```configuration.properties``` in the Java classpath,
+by providing Java system properties like ```-Dlog4j.configuration=file:///path/to/log4j.xml``` or a combination of
+both property file and system properties, where system properties have a higher priority.
+
+Following properties are available:
+*   *mongodb.serverlist*
+
+    **Required:** Comma separated list of MongoDB server host names.
+
+*   *mongodb.db.name*
+
+    Name of the database on the MongoDB instance.
+
+    *Default:* rpm_db
+
+*   *mongodb.db.user*
+
+    MongoDB username for authentication. ```null``` means no authentication will be used.
+
+    *Default:* ```null```
+
+*   *mongodb.db.user*
+
+    MongoDB password for authentication.
+
+    *Default:* ```null```
+
+*   *mongodb.port*
+
+    Port used to connect to the MongoDB instances.
+
+    *Default:* 27017
+
+*   *graphite.host*
+
+    Host name of a [Graphite](http://graphite.wikidot.com/) monitoring server. ```null``` means no *Graphite* monitoring.
+
+    *Default:* ```null```
+
+*   *graphite.port*
+
+    Port of a [Graphite](http://graphite.wikidot.com/) monitoring server.
+
+    *Default:* 2003
+
+*   *statsd.host*
+
+    Host name of a [Statsd](https://github.com/etsy/statsd/) aggregation server. ```null``` means no *Statsd* monitoring
+
+    *Default:* ```null```
+
+*   *statsd.port*
+
+    Port of a [Statsd](https://github.com/etsy/statsd/) aggregation server.
+
+    *Default:* 8125
+
+*   *typ*
+
+    Server type used as a monitoring prefix.
+
+    *Default:* ```null```
+
+*   *scheduler.poolSize*
+
+    Size of the thread pool used for scheduling tasks. Should be at least *2* or greater depending on your CPU resources.
+
+    *Default:* 10
+    
+*   *metadata.tmp.dir*
+
+    Directory for temporary files during metadata generation. ```null``` means use Java standard temp dir.
+    
+    *Default:* ```null```
+    
+*   *metdata.outdated.survival.time*
+
+    Time in minutes that indicates how long old Yum metadata should be keep to serve client
+that have already downloaded an old *repomd.xml* with references to old database files.
+
+    *Default:* 5
+    
+*   *scheduler.delay*
+
+    Time in seconds of the interval between two repository updates for scheduled repositories.
+    
+    *Default:* 10
+    
+*   *pam.service.name*
+
+    Name of the [PAM](http://en.wikipedia.org/wiki/Pluggable_Authentication_Modules) service used for local authentication.
+    
+    *Default:* password-auth
+    
+*   *security.whitelist.hosts*
+
+    Comma separated host list of hosts that are allowed to perform write operations via REST API without authentication.
+    
+*   *security.loadbalancer.ips*
+
+    Comma separated list of proxy server IPs (e.g. load balancers) that sets the
+[X-Forwarded-For http header](http://en.wikipedia.org/wiki/X-Forwarded-For). If the requests comes from such an IP the
+application will try to determine the source IP by the header field and check if this is an white listed IP (see *security.whitelist.hosts*).
+    
 ## How it works
-### Technology
-The yum-repo-server relies on django and piston to handle browser and API requests made through HTTP. You need to put a HTTP web server in front of the yum-repo-server, apache with mod_wsgi will do fine. Most of the scheduling routines use the APScheduler (Advanced Python Scheduler). In order to generate repository metadata, the createrepo package is used.
-Have a look at updaterepo [https://github.com/heroldus/updaterepo] if you need a more performant createrepo.
-
-### Repository location
-At the core of the yum-repo-server is a directory that contains repository information and contents.
-This directory's location is stored in a settings.py file, like so :
-<code>
-REPO_CONFIG = {'REPO_DIR'  : '/var/yum-repos', [shortened]  }
-</code>
-This makes it easy to backup or replicate your repository.
 
 ### Repository usage
 In a nutshell, when yum checks for updates it sends HTTP GET requests to repositories it is aware of (usually through repository files in <code> /etc/yum/repos.d/</code>) and queries repository metadata.
 If it decides a package has to be updated (or installed) it will then directly download the RPM package through a HTTP request.
-This is handled by django and quite straightforward.
 
 ### Virtual repositories
 A virtual repository does look exactly like a regular repository for consumers, but it is actually an empty repository that contains a YAML file named <code>repo.yaml</code>. The file contains an entry with a relative path to a regular repository, and requests to the virtual repository are rerouted to the regular one.
 
 ### Periodic metadata generation
-The metadata generation is located in a YAML file called `metadata-generation.yaml` that lives in the repository it describes.
-The file looks like this :
-
-```yaml
-generation_type : scheduled
-generation_interval : 40
-rpm_max_keep : 3
-```
-
-This will schedule a periodic createrepo that will be executed every 40 seconds.
-`rpm_max_keep` means there will also be a cleanup routine before the createrepo that will delete older
-RPMs when there are more than three RPMs with the same canonical name.
-You may omit `rpm_max_keep` to disable the cleanup routine and set `generation_type` to `manual` or remove the file
-if you do not wish to have a periodic createrepo scheduled.
+TODO
 
 ### API requests
-API requests are handled by piston and use a REST like format.
-For maximal comfort, use the yum-repo-client.
+API requests are handled by Yum Repo Server and use a REST like format.
+For maximal comfort, use the [yum-repo-client](https://github.com/ImmobilienScout24/yum-repo-client).
 The examples below should give you a good understanding of how the requests look like.
 
 #### Repository creation

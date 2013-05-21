@@ -121,22 +121,23 @@ window.yum = {
 	  $(".tag").each(function() {
 		  tags.push({name: $(this).text()});
 	  });
-      $("#tagsInput").tokenInput([], {
-			allowCreation: true,
-			createTokenText: "Create new tag", 
-			onAdd: function(value) {},
-			onDelete: function(value) {},
-			theme: "facebook",
-			prePopulate: tags,
-			hintText: "add a tag"
-      });
+
+    $("#tagsInput").tokenInput([], {
+      allowCreation: true,
+      createTokenText: "Create new tag",
+      onAdd: function(value) {},
+      onDelete: function(value) {},
+      theme: "facebook",
+      prePopulate: tags,
+      hintText: "add a tag"
+    });
   },
   
   resetTags: function() {
-	var tags = $("#tagsInput").tokenInput("get");
+    var tags = $("#tagsInput").tokenInput("get");
     yum.deleteAllTags();
     yum.saveTags(tags);
-	window.location.reload();
+    window.location.reload();
   },
   
   deleteAllTags: function() {

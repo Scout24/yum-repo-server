@@ -427,7 +427,6 @@
                 <containerId>tomcat7x</containerId>
                 <systemProperties>
                   <mongodb.serverlist>localhost</mongodb.serverlist>
-                  <log4j.configuration>file://${project.basedir}/src/test/resources/log4j.xml</log4j.configuration>
                 </systemProperties>
               </container>
               <deployables>

@@ -256,6 +256,10 @@ span.label {
 	font-weight: bold;
 }
 
+span.label.thin {
+    width: 65px;
+}
+
 span.value {
 	width: 235px
 }
@@ -277,6 +281,32 @@ span.value.big {
 .tableList .ui-switchbutton span {
     line-height: 120%;
     float: none;
+}
+
+ul.tablelist li.token-input-token-facebook {
+    font-size: 11px;
+    display: inline;
+}
+
+ul.tablelist li.token-input-token-facebook span {
+    display: inline;
+    float: none;
+    line-height: 100%;
+}
+
+ul.tablelist li.token-input-input-token-facebook {
+    border: 0 solid black;
+    padding: 0;
+}
+
+ul.tablelist li.token-input-input-token-facebook:HOVER {
+    background-color: white;
+}
+
+ul.tablelist li.token-input-input-token-facebook input {
+    margin: 0;
+    padding: 0;
+    border-radius: 5px;
 }
 
 span.value .ui-switchbutton.ui-state-active {
