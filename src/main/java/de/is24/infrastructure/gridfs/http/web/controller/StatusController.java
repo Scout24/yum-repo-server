@@ -42,12 +42,20 @@ public class StatusController {
   @RequestMapping(value = "/status", method = GET)
   @ResponseBody
   public String getStatus(HttpServletResponse response) {
-    boolean isOK = checkPingTheNode();
+    boolean isOK = false;
+    String extendInfo = "";
+    try {
+      isOK = checkPingTheNode();
 
-    if (isOK) {
-      isOK = checkCompletenessOfSetOfCollections();
+      if (isOK) {
+        isOK = checkCompletenessOfSetOfCollections();
+      }
+
+      extendInfo = "ReplicaSet <pre>" + getInfoOnReplicaSet() + "</pre>" + "<p/>" + getInfoOnCollections();
+
+    } catch (Exception e) {
+      isOK = false;
     }
-
     if (!isOK) {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
     }
@@ -55,18 +63,15 @@ public class StatusController {
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".status");
 
     String status = format("{mongoDBStatus: '%s'}", isOK ? OK_STATUS : NOT_RESPONDING_STATUS);
-    return status + "<p/>" + "ReplicaSet <pre>" + getInfoOnReplicaSet() + "</pre>" + "<p/>" + getInfoOnCollections();
+    return status + "<p/>" + extendInfo;
   }
 
   private boolean checkPingTheNode() {
-    boolean isOK;
-    try {
-      isOK = mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
-    } catch (Exception ex) {
-      LOGGER.warn("could not execute ping command", ex);
-      isOK = false;
+    boolean ping = mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
+    if (!ping) {
+      LOGGER.warn("could not ping");
     }
-    return isOK;
+    return ping;
   }
 
   private boolean checkCompletenessOfSetOfCollections() {
