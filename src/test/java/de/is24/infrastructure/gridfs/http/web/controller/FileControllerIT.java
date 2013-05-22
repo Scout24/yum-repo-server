@@ -37,10 +37,10 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     get.addHeader("Range", "bytes=0-1023");
 
     HttpResponse response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_PARTIAL_CONTENT));
     assertThat(response.getEntity().getContentLength(), is(1024L));
     assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is("1024"));
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_PARTIAL_CONTENT));
   }
 
   /**
@@ -53,10 +53,10 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     get.addHeader("Range", "bytes=500-1023");
 
     HttpResponse response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_PARTIAL_CONTENT));
     assertThat(response.getEntity().getContentLength(), is(524L));
     assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is("524"));
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_PARTIAL_CONTENT));
   }
 
   /** @see #downloadedFileWithRangeStartingInBetween() */
@@ -93,10 +93,10 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     HttpGet get = new HttpGet(repoUrl + "/noarch/test-artifact-1.2-1.noarch.rpm");
 
     HttpResponse response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
     assertThat(response.getEntity().getContentLength(), is((long) RPM_FILE_SIZE));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is(Integer.toString(RPM_FILE_SIZE)));
     assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
   }
 
 }
