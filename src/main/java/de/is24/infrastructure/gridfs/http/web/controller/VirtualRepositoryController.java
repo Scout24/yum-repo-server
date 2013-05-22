@@ -7,6 +7,7 @@ import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +20,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.MOVED_TEMPORARILY;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -93,7 +93,7 @@ public class VirtualRepositoryController {
   private ResponseEntity<InputStreamResource> createRedirect(URI uri) {
     HttpHeaders headers = new HttpHeaders();
     headers.setLocation(uri);
-    return new ResponseEntity<>(headers, MOVED_TEMPORARILY);
+    return new ResponseEntity<>(headers, HttpStatus.valueOf(302));
   }
 
   private URI getExternalUri(String target, String arch, String filename) {

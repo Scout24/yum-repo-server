@@ -76,11 +76,11 @@ public class StatusController {
 
   private boolean checkCompletenessOfSetOfCollections() {
     Set<String> expectedSetOfCollections = Sets.newHashSet(
-      "fs.chunks", //
-      "fs.files", //
-      "system.indexes", //
-      "system.users", //
-      "yum.entries", //
+      "fs.chunks",
+      "fs.files",
+      "system.indexes",
+      "system.users",
+      "yum.entries",
       "yum.repos");
 
     boolean isOk = mongoTemplate.getCollectionNames().containsAll(expectedSetOfCollections);

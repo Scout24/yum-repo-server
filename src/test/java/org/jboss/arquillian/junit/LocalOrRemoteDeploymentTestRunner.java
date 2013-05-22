@@ -6,17 +6,15 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
-
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.apache.commons.lang.StringUtils.isBlank;
 
-public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
 
+public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
   public static final String PROPERTY_KEY = "remoteContainerUrl";
   private final Arquillian arquillianDelegator;
 
@@ -77,7 +75,8 @@ public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
   }
 
   @Override
-  protected void validatePublicVoidNoArgMethods(Class<? extends Annotation> annotation, boolean isStatic, List<Throwable> errors) {
+  protected void validatePublicVoidNoArgMethods(Class<? extends Annotation> annotation, boolean isStatic,
+                                                List<Throwable> errors) {
     if (arquillianActive()) {
       arquillianDelegator.validatePublicVoidNoArgMethods(annotation, isStatic, errors);
     } else {

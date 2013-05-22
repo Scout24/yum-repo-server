@@ -94,7 +94,8 @@ public class RepoService {
 
   public RepoEntry ensureEntry(String reponame, RepoType... types) {
     RepoEntry repoEntry = entriesRepository.findFirstByName(reponame);
-    if ((repoEntry != null) && (types != null) && !contains(types, repoEntry.getType())) {
+    if ((repoEntry != null) && (types != null) && ((types.length > 0) && (types[0] != null)) &&
+        !contains(types, repoEntry.getType())) {
       throw new IllegalArgumentException("Repository " + reponame + " found but has type: " + repoEntry.getType() +
         ". Expected: " + ArrayUtils.toString(types));
     }
@@ -103,7 +104,11 @@ public class RepoService {
       validateRepoName(reponame);
       repoEntry = new RepoEntry();
       repoEntry.setName(reponame);
-      repoEntry.setType((types != null) ? types[0] : STATIC);
+      if ((types == null) || ((types.length > 0) && (types[0] == null))) {
+        repoEntry.setType(STATIC);
+      } else {
+        repoEntry.setType(types[0]);
+      }
     }
     return repoEntry;
   }

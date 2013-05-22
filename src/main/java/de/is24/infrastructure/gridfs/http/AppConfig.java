@@ -2,7 +2,8 @@ package de.is24.infrastructure.gridfs.http;
 
 import com.mongodb.FastestPingTimeReadPreference;
 import com.mongodb.Mongo;
-import com.mongodb.MongoOptions;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
@@ -91,17 +92,17 @@ public class AppConfig extends AbstractMongoConfiguration {
   @Bean
   @Override
   public Mongo mongo() throws Exception {
-    return new Mongo(getReplicatSet(), mongoOptions());
+    return new MongoClient(getReplicatSet(), mongoOptions());
   }
 
-  private MongoOptions mongoOptions() throws Exception {
-    MongoOptions mongoOptions = new MongoOptions();
-    mongoOptions.setAutoConnectRetry(true);
-    mongoOptions.setSocketKeepAlive(true);
-    mongoOptions.setReadPreference(new FastestPingTimeReadPreference());
-    mongoOptions.setConnectionsPerHost(20);
-    mongoOptions.setSocketTimeout(10 * 1000);
-    return mongoOptions;
+  private MongoClientOptions mongoOptions() throws Exception {
+    return new MongoClientOptions.Builder() //
+      .autoConnectRetry(true)
+      .socketKeepAlive(true)
+      .readPreference(new FastestPingTimeReadPreference())
+      .connectionsPerHost(20)
+      .socketTimeout(10 * 1000)
+      .build();
   }
 
   @Bean

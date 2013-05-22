@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http.repos;
 
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageLocation;
@@ -11,9 +12,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
 import java.util.List;
-
 import static ch.lambdaj.Lambda.extract;
 import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
@@ -25,27 +24,29 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 
+
 @Category(LocalExecutionOnly.class)
 public class RepoCleanerIT {
-
   private static final String NAME1 = "test-artifactus";
   private static final String NAME2 = "artifactus-test";
   private static final String NOARCH = "noarch";
   private static final String SRC = "src";
 
   private static final YumEntry[] YUM_ENTRIES_TO_KEEP = {
-      entry(NAME1, "1.0", "1", NOARCH),
-      entry(NAME1, "2.0", "1", NOARCH),
-      entry(NAME1, "0.1", "1", SRC),
-      entry(NAME1, "0.2", "1", SRC),
+    entry(NAME1, "1.0", "1", NOARCH),
+    entry(NAME1, "2.0", "1", NOARCH),
+    entry(NAME1, "0.1", "1", SRC),
+    entry(NAME1, "0.2", "1", SRC),
 
-      entry(NAME2, "1.1.1", "1", NOARCH),
-      entry(NAME2, "1.1", "2", NOARCH),
-      entry(NAME2, "1.1", "1", NOARCH)};
+    entry(NAME2, "1.1.1", "1", NOARCH),
+    entry(NAME2, "1.1", "2", NOARCH),
+    entry(NAME2, "1.1", "1", NOARCH)
+  };
 
   private static final YumEntry[] YUM_ENTRIES_TO_CLEAN_UP = {
-      entry(NAME2, "1.0","1",NOARCH),
-      entry(NAME2, "0.9","1",NOARCH)};
+    entry(NAME2, "1.0", "1", NOARCH),
+    entry(NAME2, "0.9", "1", NOARCH)
+  };
 
   @ClassRule
   public static IntegrationTestContext context = new IntegrationTestContext();
@@ -55,12 +56,14 @@ public class RepoCleanerIT {
   @Before
   public void setUp() throws Exception {
     reponame = uniqueRepoName();
-    service = new RepoCleaner(mongoTemplate(context.getMongo()), context.yumEntriesRepository(), context.gridFs(), context.repoService());
+    service = new RepoCleaner(mongoTemplate(context.getMongo()), context.yumEntriesRepository(), context.gridFs(),
+      context.repoService());
   }
 
   @Test
   public void cleanupRepo() throws Exception {
     givenRepoWithFilesToClean();
+
     long startTime = currentTimeMillis();
 
     assertThat(service.cleanup(reponame, 3), is(true));
@@ -73,6 +76,7 @@ public class RepoCleanerIT {
   public void cleanupRepoDirectly() throws Exception {
     givenRepoWithFilesToClean();
     givenRepoEntryWithMaxKeep(3);
+
     long startTime = currentTimeMillis();
 
     assertThat(service.cleanup(reponame), is(true));
@@ -84,7 +88,7 @@ public class RepoCleanerIT {
   @Test
   public void doNothingIfMaxkeepRPMsIsZero() throws Exception {
     givenRepoWithFilesToClean();
-    
+
     assertThat(service.cleanup(reponame, 0), is(false));
     assertThat(service.cleanup(reponame), is(false));
 
@@ -129,13 +133,13 @@ public class RepoCleanerIT {
   }
 
   private void givenRepoEntryWithMaxKeep(int maxKeepRpms) {
-    RepoEntry repoEntry = context.repoService().ensureEntry(reponame, null);
+    RepoEntry repoEntry = context.repoService().ensureEntry(reponame, (RepoType) null);
     repoEntry.setMaxKeepRpms(maxKeepRpms);
     context.repoEntriesRepository().save(repoEntry);
   }
 
   private void givenRepoWithFilesToClean() {
-    context.repoService().setMaxKeepRpms(reponame,0);
+    context.repoService().setMaxKeepRpms(reponame, 0);
     for (YumEntry entry : YUM_ENTRIES_TO_KEEP) {
       entry.setRepo(reponame);
       context.yumEntriesRepository().save(entry);
@@ -152,6 +156,7 @@ public class RepoCleanerIT {
     yumPackage.setName(name);
     yumPackage.setArch(arch);
     yumPackage.setVersion(packageVersion(version, release));
+
     YumPackageLocation location = new YumPackageLocation();
     location.setHref(arch + "/" + name + "-" + version + "-" + release + "." + arch + ".rpm");
     yumPackage.setLocation(location);

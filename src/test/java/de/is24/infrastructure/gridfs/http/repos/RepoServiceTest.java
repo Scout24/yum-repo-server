@@ -1,14 +1,13 @@
 package de.is24.infrastructure.gridfs.http.repos;
 
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryNotFoundException;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Date;
-
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
@@ -19,6 +18,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 
 public class RepoServiceTest {
   private static final Date BEFORE = new Date();
@@ -122,14 +122,14 @@ public class RepoServiceTest {
 
   @Test
   public void ensureEntry() throws Exception {
-    RepoEntry repoEntry = service.ensureEntry(ANY_REPONAME, null);
+    RepoEntry repoEntry = service.ensureEntry(ANY_REPONAME, (RepoType) null);
     assertThat(repoEntry.getName(), is(ANY_REPONAME));
     assertThat(repoEntry.getType(), is(STATIC));
   }
 
   @Test(expected = BadRequestException.class)
   public void failForInvalidReponameInEnsureEntry() throws Exception {
-    service.ensureEntry("?.-456456()", null);
+    service.ensureEntry("?.-456456()", (RepoType) null);
   }
 
 

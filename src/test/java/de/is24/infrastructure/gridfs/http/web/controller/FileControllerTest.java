@@ -13,7 +13,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -45,10 +44,7 @@ public class FileControllerTest {
 
   @Mock
   private GridFsService gridFs;
-  private MockHttpServletResponse httpServletResponse;
-
   private FileController fileController;
-
   private MockMvc mockMvc;
 
   public static final String CONTENT_WITH_200_CHARS = random(200, "a");
@@ -56,8 +52,6 @@ public class FileControllerTest {
   @Before
   public void setUp() throws Exception {
     fileController = new FileController(gridFs);
-    httpServletResponse = new MockHttpServletResponse();
-
     mockMvc = standaloneSetup(fileController).build();
   }
 
