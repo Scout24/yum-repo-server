@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
+import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -23,10 +25,10 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
-import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.apache.commons.lang.StringUtils.isEmpty;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang.StringUtils.join;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.PARTIAL_CONTENT;
 import static org.springframework.http.MediaType.valueOf;
@@ -125,12 +127,16 @@ public class FileController {
 
 
   @RequestMapping(value = "/{repoName}/{arch}/{filename}" + RPM_EXTENSION, method = DELETE)
+  @ResponseStatus(NO_CONTENT)
   public void deleteFile(@PathVariable("repoName") String repoName,
                          @PathVariable("arch") String arch,
                          @PathVariable("filename") String filename, HttpServletResponse response) {
     String path = join(asList(repoName, arch, filename + RPM_EXTENSION), "/");
-    gridFs.delete(path);
-    response.setStatus(SC_NO_CONTENT);
+    try {
+      gridFs.delete(path);
+    } catch (GridFSFileNotFoundException ex) {
+      LOGGER.debug("ignoring delete of none existing resource '{}'", path);
+    }
     LOGGER.info("Deleted file {}.rpm", filename);
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".delete.rpm");
   }
