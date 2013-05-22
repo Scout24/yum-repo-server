@@ -87,9 +87,14 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
     if (sortOrder == SortOrder.asc) {
       Collections.sort(list, comparator);
     } else {
-      Collections.sort(list, ComparatorUtils.reversedComparator(comparator));
+      Collections.sort(list, getReversedComparator(comparator));
     }
     return new LinkedHashSet<>(list);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Comparator<FolderInfo> getReversedComparator(final Comparator<FolderInfo> comparator) {
+    return ComparatorUtils.reversedComparator(comparator);
   }
 
   private Comparator<FolderInfo> getComparator(SortField sortBy) {

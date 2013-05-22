@@ -60,6 +60,7 @@ public abstract class RepositoryInfoControllerIT extends AbstractContainerAndMon
     };
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void shouldGetSetOfFilesForGivenRepositoryAndArch() throws Exception {
     HttpGet get = new HttpGet(givenRepoUrlWithNoarch);

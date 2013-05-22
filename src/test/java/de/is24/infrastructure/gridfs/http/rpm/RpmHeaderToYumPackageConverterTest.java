@@ -1,28 +1,60 @@
 package de.is24.infrastructure.gridfs.http.rpm;
 
-import de.is24.infrastructure.gridfs.http.domain.yum.*;
-import org.apache.commons.lang.ArrayUtils;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChangeLog;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageDir;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFile;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFormat;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFormatEntry;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageRequirement;
 import org.freecompany.redline.ReadableChannelWrapper;
 import org.freecompany.redline.Scanner;
 import org.freecompany.redline.header.Header;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static ch.lambdaj.Lambda.*;
-import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.*;
+import static ch.lambdaj.Lambda.having;
+import static ch.lambdaj.Lambda.on;
+import static ch.lambdaj.Lambda.selectFirst;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_ALL_FILES;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_ARCH;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_BUILD_HOST;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_BUILD_TIME;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_DESCRIPTION;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_DIRS;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_EPOCHE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_FILE_NAME;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_GROUP;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_HEADER_END;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_HEADER_START;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_INSTALLED_FILE_SIZE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_LICENSE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_LOCATION;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_NAME;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_RELEASE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_ROOT_FILES;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_SOURCE_RPM;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_SUMMARY;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_URL;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_VENDOR;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_VERSION;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_ARCH;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_FILE_NAME;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_LOCATION;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
 import static java.nio.channels.Channels.newChannel;
-import static org.apache.commons.lang.ArrayUtils.contains;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItemInArray;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+
 
 public class RpmHeaderToYumPackageConverterTest {
-
   private static RpmHeaderToYumPackageConverter rpmHeaderToYumPackageConverter;
 
   @BeforeClass
@@ -68,14 +100,18 @@ public class RpmHeaderToYumPackageConverterTest {
 
   @Test
   public void readPackageFormatEntryFlags() throws Exception {
-    final Map<String, YumPackageFormatEntry> provides = makeAccessible(rpmHeaderToYumPackageConverter.convert().getPackageFormat().getProvides());
+    final Map<String, YumPackageFormatEntry> provides = makeAccessible(rpmHeaderToYumPackageConverter.convert()
+      .getPackageFormat()
+      .getProvides());
 
     assertThat(provides.get(COMPLEX_RPM_NAME).getFlags(), equalTo("EQ"));
   }
 
   @Test
   public void readPackageFormatEntryVersion() throws Exception {
-    final Map<String, YumPackageFormatEntry> provides = makeAccessible(rpmHeaderToYumPackageConverter.convert().getPackageFormat().getProvides());
+    final Map<String, YumPackageFormatEntry> provides = makeAccessible(rpmHeaderToYumPackageConverter.convert()
+      .getPackageFormat()
+      .getProvides());
 
     assertThat(provides.get(COMPLEX_RPM_NAME).getVersion().getEpoch(), equalTo(COMPLEX_RPM_EPOCHE));
     assertThat(provides.get(COMPLEX_RPM_NAME).getVersion().getVer(), equalTo(COMPLEX_RPM_VERSION));
@@ -84,7 +120,9 @@ public class RpmHeaderToYumPackageConverterTest {
 
   @Test
   public void readPackageFormatProvides() throws Exception {
-    final Map<String, YumPackageFormatEntry> provides = makeAccessible(rpmHeaderToYumPackageConverter.convert().getPackageFormat().getProvides());
+    final Map<String, YumPackageFormatEntry> provides = makeAccessible(rpmHeaderToYumPackageConverter.convert()
+      .getPackageFormat()
+      .getProvides());
 
     assertThat(provides.get("a_provides"), notNullValue());
     assertThat(provides.get("b_provides"), notNullValue());
@@ -94,7 +132,9 @@ public class RpmHeaderToYumPackageConverterTest {
 
   @Test
   public void readPackageFormatRequires() throws Exception {
-    final Map<String, YumPackageRequirement> requires = makeAccessible(rpmHeaderToYumPackageConverter.convert().getPackageFormat().getRequires());
+    final Map<String, YumPackageRequirement> requires = makeAccessible(rpmHeaderToYumPackageConverter.convert()
+      .getPackageFormat()
+      .getRequires());
 
     assertThat(requires.get("a_require"), notNullValue());
     assertThat(requires.get("b_require"), notNullValue());
@@ -106,7 +146,9 @@ public class RpmHeaderToYumPackageConverterTest {
 
   @Test
   public void readPackageFormatObsolete() throws Exception {
-    final Map<String, YumPackageFormatEntry> obsoletes = makeAccessible(rpmHeaderToYumPackageConverter.convert().getPackageFormat().getObsoletes());
+    final Map<String, YumPackageFormatEntry> obsoletes = makeAccessible(rpmHeaderToYumPackageConverter.convert()
+      .getPackageFormat()
+      .getObsoletes());
 
     assertThat(obsoletes.get("a_obsoletes"), notNullValue());
     assertThat(obsoletes.get("b_obsoletes"), notNullValue());
@@ -147,7 +189,8 @@ public class RpmHeaderToYumPackageConverterTest {
 
   @Test
   public void readFilesForRootDir() throws Exception {
-    YumPackageDir rootDir = selectFirst(rpmHeaderToYumPackageConverter.convert().getPackageDirs(), having(on(YumPackageDir.class).getName(), equalTo("/")));
+    YumPackageDir rootDir = selectFirst(rpmHeaderToYumPackageConverter.convert().getPackageDirs(),
+      having(on(YumPackageDir.class).getName(), equalTo("/")));
 
     assertThat(rootDir.getFiles().size(), equalTo(COMPLEX_RPM_ROOT_FILES.length));
     for (YumPackageFile file : COMPLEX_RPM_ROOT_FILES) {
@@ -155,8 +198,9 @@ public class RpmHeaderToYumPackageConverterTest {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private <T extends YumPackageFormatEntry> Map<String, T> makeAccessible(final List<T> entries) {
-    final Map<String, T> accessibleEntries = new HashMap<String, T>();
+    final Map<String, T> accessibleEntries = new HashMap<>();
     for (YumPackageFormatEntry entry : entries) {
       accessibleEntries.put(entry.getName(), (T) entry);
     }
@@ -167,8 +211,6 @@ public class RpmHeaderToYumPackageConverterTest {
   private static RpmHeaderToYumPackageConverter headerConverter(String fileName) throws Exception {
     return new RpmHeaderToYumPackageConverter(new RpmHeaderWrapper(readHeader(streamOf(fileName))));
   }
-
-
 
 
   private static Header readHeader(InputStream inputStream) throws Exception {

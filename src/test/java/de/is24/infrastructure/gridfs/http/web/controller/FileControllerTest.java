@@ -55,6 +55,7 @@ public class FileControllerTest {
     mockMvc = standaloneSetup(fileController).build();
   }
 
+  @SuppressWarnings("unchecked")
   @Test(expected = GridFSFileNotFoundException.class)
   public void get404ResponseWhenFileIsNotFound() throws Exception {
     when(gridFs.getResource(anyString())).thenThrow(GridFSFileNotFoundException.class);

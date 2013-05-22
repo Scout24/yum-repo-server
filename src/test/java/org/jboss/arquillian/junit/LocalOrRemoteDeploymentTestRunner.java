@@ -34,7 +34,7 @@ public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
       return arquillianDelegator.getChildren();
     }
 
-    List<FrameworkMethod> filteredTestMethods = new ArrayList<FrameworkMethod>();
+    List<FrameworkMethod> filteredTestMethods = new ArrayList<>();
     for (FrameworkMethod testMethod : super.getChildren()) {
       if (testMethod.getAnnotation(LocalOnly.class) == null) {
         filteredTestMethods.add(testMethod);
@@ -85,6 +85,7 @@ public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   protected Statement withAfters(FrameworkMethod method, Object target, Statement statement) {
     if (arquillianActive()) {
       return arquillianDelegator.withAfters(method, target, statement);
@@ -94,6 +95,7 @@ public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   protected Statement withBefores(FrameworkMethod method, Object target, Statement statement) {
     if (arquillianActive()) {
       return arquillianDelegator.withBefores(method, target, statement);
@@ -106,6 +108,4 @@ public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
     }
     return super.withBefores(method, target, statement);
   }
-
-
 }

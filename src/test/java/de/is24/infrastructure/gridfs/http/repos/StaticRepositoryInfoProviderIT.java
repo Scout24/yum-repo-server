@@ -71,6 +71,7 @@ public class StaticRepositoryInfoProviderIT {
     cleanUpRepositories(givenReponame);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void shouldGetEmptyAndNotEmptyRepos() throws Exception {
     String givenRepoWithData = createRepoFromDaysAgoWithData(0);
@@ -130,10 +131,10 @@ public class StaticRepositoryInfoProviderIT {
   private List<RepoEntry> findRepoByNameAndOlderDays(String givenReponameRegex, int olderdays) {
     Date newerSevenDaysAgo = now().minusDays(7).toDate();
     Date olderOneDayAgo = now().minusDays(olderdays).toDate();
-    List<RepoEntry> entries = provider.find(givenReponameRegex, newerSevenDaysAgo, olderOneDayAgo);
-    return entries;
+    return provider.find(givenReponameRegex, newerSevenDaysAgo, olderOneDayAgo);
   }
 
+  @SuppressWarnings("unchecked")
   private void thenReposAreSortedByName(Container<FolderInfo> givenStaticRepos, String expectedValue1,
                                         String expectedValue2, String expectedValue3) {
     Matcher<FolderInfo> matcher1 = havingValue(on(FolderInfo.class).getName(), is(expectedValue1));

@@ -72,6 +72,11 @@ public class CachingVersionDBObjectComparator implements Comparator<Object> {
       obj.put(field.getCacheField(), segmentGenerator.generate((String) obj.get(field.name())));
     }
 
+    return getStringList(obj, field);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static List<String> getStringList(final DBObject obj, final VersionField field) {
     return (List<String>) obj.get(field.getCacheField());
   }
 }
