@@ -32,6 +32,9 @@ public final class RepoTestUtils {
     post.setEntity(entity);
 
     HttpResponse response = httpClient.execute(post);
+    if (response.getStatusLine().getStatusCode() > 299) {
+      throw new RuntimeException("could not upload " + pathToRpm + " to " + repoUrl);
+    }
     consume(response.getEntity());
     return response;
   }
