@@ -1,12 +1,14 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Mongo;
-import com.mongodb.ReplicationSetStatusBridge;
-import com.mongodb.ServerAddress;
+import com.mongodb.ReplicaSetStatus;
 import de.is24.util.monitoring.InApplicationMonitor;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import static java.lang.String.format;
@@ -54,7 +55,7 @@ public class StatusController {
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".status");
 
     String status = format("{mongoDBStatus: '%s'}", isOK ? OK_STATUS : NOT_RESPONDING_STATUS);
-    return status + "<p/>" + getInfoOnCollections() + "<p/>" + "<pre>" + getInfoOnReplicaSet() + "</pre>";
+    return status + "<p/>" + "ReplicaSet <pre>" + getInfoOnReplicaSet() + "</pre>" + "<p/>" + getInfoOnCollections();
   }
 
   private boolean checkPingTheNode() {
@@ -87,16 +88,27 @@ public class StatusController {
 
   private String getInfoOnCollections() {
     Set<String> collectionNames = mongoTemplate.getCollectionNames();
-    return Joiner.on("<br/>").join(collectionNames);
+    List<String> collectionStats = Lists.newArrayList();
+
+    for (String collection : collectionNames) {
+      String json = mongoTemplate.getCollection(collection).getStats().toString();
+      try {
+        collectionStats.add(collection + "<pre>" + new JSONObject(json).toString(2) + "</pre>");
+      } catch (JSONException e) {
+        LOGGER.error(e.getMessage(), e);
+      }
+    }
+    return Joiner.on("<br/>").join(collectionStats);
   }
 
   private String getInfoOnReplicaSet() {
-    ReplicationSetStatusBridge replicationSetStatusBridge = new ReplicationSetStatusBridge(mongo.getReplicaSetStatus());
-    List<String> info = new ArrayList<>();
-    for (ServerAddress server : mongo.getServerAddressList()) {
-      info.add(server + "\t: " + replicationSetStatusBridge.getState(server));
+    ReplicaSetStatus replicaSetStatus = mongo.getReplicaSetStatus();
+    try {
+      String json = new JSONObject(replicaSetStatus.toString()).toString(2);
+      return "<br/>" + json;
+    } catch (JSONException e) {
+      LOGGER.error(e.getMessage(), e);
     }
-
-    return Joiner.on("<br/>").join(info);
+    return "";
   }
 }
