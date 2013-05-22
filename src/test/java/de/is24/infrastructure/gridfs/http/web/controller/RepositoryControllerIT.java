@@ -14,7 +14,6 @@ import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
-import org.fest.assertions.api.Assertions;
 import org.hamcrest.Matcher;
 import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
@@ -61,10 +60,9 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
     repoEntriesRepository = new MongoRepositoryFactory(mongoTemplate(mongo)).getRepository(RepoEntriesRepository.class);
   }
 
-  @Test
+  @Test(expected = RuntimeException.class)
   public void shouldNotBeAbleToUploadToRootRepo() throws IOException {
     HttpResponse response = uploadRpm(deploymentURL + "/repo/", RPM_FILE.getPath());
-    Assertions.assertThat(response.getStatusLine().getStatusCode()).isEqualTo(406);
   }
 
   @Test
