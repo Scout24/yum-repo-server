@@ -14,6 +14,9 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.io.IOException;
 import static com.mongodb.gridfs.GridFSTestUtil.gridFSDBFile;
 import static org.apache.commons.lang.RandomStringUtils.random;
@@ -26,6 +29,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.PARTIAL_CONTENT;
 import static org.springframework.http.MediaType.valueOf;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -34,17 +39,26 @@ public class FileControllerTest {
   public static final String REPO = "files";
   public static final String ARCH = "test";
   public static final String FILENAME = "file";
+
+  private static final MockHttpServletRequestBuilder MOCK_DELETE_REQUEST = MockMvcRequestBuilders.delete("/repo/" +
+    REPO + "/" + ARCH + "/" + FILENAME + ".rpm");
+
   @Mock
   private GridFsService gridFs;
   private MockHttpServletResponse httpServletResponse;
 
   private FileController fileController;
+
+  private MockMvc mockMvc;
+
   public static final String CONTENT_WITH_200_CHARS = random(200, "a");
 
   @Before
   public void setUp() throws Exception {
     fileController = new FileController(gridFs);
     httpServletResponse = new MockHttpServletResponse();
+
+    mockMvc = standaloneSetup(fileController).build();
   }
 
   @Test(expected = GridFSFileNotFoundException.class)
@@ -111,20 +125,17 @@ public class FileControllerTest {
     fileController.deliverRangeOfFile(REPO, ARCH, FILENAME, "bytes=123-100");
   }
 
-  @Test(expected = GridFSFileNotFoundException.class)
-  public void deliver404IfRpmDoesNotExists() throws Exception {
+  @Test
+  public void deliver204IfRpmDoesNotExists() throws Exception {
     doThrow(GridFSFileNotFoundException.class).when(gridFs).delete(anyString());
 
-    fileController.deleteFile(REPO, ARCH, FILENAME, null);
+    mockMvc.perform(MOCK_DELETE_REQUEST).andExpect(status().isNoContent());
   }
 
   @Test
   public void deliver204IfRpmIsRemoved() throws Exception {
     givenGridFSDBFile();
-
-    fileController.deleteFile(REPO, ARCH, FILENAME, httpServletResponse);
-
-    assertThat(httpServletResponse.getStatus(), is(204));
+    mockMvc.perform(MOCK_DELETE_REQUEST).andExpect(status().isNoContent());
   }
 
   private void givenGridFSDBFile() throws IOException {
