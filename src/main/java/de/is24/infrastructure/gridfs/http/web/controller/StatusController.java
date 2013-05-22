@@ -42,10 +42,10 @@ public class StatusController {
   @RequestMapping(value = "/status", method = GET)
   @ResponseBody
   public String getStatus(HttpServletResponse response) {
-    boolean isOK = checkCompletenessOfSetOfCollections();
+    boolean isOK = checkPingTheNode();
 
     if (isOK) {
-      isOK = checkPingTheNode();
+      isOK = checkCompletenessOfSetOfCollections();
     }
 
     if (!isOK) {

@@ -49,7 +49,8 @@ public class FastestPingTimeReadPreference extends ReadPreference {
       String choosenNode = replicaSetNode.getServerAddress().getHost() + "/" + replicaSetNode.getPingTime();
       LOGGER.debug("take {} as mongodb host. other {}", choosenNode, buffer.toString());
     } else {
-      LOGGER.info("take {} as mongodb host", replicaSetNode.getServerAddress().getHost());
+      LOGGER.info("take {} as mongodb host",
+        (replicaSetNode == null) ? "--" : replicaSetNode.getServerAddress().getHost());
     }
     return replicaSetNode;
   }

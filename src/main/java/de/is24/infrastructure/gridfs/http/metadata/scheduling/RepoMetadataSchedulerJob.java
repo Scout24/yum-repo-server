@@ -51,13 +51,16 @@ public class RepoMetadataSchedulerJob {
   @Scheduled(cron = "${scheduler.update.cron:*/30 * * * * *}")
   public void update() {
     LOG.debug("Checking for updates in scheduled repository definitions.");
-
-    Set<String> repoNamesToSchedule = new HashSet<>(extract(repo.findByType(SCHEDULED), on(RepoEntry.class).getName()));
-    for (String repoToSchedule : repoNamesToSchedule) {
-      createRepoJob(repoToSchedule);
+    try {
+      Set<String> repoNamesToSchedule = new HashSet<>(extract(repo.findByType(SCHEDULED),
+          on(RepoEntry.class).getName()));
+      for (String repoToSchedule : repoNamesToSchedule) {
+        createRepoJob(repoToSchedule);
+      }
+      removeJobsNotFoundInDb(repoNamesToSchedule);
+    } catch (Exception e) {
+      LOG.error(e.getMessage());
     }
-
-    removeJobsNotFoundInDb(repoNamesToSchedule);
   }
 
   private void removeJobsNotFoundInDb(Set<String> repoNamesToSchedule) {
