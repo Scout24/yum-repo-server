@@ -105,8 +105,7 @@ public class StatusController {
   }
 
   private boolean checkPingTheNode() {
-    final boolean ping = mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
-    return ping;
+    return mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
   }
 
 
