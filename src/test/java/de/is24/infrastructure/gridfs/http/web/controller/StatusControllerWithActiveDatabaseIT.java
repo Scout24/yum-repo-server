@@ -9,8 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
@@ -24,7 +24,7 @@ public class StatusControllerWithActiveDatabaseIT extends AbstractContainerAndMo
     String jsonResponse = IOUtils.toString(httpResponse.getEntity().getContent());
 
     assertThat(httpResponse.getStatusLine().getStatusCode(), is(SC_OK));
-    assertThat(jsonResponse, startsWith("{mongoDBStatus: 'ok'}"));
+    assertThat(jsonResponse, containsString("{mongoDBStatus: \"ok\""));
   }
 
 

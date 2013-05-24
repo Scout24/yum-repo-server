@@ -5,28 +5,28 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.Mongo;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.Set;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@Ignore
 @RunWith(MockitoJUnitRunner.class)
 public class StatusControllerTest {
-  private static final String STATUS_OK_JSON = "{mongoDBStatus: 'ok'}";
-  private static final String STATUS_FAILURE_JSON = "{mongoDBStatus: 'not responding'}";
+  private static final String STATUS_OK_JSON = "{mongoDBStatus: \"ok\"}";
+  private static final String STATUS_FAILURE_JSON = "{mongoDBStatus: \"not responding\"}";
 
   private StatusController statusController;
   @Mock
@@ -37,12 +37,14 @@ public class StatusControllerTest {
   @Mock
   private CommandResult commandResult;
 
-  private MockHttpServletResponse mockResponse;
+  private MockMvc mockMvc;
+  private MockHttpServletRequestBuilder requestBuilder;
 
   @Before
   public void setUp() throws Exception {
     statusController = new StatusController(mongoTemplate, mongo);
-    mockResponse = new MockHttpServletResponse();
+    mockMvc = standaloneSetup(statusController).build();
+    requestBuilder = MockMvcRequestBuilders.get("/status");
     when(mongoTemplate.executeCommand(any(BasicDBObject.class))).thenReturn(commandResult);
 
     Set<String> set = Sets.newHashSet(
@@ -56,18 +58,32 @@ public class StatusControllerTest {
   }
 
   @Test
-  public void getOKJsonWhenDBIsAvailable() {
+  public void getOKJsonWhenDBIsAvailable() throws Exception {
     when(commandResult.ok()).thenReturn(true);
 
-    assertThat(statusController.getStatus(mockResponse), startsWith(STATUS_OK_JSON));
-    assertThat(mockResponse.getStatus(), is(SC_OK));
+
+    mockMvc.perform(requestBuilder)
+    .andExpect(status().isOk())
+    .andExpect(content().string(containsString(STATUS_OK_JSON)));
+
   }
 
   @Test
-  public void getNotRespondingJsonWhenDBIsNOAvailable() {
+  public void getOKJsonWhenDBIsAvailableInPrettyJson() throws Exception {
+    when(commandResult.ok()).thenReturn(true);
+
+    mockMvc.perform(requestBuilder.param("pretty", "true"))
+    .andExpect(status().isOk())
+    .andExpect(content().string(containsString("\"mongoDBStatus\" : \"ok\"")))
+    .andExpect(content().string(not(containsString("}}"))));
+  }
+
+  @Test
+  public void getNotRespondingJsonWhenDBIsNOAvailable() throws Exception {
     when(commandResult.ok()).thenReturn(false);
 
-    assertThat(statusController.getStatus(mockResponse), startsWith(STATUS_FAILURE_JSON));
-    assertThat(mockResponse.getStatus(), is(SC_SERVICE_UNAVAILABLE));
+    mockMvc.perform(requestBuilder)
+    .andExpect(status().isServiceUnavailable())
+    .andExpect(content().string(containsString(STATUS_FAILURE_JSON)));
   }
 }

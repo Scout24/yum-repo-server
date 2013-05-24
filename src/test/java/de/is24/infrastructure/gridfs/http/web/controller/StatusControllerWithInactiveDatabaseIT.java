@@ -10,8 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
@@ -28,7 +28,7 @@ public class StatusControllerWithInactiveDatabaseIT extends AbstractContainerAnd
     String jsonResponse = IOUtils.toString(httpResponse.getEntity().getContent());
 
     assertThat(httpResponse.getStatusLine().getStatusCode(), is(SC_SERVICE_UNAVAILABLE));
-    assertThat(jsonResponse, startsWith("{mongoDBStatus: 'not responding'}"));
+    assertThat(jsonResponse, containsString("{mongoDBStatus: \"not responding\"}"));
 
     startMongo();
   }

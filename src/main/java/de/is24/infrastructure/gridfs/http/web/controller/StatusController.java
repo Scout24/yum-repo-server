@@ -1,25 +1,28 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
+import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import com.mongodb.ReplicaSetStatus;
+import com.mongodb.util.JSON;
 import de.is24.util.monitoring.InApplicationMonitor;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
+import java.io.IOException;
+import java.util.Iterator;
 import java.util.Set;
-import static java.lang.String.format;
+import static com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES;
+import static com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -33,25 +36,55 @@ public class StatusController {
   private final MongoTemplate mongoTemplate;
   private final Mongo mongo;
 
+  private static final Set<String> EXPECTED_COLLECTION_NAMES = ImmutableSet.of(
+    "fs.chunks",
+    "fs.files",
+    "system.indexes",
+    "system.users",
+    "yum.entries",
+    "yum.repos");
+
   @Autowired
   public StatusController(final MongoTemplate mongoTemplate, Mongo mongo) {
     this.mongoTemplate = mongoTemplate;
     this.mongo = mongo;
   }
 
-  @RequestMapping(value = "/status", method = GET)
+  @RequestMapping(value = "/status", method = GET, produces = { "application/json", "text/plain" })
   @ResponseBody
-  public String getStatus(HttpServletResponse response) {
+  public String getStatus(HttpServletResponse response,
+                          @RequestParam(value = "pretty", required = false) boolean prettyJson) {
+    final String rawJson = getStatusJson(response);
+    return prettyJson ? prettyJson(rawJson) : rawJson;
+  }
+
+  private String prettyJson(final String rawJson) {
+    try {
+      final ObjectMapper mapper = new ObjectMapper().disableDefaultTyping()
+        .configure(ALLOW_UNQUOTED_FIELD_NAMES, true)
+        .configure(ALLOW_SINGLE_QUOTES, true);
+      final Object o = mapper.readValue(rawJson, Object.class);
+      return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(o);
+    } catch (IOException ioEx) {
+      LOGGER.debug("can't pretty json for rawJson {}\n{}", rawJson, ioEx);
+      return rawJson;
+    }
+  }
+
+  private String getStatusJson(HttpServletResponse response) {
     boolean isOK = false;
-    String extendInfo = "";
+
+    final StringBuilder detailedInfo = new StringBuilder();
     try {
       isOK = checkPingTheNode();
 
       if (isOK) {
-        isOK = checkCompletenessOfSetOfCollections();
-      }
+        final Set<String> collectionNames = mongoTemplate.getCollectionNames();
+        isOK = collectionNames.containsAll(EXPECTED_COLLECTION_NAMES);
 
-      extendInfo = "ReplicaSet <pre>" + getInfoOnReplicaSet() + "</pre>" + "<p/>" + getInfoOnCollections();
+        appendInfoOnReplicaSet(detailedInfo);
+        appendCollectionInfo(collectionNames, detailedInfo);
+      }
 
     } catch (Exception e) {
       isOK = false;
@@ -60,60 +93,65 @@ public class StatusController {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
     }
 
+    final StringBuilder content = new StringBuilder("{mainInfo:{mongoDBStatus: \"");
+    content.append(isOK ? OK_STATUS : NOT_RESPONDING_STATUS);
+    content.append("\"},detailedInfo: {");
+    content.append(detailedInfo);
+    content.append("}}");
+
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".status");
 
-    String status = format("{mongoDBStatus: '%s'}", isOK ? OK_STATUS : NOT_RESPONDING_STATUS);
-    return status + "<p/>" + extendInfo;
+    return content.toString();
   }
 
   private boolean checkPingTheNode() {
-    boolean ping = mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
-    if (!ping) {
-      LOGGER.warn("could not ping");
-    }
+    final boolean ping = mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
     return ping;
   }
 
-  private boolean checkCompletenessOfSetOfCollections() {
-    Set<String> expectedSetOfCollections = Sets.newHashSet(
-      "fs.chunks",
-      "fs.files",
-      "system.indexes",
-      "system.users",
-      "yum.entries",
-      "yum.repos");
 
-    boolean isOk = mongoTemplate.getCollectionNames().containsAll(expectedSetOfCollections);
+  private void appendCollectionInfo(final Iterable<String> collectionNames, final StringBuilder content) {
+    content.append(",collections: [");
 
-    if (!isOk) {
-      LOGGER.warn("collections not complete");
-    }
-    return isOk;
-  }
+    final Iterator<String> it = collectionNames.iterator();
+    while (it.hasNext()) {
+      final String collectionName = it.next();
+      content.append("{name: \"");
+      content.append(collectionName);
+      content.append("\"");
 
-  private String getInfoOnCollections() {
-    Set<String> collectionNames = mongoTemplate.getCollectionNames();
-    List<String> collectionStats = Lists.newArrayList();
-
-    for (String collection : collectionNames) {
-      String json = mongoTemplate.getCollection(collection).getStats().toString();
-      try {
-        collectionStats.add(collection + "<pre>" + new JSONObject(json).toString(2) + "</pre>");
-      } catch (JSONException e) {
-        LOGGER.error(e.getMessage(), e);
+      final CommandResult stats = getCollectionStats(collectionName);
+      if (stats == null) {
+        content.append(",info: \"unavialable\"");
+      } else {
+        content.append(",info: ");
+        JSON.serialize(stats, content);
+      }
+      if (it.hasNext()) {
+        content.append("},");
+      } else {
+        content.append("}");
       }
     }
-    return Joiner.on("<br/>").join(collectionStats);
+    content.append("]");
   }
 
-  private String getInfoOnReplicaSet() {
-    ReplicaSetStatus replicaSetStatus = mongo.getReplicaSetStatus();
-    try {
-      String json = new JSONObject(replicaSetStatus.toString()).toString(2);
-      return "<br/>" + json;
-    } catch (JSONException e) {
-      LOGGER.error(e.getMessage(), e);
+  private CommandResult getCollectionStats(final String collectionName) {
+    final DBCollection dbCollection = mongoTemplate.getCollection(collectionName);
+    if (dbCollection != null) {
+      return dbCollection.getStats();
     }
-    return "";
+    return null;
+  }
+
+  private void appendInfoOnReplicaSet(final StringBuilder content) {
+    content.append("replicaSetInfo: ");
+
+    ReplicaSetStatus replicaSetStatus = mongo.getReplicaSetStatus();
+    if (replicaSetStatus == null) {
+      content.append("\"unavialable\"");
+    } else {
+      content.append(replicaSetStatus.toString());
+    }
   }
 }

@@ -357,11 +357,6 @@
        <version>2.0M10</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-      <version>20090911</version>
-    </dependency>
   </dependencies>
 
   <profiles>
