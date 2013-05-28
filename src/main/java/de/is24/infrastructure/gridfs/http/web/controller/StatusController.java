@@ -82,8 +82,8 @@ public class StatusController {
         final Set<String> collectionNames = mongoTemplate.getCollectionNames();
         isOK = collectionNames.containsAll(EXPECTED_COLLECTION_NAMES);
 
-        appendInfoOnReplicaSet(detailedInfo);
-        appendCollectionInfo(collectionNames, detailedInfo);
+        //        appendInfoOnReplicaSet(detailedInfo);
+        //        appendCollectionInfo(collectionNames, detailedInfo);
       }
 
     } catch (Exception e) {
