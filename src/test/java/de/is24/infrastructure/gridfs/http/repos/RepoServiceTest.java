@@ -192,6 +192,12 @@ public class RepoServiceTest {
     assertThat(service.getRepo(ANY_REPONAME, STATIC), is(entry));
   }
 
+  //Issue #11
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldNotCreateNullStaticRepoNames() {
+    service.createOrUpdate(null);
+  }
+
   private RepoEntry createRepoEntry(boolean scheduled) {
     RepoEntry repoEntry = new RepoEntry();
     repoEntry.setType(scheduled ? SCHEDULED : STATIC);
