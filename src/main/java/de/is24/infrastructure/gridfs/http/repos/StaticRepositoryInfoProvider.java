@@ -112,8 +112,8 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
 
   @Override
   public Iterable<DBObject> getReposAggregation(SortField sortBy, SortOrder sortOrder) {
-    AggregationOutput aggregation = getFilesCollection().aggregate(match(where("name").ne(null)),
-      groupBy(DatabaseStructure.METADATA_REPO_KEY) //
+    AggregationOutput aggregation = getFilesCollection().aggregate(match(where(METADATA_REPO_KEY).ne(null)),
+      groupBy(METADATA_REPO_KEY) //
       .sum("length").max("uploadDate").build(),
       sort(sortBy, sortOrder));
     return aggregation.results();
