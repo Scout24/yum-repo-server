@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -50,12 +49,24 @@ public class StatusController {
     this.mongo = mongo;
   }
 
+  /**
+   * TODO text/plain is for tests, as httpclient does not accept application/json, this could be fixed
+   */
   @RequestMapping(value = "/status", method = GET, produces = { "application/json", "text/plain" })
   @ResponseBody
-  public String getStatus(HttpServletResponse response,
-                          @RequestParam(value = "pretty", required = false) boolean prettyJson) {
-    final String rawJson = getStatusJson(response);
-    return prettyJson ? prettyJson(rawJson) : rawJson;
+  public String getStatus(HttpServletResponse response) {
+    return getStatusJson(response, false);
+  }
+
+
+  /**
+   * TODO text/plain is for tests, as httpclient does not accept application/json, this could be fixed
+   */
+  @RequestMapping(value = "/status-full", method = GET, produces = { "application/json", "text/plain" })
+  @ResponseBody
+  public String getStatus2(HttpServletResponse response) {
+    // TODO json is not pretty
+    return prettyJson(getStatusJson(response, true));
   }
 
   private String prettyJson(final String rawJson) {
@@ -71,7 +82,8 @@ public class StatusController {
     }
   }
 
-  private String getStatusJson(HttpServletResponse response) {
+
+  private String getStatusJson(HttpServletResponse response, final boolean showExtendedInformation) {
     boolean isOK = false;
 
     final StringBuilder detailedInfo = new StringBuilder();
@@ -79,13 +91,14 @@ public class StatusController {
       isOK = checkPingTheNode();
 
       if (isOK) {
-        final Set<String> collectionNames = mongoTemplate.getCollectionNames();
+        Set<String> collectionNames = mongoTemplate.getCollectionNames();
         isOK = collectionNames.containsAll(EXPECTED_COLLECTION_NAMES);
 
-        //        appendInfoOnReplicaSet(detailedInfo);
-        //        appendCollectionInfo(collectionNames, detailedInfo);
+        if (showExtendedInformation) {
+          appendInfoOnReplicaSet(detailedInfo);
+          appendCollectionInfo(collectionNames, detailedInfo);
+        }
       }
-
     } catch (Exception e) {
       isOK = false;
     }
@@ -93,15 +106,18 @@ public class StatusController {
       response.setStatus(SC_SERVICE_UNAVAILABLE);
     }
 
-    final StringBuilder content = new StringBuilder("{mainInfo:{mongoDBStatus: \"");
-    content.append(isOK ? OK_STATUS : NOT_RESPONDING_STATUS);
-    content.append("\"},detailedInfo: {");
-    content.append(detailedInfo);
-    content.append("}}");
-
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".status");
 
-    return content.toString();
+    return createJSONContent(isOK, detailedInfo);
+  }
+
+  private String createJSONContent(final boolean OK, final StringBuilder detailedInfo) {
+    return new StringBuilder("{mainInfo:{mongoDBStatus: \"") //
+      .append(OK ? OK_STATUS : NOT_RESPONDING_STATUS)
+      .append("\"},detailedInfo: {")
+      .append(detailedInfo)
+      .append("}}")
+      .toString();
   }
 
   private boolean checkPingTheNode() {
@@ -148,7 +164,7 @@ public class StatusController {
 
     ReplicaSetStatus replicaSetStatus = mongo.getReplicaSetStatus();
     if (replicaSetStatus == null) {
-      content.append("\"unavialable\"");
+      content.append("\"unavailable\"");
     } else {
       content.append(replicaSetStatus.toString());
     }

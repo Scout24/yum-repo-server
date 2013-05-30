@@ -19,8 +19,8 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -44,7 +44,6 @@ public class StatusControllerTest {
   public void setUp() throws Exception {
     statusController = new StatusController(mongoTemplate, mongo);
     mockMvc = standaloneSetup(statusController).build();
-    requestBuilder = MockMvcRequestBuilders.get("/status");
     when(mongoTemplate.executeCommand(any(BasicDBObject.class))).thenReturn(commandResult);
 
     Set<String> set = Sets.newHashSet(
@@ -61,6 +60,7 @@ public class StatusControllerTest {
   public void getOKJsonWhenDBIsAvailable() throws Exception {
     when(commandResult.ok()).thenReturn(true);
 
+    requestBuilder = MockMvcRequestBuilders.get("/status");
 
     mockMvc.perform(requestBuilder)
     .andExpect(status().isOk())
@@ -72,7 +72,9 @@ public class StatusControllerTest {
   public void getOKJsonWhenDBIsAvailableInPrettyJson() throws Exception {
     when(commandResult.ok()).thenReturn(true);
 
-    mockMvc.perform(requestBuilder.param("pretty", "true"))
+    requestBuilder = MockMvcRequestBuilders.get("/status-full");
+
+    mockMvc.perform(requestBuilder)
     .andExpect(status().isOk())
     .andExpect(content().string(containsString("\"mongoDBStatus\" : \"ok\"")))
     .andExpect(content().string(not(containsString("}}"))));
@@ -81,6 +83,8 @@ public class StatusControllerTest {
   @Test
   public void getNotRespondingJsonWhenDBIsNOAvailable() throws Exception {
     when(commandResult.ok()).thenReturn(false);
+
+    requestBuilder = MockMvcRequestBuilders.get("/status");
 
     mockMvc.perform(requestBuilder)
     .andExpect(status().isServiceUnavailable())
