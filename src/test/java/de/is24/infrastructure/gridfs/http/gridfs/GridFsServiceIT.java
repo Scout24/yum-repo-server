@@ -1,5 +1,28 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.gridfs.GridFSFile;
+import com.mongodb.gridfs.GridFSUtil;
+import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
+import de.is24.infrastructure.gridfs.http.domain.YumEntry;
+import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
+import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
+import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
+import de.is24.infrastructure.gridfs.http.jaxb.Data;
+import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import org.apache.commons.lang.time.DateUtils;
+import org.bson.types.ObjectId;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
@@ -8,31 +31,15 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.lang.time.DateUtils.addMinutes;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import org.bson.types.ObjectId;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import com.mongodb.BasicDBObject;
-import com.mongodb.gridfs.GridFSDBFile;
-import com.mongodb.gridfs.GridFSFile;
-import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
-import de.is24.infrastructure.gridfs.http.domain.YumEntry;
-import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
-import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
-import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
-import de.is24.infrastructure.gridfs.http.jaxb.Data;
-import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
 
 @Category(LocalExecutionOnly.class)
@@ -67,12 +74,7 @@ public class GridFsServiceIT {
   private static final String VALID_NOARCH_RPM_PATH = VALID_NOARCH_RPM_PATH_WITHOUT_VERSION + "-1.2-1.noarch.rpm";
   private static final String VALID_SOURCE_RPM_PATH = "/src/yum-repo-client-1.1-273.src.rpm";
   private long startTime = Long.MAX_VALUE;
-
-
-  @Before
-  public void setUp() throws Exception {
-    context.gridFsTemplate().delete(null);
-  }
+  private Date testStart = new Date();
 
   @Test
   public void propagateRpm() throws Exception {
@@ -223,7 +225,7 @@ public class GridFsServiceIT {
     String reponame = givenFullRepository();
     context.gridFsService().storeRpm(reponame, streamOf(VALID_SOURCE_RPM));
     context.gridFsService().deleteRepository(reponame);
-    assertThat(context.gridFsService().findFileByPath(reponame + VALID_NOARCH_RPM_PATH), nullValue());
+    assertThatFilesIsMarkedForDeletion(reponame + VALID_NOARCH_RPM_PATH);
     assertThat(context.yumEntriesRepository().findByRepo(reponame).size(), is(0));
     assertThat(context.repoEntriesRepository().findFirstByName(reponame), nullValue());
   }
@@ -253,6 +255,70 @@ public class GridFsServiceIT {
     assertThat(files.size(), is(1));
     assertThat(files.get(0).getFilename(), is(givenFilename));
   }
+
+  @Test
+  public void metaDataForDeletionIsSetByPath() throws Exception {
+    final String repoName = givenFullRepository();
+    final String validNoArchRpmPath = repoName + VALID_NOARCH_RPM_PATH;
+
+    context.gridFsService().markForDeletion(validNoArchRpmPath);
+
+    assertThatFilesIsMarkedForDeletion(validNoArchRpmPath);
+  }
+
+  private void assertThatFilesIsMarkedForDeletion(final String validNoArchRpmPath) {
+    final GridFSDBFile gridFSDBFile = context.gridFsService().findFileByPath(validNoArchRpmPath);
+    final Object deletionObject = gridFSDBFile.getMetaData().get(MARKED_AS_DELETED_KEY);
+    assertThat(deletionObject, is(notNullValue()));
+    assertThat(deletionObject, is(instanceOf(Date.class)));
+
+    final Date deletionTime = (Date) deletionObject;
+    assertThat(deletionTime, greaterThanOrEqualTo(testStart));
+    assertThat(deletionTime, lessThanOrEqualTo(new Date()));
+  }
+
+  @Test
+  public void metaDataForDeletionIsSetById() throws Exception {
+    final String repoName = givenFullRepository();
+    final String validNoArchRpmPath = repoName + VALID_NOARCH_RPM_PATH;
+    final GridFSDBFile fileToMarkAsDeleted = context.gridFsService().findFileByPath(validNoArchRpmPath);
+
+    context.gridFsService().markForDeletion((ObjectId) fileToMarkAsDeleted.getId());
+
+    assertThatFilesIsMarkedForDeletion(validNoArchRpmPath);
+  }
+
+
+  @Test
+  public void deleteFilesMarkedAsDeleted() throws Exception {
+    final Date now = new Date();
+    final String nothingToDeleteRepo = givenFullRepository();
+    givenTowOfThreeFilesToBeDeleted(now);
+
+    context.gridFsService().removeFilesMarkedAsDeletedBefore(now);
+
+    final List<GridFSDBFile> fileList = context.gridFsTemplate()
+      .find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
+    assertThat(fileList.size(), is(1));
+
+    final List<GridFSDBFile> filesInNothingToDeleteRepo = context.gridFsTemplate()
+      .find(query(whereMetaData(REPO_KEY).is(nothingToDeleteRepo)));
+    assertThat(filesInNothingToDeleteRepo.size(), is(4));
+  }
+
+  private void givenTowOfThreeFilesToBeDeleted(final Date now) {
+    final Date past = DateUtils.addDays(now, -1);
+    givenFileToBeDeleted("toBeDeletedPast1", past);
+    givenFileToBeDeleted("toBeDeletedPast2", past);
+    givenFileToBeDeleted("toBeDeletedFuture", DateUtils.addDays(now, 1));
+  }
+
+  private void givenFileToBeDeleted(final String path, final Date time) {
+    final GridFSFile toBeDeleted = context.gridFsTemplate().store(contentInputStream(), path);
+    GridFSUtil.mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
+    toBeDeleted.save();
+  }
+
 
   @Test
   public void deleteFiles() throws Exception {
@@ -288,7 +354,7 @@ public class GridFsServiceIT {
 
   private void assertRepoWasModifiedAfterStartTime(String reponame) {
     assertThat(context.repoEntriesRepository().findFirstByName(reponame).getLastModified().getTime(),
-        greaterThan(startTime));
+      greaterThan(startTime));
   }
 
   private void assertYumEntryForValidNoArchRpm(String reponame, GridFSDBFile file) {

@@ -17,6 +17,10 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
 
 
+/**
+ *  <strong>Attention</strong>
+ *  If used as {@link org.junit.ClassRule} all test of the class use the same mongoDB instance!
+ */
 public class IntegrationTestContext extends MongoTestContext {
   public static final String RPM_DB = "rpm_db";
 
@@ -86,7 +90,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public RepoCleaner repoCleaner() {
     if (repoCleaner == null) {
-      repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), gridFs(), repoService());
+      repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), gridFsService(), repoService());
     }
 
     return repoCleaner;

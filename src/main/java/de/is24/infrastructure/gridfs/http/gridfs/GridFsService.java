@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -51,6 +52,7 @@ import java.util.Date;
 import java.util.List;
 import static ch.lambdaj.Lambda.on;
 import static com.mongodb.gridfs.GridFS.DEFAULT_CHUNKSIZE;
+import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
 import static com.mongodb.gridfs.GridFSUtil.remove;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
@@ -59,11 +61,14 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KE
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY_REPO_DATA;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.FILENAME_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_ARCH_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_UPLOAD_DATE_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.UPLOAD_DATE_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.ObjectIdCriteria.whereObjectIdIs;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
 import static java.lang.String.format;
 import static java.nio.channels.Channels.newChannel;
@@ -76,6 +81,7 @@ import static org.apache.commons.lang.StringUtils.countMatches;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
@@ -123,6 +129,7 @@ public class GridFsService {
     filesCollection.ensureIndex(METADATA_REPO_KEY);
     filesCollection.ensureIndex(METADATA_ARCH_KEY);
     filesCollection.ensureIndex(METADATA_UPLOAD_DATE_KEY);
+    filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
   }
 
   public String propagateRpm(String sourceFile, String destinationRepo) {
@@ -237,6 +244,27 @@ public class GridFsService {
     }
   }
 
+  public void markForDeletion(ObjectId id) {
+    markForDeletion(whereObjectIdIs(id));
+  }
+
+  public void markForDeletion(final String path) {
+    markForDeletion(whereFilename().is(path));
+  }
+
+  private void markForDeletion(final Criteria criteria) {
+    mongoTemplate.updateMulti(query(criteria), update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
+      GRIDFS_FILES_COLLECTION);
+  }
+
+  @ManagedOperation
+  public void removeFilesMarkedAsDeletedBefore(final Date before) {
+    LOGGER.info("removing files marked as deleted before {}", before);
+
+    gridFsTemplate.delete(query(
+        whereMetaData(MARKED_AS_DELETED_KEY).lt(before)));
+  }
+
   public BoundedGridFsResource getResource(String path) throws IOException {
     return getResource(path, 0);
   }
@@ -343,7 +371,8 @@ public class GridFsService {
     }
 
     mongoTemplate.remove(query(where(REPO_KEY).is(reponame)), YumEntry.class);
-    gridFsTemplate.delete(query(whereMetaData(REPO_KEY).is(reponame)));
+
+    markForDeletion(whereMetaData(REPO_KEY).is(reponame));
 
     repoService.delete(reponame);
   }
@@ -388,7 +417,8 @@ public class GridFsService {
 
     String sha256Hash = encodeHexString(digestInputStream.getMessageDigest().digest());
     DBObject metaData = createBasicMetaDataObject(reponame, arch, sha256Hash);
-    inputFile.getMetaData().putAll(metaData);
+    mergeMetaData(inputFile, metaData);
+
     inputFile.save();
 
     return inputFile;

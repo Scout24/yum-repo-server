@@ -5,12 +5,11 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
+
 
 @Document(collection = YUM_ENTRY_COLLECTION)
 public class YumEntry {
-
   @Id
   private ObjectId id;
   private YumPackage yumPackage;
@@ -46,5 +45,8 @@ public class YumEntry {
   public void setId(ObjectId id) {
     this.id = id;
   }
-}
 
+  public String getFullRpmFilename() {
+    return repo + "/" + getYumPackage().getLocation().getHref();
+  }
+}

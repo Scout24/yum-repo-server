@@ -4,8 +4,8 @@ import ch.lambdaj.function.compare.ArgumentComparator;
 import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFS;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.rpm.version.CachingVersionDBObjectComparator;
@@ -40,16 +40,16 @@ public class RepoCleaner {
   public static final String ITEMS_KEY = "items";
   private final MongoTemplate mongo;
   private final YumEntriesRepository entriesRepository;
-  private final GridFS gridFs;
+  private final GridFsService gridFsService;
   private final RepoService repoService;
   private final CachingVersionDBObjectComparator comparator = new CachingVersionDBObjectComparator();
 
   @Autowired
-  public RepoCleaner(MongoTemplate mongo, YumEntriesRepository entriesRepository, GridFS gridFs,
+  public RepoCleaner(MongoTemplate mongo, YumEntriesRepository entriesRepository, GridFsService gridFsService,
                      RepoService repoService) {
     this.mongo = mongo;
     this.entriesRepository = entriesRepository;
-    this.gridFs = gridFs;
+    this.gridFsService = gridFsService;
     this.repoService = repoService;
   }
 
@@ -66,9 +66,11 @@ public class RepoCleaner {
           ObjectId fileId = (ObjectId) itemToDelete.get(FILE_KEY);
           if (fileId != null) {
             entriesRepository.delete(fileId);
-            gridFs.remove(fileId);
+
+            final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
+            gridFsService.markForDeletion(path);
             filesDeleted = true;
-            LOG.info("Deleted file {}/{} during cleanup.", reponame, itemToDelete.get(FILENAME_KEY));
+            LOG.info("Deleted file {} during cleanup.", path);
           }
         }
       }

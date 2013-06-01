@@ -7,11 +7,13 @@ import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageLocation;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
+import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import static ch.lambdaj.Lambda.extract;
 import static ch.lambdaj.Lambda.on;
@@ -19,6 +21,7 @@ import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mo
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static java.lang.System.currentTimeMillis;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
@@ -56,7 +59,8 @@ public class RepoCleanerIT {
   @Before
   public void setUp() throws Exception {
     reponame = uniqueRepoName();
-    service = new RepoCleaner(mongoTemplate(context.getMongo()), context.yumEntriesRepository(), context.gridFs(),
+    service = new RepoCleaner(mongoTemplate(context.getMongo()), context.yumEntriesRepository(),
+      context.gridFsService(),
       context.repoService());
   }
 
@@ -70,6 +74,7 @@ public class RepoCleanerIT {
 
     assertThatItemsHasBeenCleanedUp();
     assertThatRepoEntryIsMarkedAsModified(startTime);
+    assertThatGridFsFileIsMarkedAsDeleted();
   }
 
   @Test
@@ -98,6 +103,15 @@ public class RepoCleanerIT {
   private void assertThatRepoEntryIsMarkedAsModified(long startTime) {
     RepoEntry repoEntry = context.repoEntriesRepository().findFirstByName(reponame);
     assertThat(repoEntry.getLastModified().getTime(), greaterThan(startTime));
+  }
+
+  private void assertThatGridFsFileIsMarkedAsDeleted() {
+    for (YumEntry entryToDelete : YUM_ENTRIES_TO_CLEAN_UP) {
+      assertThat(context.gridFsService()
+        .getFileByPath(entryToDelete.getFullRpmFilename())
+        .getMetaData()
+        .get(DatabaseStructure.MARKED_AS_DELETED_KEY), is(notNullValue()));
+    }
   }
 
   private void assertThatItemsHasBeenCleanedUp() {
@@ -148,7 +162,13 @@ public class RepoCleanerIT {
     for (YumEntry entry : YUM_ENTRIES_TO_CLEAN_UP) {
       entry.setRepo(reponame);
       context.yumEntriesRepository().save(entry);
+
+      context.gridFsTemplate().store(contentInputStream(), entry.getFullRpmFilename()).save();
     }
+  }
+
+  private ByteArrayInputStream contentInputStream() {
+    return new ByteArrayInputStream("Content".getBytes());
   }
 
   private static YumEntry entry(String name, String version, String release, String arch) {

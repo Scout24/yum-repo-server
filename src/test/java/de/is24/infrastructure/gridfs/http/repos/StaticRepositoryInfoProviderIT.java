@@ -48,6 +48,15 @@ public class StaticRepositoryInfoProviderIT {
   public void setUp() throws Exception {
     provider = new StaticRepositoryInfoProvider(context.mongoTemplate(), context.repoEntriesRepository());
     gridFsService = context.gridFsService();
+    cleanExistingRepos();
+  }
+
+  private void cleanExistingRepos() {
+    final List<RepoEntry> repoEntries = context.repoEntriesRepository().findAll();
+    for (RepoEntry entry : repoEntries) {
+      gridFsService.deleteRepository(entry.getName());
+    }
+    context.gridFsTemplate().delete(null);
   }
 
   @Test
