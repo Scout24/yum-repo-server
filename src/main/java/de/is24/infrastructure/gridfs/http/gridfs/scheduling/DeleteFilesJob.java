@@ -5,6 +5,7 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,15 +29,24 @@ public class DeleteFilesJob {
   }
 
 
-  @Scheduled(cron = "${scheduler.delete.files.cron:3-59/15 * * * * *}")
+  @Scheduled(cron = "${scheduler.delete.files.cron:0 3-59/15 * * * *}")
   public void deleteFilesMarkedAsDeleted() {
     deleteFilesMarkedAsDeleted(new Date());
+  }
+
+  @ManagedOperation
+  public void deleteFilesMarkedAsDeletedNow() {
+    doRemoveFilesMarkedAsDeleted(new Date());
   }
 
   //just for easier testing
   void deleteFilesMarkedAsDeleted(final Date now) {
     if (primaryDetector.isPrimary()) {
-      gridFsService.removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(now, -minuetsToWaitForActualDelete));
+      doRemoveFilesMarkedAsDeleted(now);
     }
+  }
+
+  private void doRemoveFilesMarkedAsDeleted(Date now) {
+    gridFsService.removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(now, -minuetsToWaitForActualDelete));
   }
 }
