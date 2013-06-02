@@ -12,6 +12,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import java.io.IOException;
 import java.util.Date;
 import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
@@ -120,6 +121,7 @@ public class MetadataServiceIT {
       .get(0);
     String sha256 = dbFile.getMetaData().get("sha256").toString();
     assertThat(dbFile.getFilename(), endsWith(type + "-" + sha256 + ".sqlite.bz2"));
+    assertThat(dbFile.getMetaData().get(DatabaseStructure.MARKED_AS_DELETED_KEY), is(nullValue()));
   }
 
 }

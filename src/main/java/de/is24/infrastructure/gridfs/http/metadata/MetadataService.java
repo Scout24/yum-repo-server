@@ -85,6 +85,8 @@ public class MetadataService {
                                             throws Exception {
     LOG.info("Generating metadata for {} started ..", reponame);
 
+    gridFsService.markForDeletionByFilenameRegex(reponame + METADATA_FILE_PATTERN);
+
     Date startTime = new Date();
 
     List<YumEntry> entries = entriesRepository.findByRepo(reponame);
@@ -98,7 +100,6 @@ public class MetadataService {
     }
 
     repoMdGenerator.generateRepoMdXml(reponame, dbData);
-    gridFsService.markForDeletionByFilenameRegex(reponame + METADATA_FILE_PATTERN);
 
     repoService.updateLastMetadataGeneration(reponame, startTime, calculatedHashOfEntries);
 
