@@ -20,7 +20,6 @@ import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
 import static org.apache.commons.lang.ArrayUtils.contains;
-import static org.apache.commons.lang.StringUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.substringAfter;
 
 
@@ -39,13 +38,9 @@ public class RepoService {
   }
 
   public void createOrUpdate(String reponame) {
-    if (isNotEmpty(reponame)) {
-      RepoEntry repoEntry = ensureEntry(reponame, STATIC, SCHEDULED);
-      repoEntry.setLastModified(new Date());
-      entriesRepository.save(repoEntry);
-    } else {
-      throw new IllegalArgumentException("Static Repo " + reponame + " must not be empty or null");
-    }
+    RepoEntry repoEntry = ensureEntry(reponame, STATIC, SCHEDULED);
+    repoEntry.setLastModified(new Date());
+    entriesRepository.save(repoEntry);
   }
 
   public void delete(String reponame) {

@@ -193,9 +193,15 @@ public class RepoServiceTest {
   }
 
   //Issue #11
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = BadRequestException.class)
   public void shouldNotCreateNullStaticRepoNames() {
     service.createOrUpdate(null);
+  }
+
+  //Issue #11
+  @Test(expected = BadRequestException.class)
+  public void shouldNotCreateRepoWithInvalidNamePattern() {
+    service.createOrUpdate("äää&&%%");
   }
 
   private RepoEntry createRepoEntry(boolean scheduled) {
