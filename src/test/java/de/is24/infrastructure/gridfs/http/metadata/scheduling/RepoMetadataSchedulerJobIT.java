@@ -36,8 +36,7 @@ public class RepoMetadataSchedulerJobIT {
   @SuppressWarnings("unchecked")
   public void setUp() throws UnknownHostException {
     RepoMdGenerator repoMdGenerator = new RepoMdGenerator(context.gridFs());
-    MetadataService metadataService = new MetadataService(context.gridFsService(), context.yumEntriesRepository(),
-      repoMdGenerator, context.repoService(), context.repoCleaner());
+    MetadataService metadataService = context.metadataService();
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
     ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
     TaskScheduler taskScheduler = mock(TaskScheduler.class);

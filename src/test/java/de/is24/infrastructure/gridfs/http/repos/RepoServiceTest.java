@@ -77,12 +77,15 @@ public class RepoServiceTest {
   @Test
   public void updateLastMetadataGeneration() throws Exception {
     Date date = new Date();
+    final String newHashOfEntries = "newHashOfEntries";
     RepoEntry entry = new RepoEntry();
     entry.setLastMetadataGeneration(date);
     entry.setType(STATIC);
     entry.setName(ANY_REPONAME);
     entry.setLastModified(new Date(date.getTime() - 1000));
-    service.updateLastMetadataGeneration(ANY_REPONAME, date);
+    entry.setHashOfEntries(newHashOfEntries);
+
+    service.updateLastMetadataGeneration(ANY_REPONAME, date, newHashOfEntries);
 
     verify(repository).save(entry);
   }

@@ -41,6 +41,8 @@ public class RepoEntry {
 
   private int maxKeepRpms = DEFAULT_MAX_KEEP_RPMS;
 
+  private String hashOfEntries;
+
   public ObjectId getId() {
     return id;
   }
@@ -136,6 +138,14 @@ public class RepoEntry {
     this.maxKeepRpms = maxKeepRpms;
   }
 
+  public String getHashOfEntries() {
+    return hashOfEntries;
+  }
+
+  public void setHashOfEntries(String hashOfEntries) {
+    this.hashOfEntries = hashOfEntries;
+  }
+
   @Override
   public String toString() {
     return new ToStringBuilder(this).append("id", id)
@@ -148,6 +158,7 @@ public class RepoEntry {
       .append("undeletable", undeletable)
       .append("tags", tags)
       .append("maxKeepRpms", maxKeepRpms)
+      .append("hashOfEntries", hashOfEntries)
       .toString();
   }
 }

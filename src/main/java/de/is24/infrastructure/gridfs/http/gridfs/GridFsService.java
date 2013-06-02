@@ -67,7 +67,6 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADAT
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_UPLOAD_DATE_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.UPLOAD_DATE_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.ObjectIdCriteria.whereObjectIdIs;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
 import static java.lang.String.format;
@@ -211,10 +210,8 @@ public class GridFsService {
   }
 
   @TimeMeasurement
-  public List<GridFSDBFile> findByFilenamePatternAndBeforeUploadDate(String regex, Date uploadedBefore) {
-    return gridFsTemplate.find(
-      query(
-        whereFilename().regex(regex).andOperator(where(UPLOAD_DATE_KEY).lt(uploadedBefore))));
+  public List<GridFSDBFile> findByFilenamePattern(String regex) {
+    return gridFsTemplate.find(query(whereFilename().regex(regex)));
   }
 
   @TimeMeasurement
@@ -244,17 +241,26 @@ public class GridFsService {
     }
   }
 
-  public void markForDeletion(ObjectId id) {
+  public void markForDeletionById(ObjectId id) {
     markForDeletion(whereObjectIdIs(id));
   }
 
-  public void markForDeletion(final String path) {
+  public void markForDeletionByPath(final String path) {
     markForDeletion(whereFilename().is(path));
+  }
+
+  public void markForDeletionByFilenameRegex(final String regex) {
+    markForDeletion(whereFilename().regex(regex));
   }
 
   private void markForDeletion(final Criteria criteria) {
     mongoTemplate.updateMulti(query(criteria), update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
       GRIDFS_FILES_COLLECTION);
+  }
+
+  @ManagedOperation
+  public List<GridFSDBFile> listFilesMarkedAsDeleted() {
+    return gridFsTemplate.find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
   }
 
   @ManagedOperation

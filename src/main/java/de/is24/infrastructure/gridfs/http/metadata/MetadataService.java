@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.metadata;
 
-import com.mongodb.gridfs.GridFSDBFile;
+import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
@@ -26,6 +27,7 @@ import java.util.List;
 import static java.io.File.createTempFile;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.time.DateUtils.addMinutes;
+import static org.springframework.util.ObjectUtils.nullSafeEquals;
 
 
 @ManagedResource
@@ -35,50 +37,56 @@ public class MetadataService {
   private static final Logger LOG = LoggerFactory.getLogger(MetadataService.class);
   private static final String METADATA_FILE_PATTERN = "/repodata/.*sqlite.bz2";
 
-  private final GridFsService gridFs;
+  private final GridFsService gridFsService;
   private final RepoMdGenerator repoMdGenerator;
   private final YumEntriesRepository entriesRepository;
   private final RepoService repoService;
   private final RepoCleaner repoCleaner;
+  private final YumEntriesHashCalculator entriesHashCalculator;
   private File tmpDir;
   private int outdatedMetaDataSurvivalTime;
 
-  public MetadataService() {
-    this.gridFs = null;
-    this.entriesRepository = null;
-    this.repoMdGenerator = null;
-    this.repoService = null;
-    this.repoCleaner = null;
-  }
-
   @Autowired
   public MetadataService(GridFsService gridFs, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
-                         RepoService repoService, RepoCleaner repoCleaner) {
-    this.gridFs = gridFs;
+                         RepoService repoService, RepoCleaner repoCleaner,
+                         YumEntriesHashCalculator entriesHashCalculator) {
+    this.gridFsService = gridFs;
     this.entriesRepository = entriesRepository;
     this.repoMdGenerator = repoMdGenerator;
     this.repoService = repoService;
     this.repoCleaner = repoCleaner;
+    this.entriesHashCalculator = entriesHashCalculator;
   }
 
   @ManagedOperation
   public void generateYumMetadata(String reponame) throws Exception {
-    if (repoService.needsMetadataUpdate(reponame)) {
+    final RepoEntry repoEntry = repoService.ensureEntry(reponame, RepoType.STATIC, RepoType.SCHEDULED);
+    final String calculatedHash = entriesHashCalculator.hashForRepo(repoEntry.getName());
+    if (needsMetadataUpdate(repoEntry, calculatedHash)) {
       repoCleaner.cleanup(reponame);
-      doYumMetadataGenerationOnly(reponame);
+      doYumMetadataGenerationOnlyInternal(reponame, calculatedHash);
     } else {
       LOG.debug("Generation for repository {} skipped. Because no update available.", reponame);
     }
   }
 
+  private boolean needsMetadataUpdate(final RepoEntry repoEntry, final String calculatedHash) {
+    final String savedHash = repoEntry.getHashOfEntries();
+    return !nullSafeEquals(calculatedHash, savedHash);
+  }
+
+
   @ManagedOperation
   public void doYumMetadataGenerationOnly(String reponame) throws Exception {
+    doYumMetadataGenerationOnlyInternal(reponame, entriesHashCalculator.hashForRepo(reponame));
+  }
+
+  private void doYumMetadataGenerationOnlyInternal(final String reponame, final String calculatedHashOfEntries)
+                                            throws Exception {
     LOG.info("Generating metadata for {} started ..", reponame);
 
     Date startTime = new Date();
 
-    List<GridFSDBFile> filesToDelete = gridFs.findByFilenamePatternAndBeforeUploadDate(
-      reponame + METADATA_FILE_PATTERN, createBeforeDate());
     List<YumEntry> entries = entriesRepository.findByRepo(reponame);
     List<Data> dbData = new ArrayList<Data>();
     for (DbGenerator dbGenerator : asList(new PrimaryDbGenerator(), new FileListsGenerator(), new OtherDbGenerator())) {
@@ -90,9 +98,10 @@ public class MetadataService {
     }
 
     repoMdGenerator.generateRepoMdXml(reponame, dbData);
-    gridFs.delete(filesToDelete);
+    gridFsService.markForDeletionByFilenameRegex(reponame + METADATA_FILE_PATTERN);
 
-    repoService.updateLastMetadataGeneration(reponame, startTime);
+    repoService.updateLastMetadataGeneration(reponame, startTime, calculatedHashOfEntries);
+
 
     LOG.info("Generating metadata for {} finished.", reponame);
   }
@@ -106,7 +115,7 @@ public class MetadataService {
     try {
       dbGenerator.createDb(tempDbFile, entries);
 
-      Data data = gridFs.storeRepodataDbBz2(reponame, tempDbFile, dbGenerator.getName());
+      Data data = gridFsService.storeRepodataDbBz2(reponame, tempDbFile, dbGenerator.getName());
       data.setType(dbGenerator.getName() + "_db");
       return data;
     } finally {

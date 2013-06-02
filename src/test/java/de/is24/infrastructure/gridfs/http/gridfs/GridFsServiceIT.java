@@ -28,7 +28,6 @@ import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.time.DateUtils.addMinutes;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -225,7 +224,7 @@ public class GridFsServiceIT {
     String reponame = givenFullRepository();
     context.gridFsService().storeRpm(reponame, streamOf(VALID_SOURCE_RPM));
     context.gridFsService().deleteRepository(reponame);
-    assertThatFilesIsMarkedForDeletion(reponame + VALID_NOARCH_RPM_PATH);
+    assertThatFileIsMarkedForDeletion(reponame + VALID_NOARCH_RPM_PATH);
     assertThat(context.yumEntriesRepository().findByRepo(reponame).size(), is(0));
     assertThat(context.repoEntriesRepository().findFirstByName(reponame), nullValue());
   }
@@ -242,18 +241,19 @@ public class GridFsServiceIT {
   }
 
   @Test
-  public void findByFilenameAndBeforeUploadDate() throws Exception {
-    String reponame = givenFullRepository();
-    String givenFilename = reponame + "/any-filename";
-    BasicDBObject metaData = new BasicDBObject(UPLOAD_DATE, new Date());
+  public void metaDataForDeletionIsSetByFilenameRegex() throws Exception {
+    final String reponame = uniqueRepoName();
+    final String matchPath = reponame + "willmatch-filename.rpm";
+    givenFileWithPath(matchPath);
 
-    context.gridFsTemplate().store(asStream("/test-for-delete-file.txt"), givenFilename, metaData);
+    final String noMatchPath = reponame + "no_match";
+    givenFileWithPath(noMatchPath);
 
-    List<GridFSDBFile> files = context.gridFsService()
-      .findByFilenamePatternAndBeforeUploadDate(reponame + ".*-filename", addMinutes(new Date(), 1));
+    context.gridFsService().markForDeletionByFilenameRegex(".*-filename");
 
-    assertThat(files.size(), is(1));
-    assertThat(files.get(0).getFilename(), is(givenFilename));
+    assertThatFileIsMarkedForDeletion(matchPath);
+    assertThat(context.gridFsService().findFileByPath(noMatchPath).getMetaData().get(MARKED_AS_DELETED_KEY),
+      is(nullValue()));
   }
 
   @Test
@@ -261,12 +261,12 @@ public class GridFsServiceIT {
     final String repoName = givenFullRepository();
     final String validNoArchRpmPath = repoName + VALID_NOARCH_RPM_PATH;
 
-    context.gridFsService().markForDeletion(validNoArchRpmPath);
+    context.gridFsService().markForDeletionByPath(validNoArchRpmPath);
 
-    assertThatFilesIsMarkedForDeletion(validNoArchRpmPath);
+    assertThatFileIsMarkedForDeletion(validNoArchRpmPath);
   }
 
-  private void assertThatFilesIsMarkedForDeletion(final String validNoArchRpmPath) {
+  private void assertThatFileIsMarkedForDeletion(final String validNoArchRpmPath) {
     final GridFSDBFile gridFSDBFile = context.gridFsService().findFileByPath(validNoArchRpmPath);
     final Object deletionObject = gridFSDBFile.getMetaData().get(MARKED_AS_DELETED_KEY);
     assertThat(deletionObject, is(notNullValue()));
@@ -283,9 +283,9 @@ public class GridFsServiceIT {
     final String validNoArchRpmPath = repoName + VALID_NOARCH_RPM_PATH;
     final GridFSDBFile fileToMarkAsDeleted = context.gridFsService().findFileByPath(validNoArchRpmPath);
 
-    context.gridFsService().markForDeletion((ObjectId) fileToMarkAsDeleted.getId());
+    context.gridFsService().markForDeletionById((ObjectId) fileToMarkAsDeleted.getId());
 
-    assertThatFilesIsMarkedForDeletion(validNoArchRpmPath);
+    assertThatFileIsMarkedForDeletion(validNoArchRpmPath);
   }
 
 
@@ -314,9 +314,13 @@ public class GridFsServiceIT {
   }
 
   private void givenFileToBeDeleted(final String path, final Date time) {
-    final GridFSFile toBeDeleted = context.gridFsTemplate().store(contentInputStream(), path);
+    final GridFSFile toBeDeleted = givenFileWithPath(path);
     GridFSUtil.mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
     toBeDeleted.save();
+  }
+
+  private GridFSFile givenFileWithPath(String path) {
+    return context.gridFsTemplate().store(contentInputStream(), path);
   }
 
 

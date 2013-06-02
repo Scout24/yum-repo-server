@@ -62,9 +62,10 @@ public class RepoService {
     }
   }
 
-  public void updateLastMetadataGeneration(String reponame, Date date) {
+  public void updateLastMetadataGeneration(String reponame, Date date, String newHashOfEntries) {
     RepoEntry repoEntry = ensureEntry(reponame, STATIC, SCHEDULED);
     repoEntry.setLastMetadataGeneration(date);
+    repoEntry.setHashOfEntries(newHashOfEntries);
     if (repoEntry.getLastModified() == null) {
       repoEntry.setLastModified(new Date(date.getTime() - ONE_SEC_IN_MS));
     }

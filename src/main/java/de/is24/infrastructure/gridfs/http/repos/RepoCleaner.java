@@ -68,7 +68,7 @@ public class RepoCleaner {
             entriesRepository.delete(fileId);
 
             final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
-            gridFsService.markForDeletion(path);
+            gridFsService.markForDeletionByPath(path);
             filesDeleted = true;
             LOG.info("Deleted file {} during cleanup.", path);
           }
