@@ -62,7 +62,7 @@ public class StaticRepositoryInfoProviderIT {
   @Test
   public void shouldFindReposForQueryStaticByMatchingRegex() throws Exception {
     String givenReponameRegex = "r.po-[0-9]*";
-    String reponame = createRepoFromDaysAgoWithData(0);
+    String reponame = createRepoFromDaysAgoWithData(1);
 
     List<RepoEntry> entries = findRepoByNameAndOlderDays(givenReponameRegex, 0);
     assertResultContainsRepoWithGivenName(reponame, entries);
