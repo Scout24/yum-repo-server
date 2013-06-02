@@ -48,6 +48,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import static ch.lambdaj.Lambda.on;
@@ -254,13 +255,19 @@ public class GridFsService {
   }
 
   private void markForDeletion(final Criteria criteria) {
-    mongoTemplate.updateMulti(query(criteria), update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
+    mongoTemplate.updateMulti(query(criteria.and(METADATA_MARKED_AS_DELETED_KEY).is(null)),
+      update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
       GRIDFS_FILES_COLLECTION);
   }
 
   @ManagedOperation
-  public List<GridFSDBFile> listFilesMarkedAsDeleted() {
-    return gridFsTemplate.find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
+  public List<String> listFilesMarkedAsDeleted() {
+    final List<GridFSDBFile> gridFSDBFiles = gridFsTemplate.find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
+    final List<String> filenames = new ArrayList<>(gridFSDBFiles.size());
+    for (GridFSDBFile file : gridFSDBFiles) {
+      filenames.add(file.getFilename());
+    }
+    return filenames;
   }
 
   @ManagedOperation

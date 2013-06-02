@@ -29,6 +29,7 @@ import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
 import static java.lang.System.currentTimeMillis;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.instanceOf;
@@ -288,6 +289,20 @@ public class GridFsServiceIT {
     assertThatFileIsMarkedForDeletion(validNoArchRpmPath);
   }
 
+  @Test
+  public void metaDataForDeletionIsSetOnlyOnce() throws Exception {
+    final String repoName = givenFullRepository();
+    final Date yesterday = DateUtils.addDays(new Date(), -1);
+    final String path = repoName + "/a_file_to_be_deleted";
+    givenFileToBeDeleted(path, yesterday);
+
+    context.gridFsService().markForDeletionByPath(path);
+
+
+    final GridFSDBFile dbFile = context.gridFsService().findFileByPath(path);
+
+    assertThat((Date) dbFile.getMetaData().get(MARKED_AS_DELETED_KEY), is(equalTo(yesterday)));
+  }
 
   @Test
   public void deleteFilesMarkedAsDeleted() throws Exception {
@@ -313,10 +328,11 @@ public class GridFsServiceIT {
     givenFileToBeDeleted("toBeDeletedFuture", DateUtils.addDays(now, 1));
   }
 
-  private void givenFileToBeDeleted(final String path, final Date time) {
+  private GridFSFile givenFileToBeDeleted(final String path, final Date time) {
     final GridFSFile toBeDeleted = givenFileWithPath(path);
     GridFSUtil.mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
     toBeDeleted.save();
+    return toBeDeleted;
   }
 
   private GridFSFile givenFileWithPath(String path) {
