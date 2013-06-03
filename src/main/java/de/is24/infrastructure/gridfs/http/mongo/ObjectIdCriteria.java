@@ -4,7 +4,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 
-public class ObjectIdCriteria extends Criteria {
+public final class ObjectIdCriteria extends Criteria {
   private ObjectIdCriteria() {
     super("_id");
   }
