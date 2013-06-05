@@ -11,14 +11,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
+import java.io.IOException;
+import java.sql.SQLException;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+
 
 @Controller
 @TimeMeasurement
 public class MetadataController {
-
   private final MetadataService metadataService;
   private final RepoService repoService;
 
@@ -37,7 +38,7 @@ public class MetadataController {
 
   @RequestMapping(value = "/repo/{reponame}/repodata", method = POST)
   @ResponseStatus(CREATED)
-  public void generate(@PathVariable("reponame") String reponame) throws Exception {
+  public void generate(@PathVariable("reponame") String reponame) throws IOException, SQLException {
     LOG.info("Generate metadata for repository: {}", reponame);
 
     if (repoService.isRepoScheduled(reponame)) {
@@ -51,11 +52,10 @@ public class MetadataController {
 
   private void responseWithError(String reponame) {
     throw new BadRequestException(
-      "It is not allowed to manually generate metadata for scheduled repositories, scheduled repo: '" + reponame + "'"
-    );
+      "It is not allowed to manually generate metadata for scheduled repositories, scheduled repo: '" + reponame + "'");
   }
 
-  private void generateMetaData(String reponame) throws Exception {
+  private void generateMetaData(String reponame) throws IOException, SQLException {
     metadataService.generateYumMetadata(reponame);
   }
 }

@@ -508,8 +508,9 @@ public class GridFsService {
       YumPackage yumPackage = convertHeader(dbFile.getInputStream());
       YumEntry yumEntry = createYumEntry(yumPackage, dbFile);
       yumEntriesRepository.save(yumEntry);
-    } catch (Exception e) {
+    } catch (InvalidRpmHeaderException e) {
       LOGGER.error("Generating metadata for " + dbFile.getFilename() + " failed.", e);
+      throw e;
     }
   }
 }

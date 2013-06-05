@@ -21,12 +21,13 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
 import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import static java.io.File.createTempFile;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang.time.DateUtils.addMinutes;
 import static org.springframework.util.ObjectUtils.nullSafeEquals;
 
 
@@ -59,7 +60,7 @@ public class MetadataService {
   }
 
   @ManagedOperation
-  public void generateYumMetadata(String reponame) throws Exception {
+  public void generateYumMetadata(String reponame) throws IOException, SQLException {
     final RepoEntry repoEntry = repoService.ensureEntry(reponame, RepoType.STATIC, RepoType.SCHEDULED);
     final String calculatedHash = entriesHashCalculator.hashForRepo(repoEntry.getName());
     if (needsMetadataUpdate(repoEntry, calculatedHash)) {
@@ -77,12 +78,12 @@ public class MetadataService {
 
 
   @ManagedOperation
-  public void doYumMetadataGenerationOnly(String reponame) throws Exception {
+  public void doYumMetadataGenerationOnly(String reponame) throws IOException, SQLException {
     doYumMetadataGenerationOnlyInternal(reponame, entriesHashCalculator.hashForRepo(reponame));
   }
 
   private void doYumMetadataGenerationOnlyInternal(final String reponame, final String calculatedHashOfEntries)
-                                            throws Exception {
+                                            throws IOException, SQLException {
     LOG.info("Generating metadata for {} started ..", reponame);
 
     gridFsService.markForDeletionByFilenameRegex(reponame + METADATA_FILE_PATTERN);
@@ -107,11 +108,8 @@ public class MetadataService {
     LOG.info("Generating metadata for {} finished.", reponame);
   }
 
-  private Date createBeforeDate() {
-    return addMinutes(new Date(), -1 * outdatedMetaDataSurvivalTime);
-  }
-
-  private Data saveDb(DbGenerator dbGenerator, String reponame, List<YumEntry> entries) throws Exception {
+  private Data saveDb(DbGenerator dbGenerator, String reponame, List<YumEntry> entries) throws IOException,
+                                                                                               SQLException {
     File tempDbFile = createTempFile(reponame + "-" + dbGenerator.getName(), ".sqlite", tmpDir);
     try {
       dbGenerator.createDb(tempDbFile, entries);

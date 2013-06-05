@@ -30,6 +30,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,11 +92,11 @@ public class AppConfig extends AbstractMongoConfiguration {
 
   @Bean
   @Override
-  public Mongo mongo() throws Exception {
+  public Mongo mongo() throws UnknownHostException {
     return new MongoClient(getReplicatSet(), mongoOptions());
   }
 
-  private MongoClientOptions mongoOptions() throws Exception {
+  private MongoClientOptions mongoOptions() {
     return new MongoClientOptions.Builder() //
       .autoConnectRetry(true)
       .socketKeepAlive(true)
@@ -131,7 +132,7 @@ public class AppConfig extends AbstractMongoConfiguration {
   }
 
   @Bean
-  public StatsdPlugin statsdPlugin() throws Exception {
+  public StatsdPlugin statsdPlugin() throws SocketException, UnknownHostException {
     if (statsdHost != null) {
       StatsdPlugin statsdPlugin = new StatsdPlugin(statsdHost, statsdPort, typ);
       statsdPlugin.register();

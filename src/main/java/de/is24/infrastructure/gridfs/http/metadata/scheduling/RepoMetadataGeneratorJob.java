@@ -5,6 +5,8 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.concurrent.ScheduledFuture;
 import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
 import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
@@ -53,7 +55,9 @@ public class RepoMetadataGeneratorJob implements Runnable {
     LOG.debug("Scheduled generation for repository: {}", name);
     try {
       metadataService.generateYumMetadata(name);
-    } catch (Exception e) {
+    } catch (SQLException e) {
+      LOG.error("Metadata generation for repository {} failed.", name, e);
+    } catch (IOException e) {
       LOG.error("Metadata generation for repository {} failed.", name, e);
     }
   }
