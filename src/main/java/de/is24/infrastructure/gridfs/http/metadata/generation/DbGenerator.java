@@ -3,7 +3,6 @@ package de.is24.infrastructure.gridfs.http.metadata.generation;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,15 +12,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Map;
-
 import static java.sql.DriverManager.getConnection;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.readLines;
 import static org.apache.commons.lang.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
-public abstract class DbGenerator {
 
+public abstract class DbGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(DbGenerator.class);
   public static final int DB_VERSION = 10;
   protected static final String SQL_DIR = "/sql/";
@@ -37,10 +35,11 @@ public abstract class DbGenerator {
     initJdbC();
   }
 
-  public void createDb(File dbFile, List<YumEntry> entries) throws Exception {
+  public void createDb(File dbFile, List<YumEntry> entries) throws SQLException, IOException {
     dbFile.delete();
-    try (Connection connection = getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath())) {
+    try(Connection connection = getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath())) {
       initSchema(connection, getName() + ".sql");
+
       Map<String, PreparedStatement> preparedStatements = createPreparedStatements(connection);
       try {
         int pkgKey = 1;
@@ -51,13 +50,14 @@ public abstract class DbGenerator {
       } finally {
         close(preparedStatements);
       }
-    } catch (Exception e) {
+    } catch (SQLException | IOException e) {
       LOG.error("Could not generate metadata for repository: {}", name, e);
       throw e;
     }
   }
 
-  protected abstract void writeEntry(Map<String, PreparedStatement> preparedStatements, int pkgKey, YumEntry entry) throws SQLException;
+  protected abstract void writeEntry(Map<String, PreparedStatement> preparedStatements, int pkgKey, YumEntry entry)
+                              throws SQLException;
 
   protected abstract Map<String, PreparedStatement> createPreparedStatements(Connection connection) throws SQLException;
 
@@ -66,7 +66,7 @@ public abstract class DbGenerator {
   }
 
   protected void initSchema(Connection connection, String schemaFile) throws IOException, SQLException {
-    try (Statement statement = connection.createStatement()) {
+    try(Statement statement = connection.createStatement()) {
       for (String command : readCommands(schemaFile)) {
         statement.executeUpdate(command);
       }
