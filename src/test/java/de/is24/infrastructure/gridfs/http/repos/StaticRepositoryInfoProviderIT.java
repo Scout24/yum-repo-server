@@ -129,7 +129,7 @@ public class StaticRepositoryInfoProviderIT {
   private String createRepoFromDaysAgoWithData(int days) throws Exception {
     String reponame = uniqueRepoName();
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
-    context.metadataService().generateYumMetadata(reponame);
+    context.metadataService().generateYumMetadataIfNecessary(reponame);
     context.mongoTemplate()
     .updateFirst(
       query(where("name").is(reponame)), update("lastModified", now().minusDays(days).toDate()),

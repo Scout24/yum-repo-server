@@ -63,14 +63,14 @@ public class MetadataServiceTest {
 
   @Test
   public void oldMetaDataFilesAreDeleted() throws Exception {
-    this.service.generateYumMetadata(reponame);
+    this.service.generateYumMetadataIfNecessary(reponame);
 
     verify(gridFsService).markForDeletionByFilenameRegex(eq(reponame + REGEX_REPODATA_SQLITE_FILES));
   }
 
   @Test
   public void cleanRepositoryBeforeGeneration() throws Exception {
-    this.service.generateYumMetadata(reponame);
+    this.service.generateYumMetadataIfNecessary(reponame);
     verify(repoCleaner).cleanup(eq(reponame));
   }
 
@@ -78,7 +78,7 @@ public class MetadataServiceTest {
   public void doNothingIfNothingChanged() throws Exception {
     repoEntry.setHashOfEntries(ENTRIES_HASH);
 
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
 
     verifyZeroInteractions(repoCleaner, gridFsService);
   }

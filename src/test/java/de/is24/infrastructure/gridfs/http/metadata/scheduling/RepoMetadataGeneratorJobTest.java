@@ -42,14 +42,14 @@ public class RepoMetadataGeneratorJobTest {
   public void executeMetadataGenerationIfPrimaryAndActive() throws Exception {
     when(detector.isPrimary()).thenReturn(true);
     job.run();
-    verify(service).generateYumMetadata(eq(REPO_NAME));
+    verify(service).generateYumMetadataIfNecessary(eq(REPO_NAME));
   }
 
   @Test
   public void doNothingIfNotPrimary() throws Exception {
     when(detector.isPrimary()).thenReturn(false);
     job.run();
-    verify(service, never()).generateYumMetadata(eq(REPO_NAME));
+    verify(service, never()).generateYumMetadataIfNecessary(eq(REPO_NAME));
   }
 
   @Test
@@ -57,7 +57,7 @@ public class RepoMetadataGeneratorJobTest {
     when(detector.isPrimary()).thenReturn(true);
     job.deactivate();
     job.run();
-    verify(service, never()).generateYumMetadata(eq(REPO_NAME));
+    verify(service, never()).generateYumMetadataIfNecessary(eq(REPO_NAME));
   }
 
   @Test

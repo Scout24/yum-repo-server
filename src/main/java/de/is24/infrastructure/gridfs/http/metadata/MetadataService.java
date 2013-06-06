@@ -59,11 +59,25 @@ public class MetadataService {
     this.entriesHashCalculator = entriesHashCalculator;
   }
 
-  @ManagedOperation
+  @ManagedOperation(description = "generate metadata if its necessary")
+  public void generateYumMetadataIfNecessary(String reponame) throws IOException, SQLException {
+    generateYumMetadata(reponame, false);
+  }
+
+  @ManagedOperation(description = "always generate and cleanup repo")
   public void generateYumMetadata(String reponame) throws IOException, SQLException {
+    generateYumMetadata(reponame, true);
+  }
+
+  @ManagedOperation(description = "only generate metadata without cleanup, but always")
+  public void doYumMetadataGenerationOnly(String reponame) throws IOException, SQLException {
+    doYumMetadataGenerationOnlyInternal(reponame, entriesHashCalculator.hashForRepo(reponame));
+  }
+
+  private void generateYumMetadata(String reponame, boolean allwaysGenerate) throws IOException, SQLException {
     final RepoEntry repoEntry = repoService.ensureEntry(reponame, RepoType.STATIC, RepoType.SCHEDULED);
     final String calculatedHash = entriesHashCalculator.hashForRepo(repoEntry.getName());
-    if (needsMetadataUpdate(repoEntry, calculatedHash)) {
+    if (allwaysGenerate || needsMetadataUpdate(repoEntry, calculatedHash)) {
       repoCleaner.cleanup(reponame);
       doYumMetadataGenerationOnlyInternal(reponame, calculatedHash);
     } else {
@@ -71,15 +85,10 @@ public class MetadataService {
     }
   }
 
+
   private boolean needsMetadataUpdate(final RepoEntry repoEntry, final String calculatedHash) {
     final String savedHash = repoEntry.getHashOfEntries();
     return !nullSafeEquals(calculatedHash, savedHash);
-  }
-
-
-  @ManagedOperation
-  public void doYumMetadataGenerationOnly(String reponame) throws IOException, SQLException {
-    doYumMetadataGenerationOnlyInternal(reponame, entriesHashCalculator.hashForRepo(reponame));
   }
 
   private void doYumMetadataGenerationOnlyInternal(final String reponame, final String calculatedHashOfEntries)

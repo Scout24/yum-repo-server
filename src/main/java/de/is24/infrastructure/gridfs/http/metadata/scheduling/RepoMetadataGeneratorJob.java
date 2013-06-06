@@ -54,7 +54,7 @@ public class RepoMetadataGeneratorJob implements Runnable {
   private void doRun() {
     LOG.debug("Scheduled generation for repository: {}", name);
     try {
-      metadataService.generateYumMetadata(name);
+      metadataService.generateYumMetadataIfNecessary(name);
     } catch (SQLException e) {
       LOG.error("Metadata generation for repository {} failed.", name, e);
     } catch (IOException e) {

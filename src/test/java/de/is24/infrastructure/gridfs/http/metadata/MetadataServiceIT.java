@@ -48,7 +48,7 @@ public class MetadataServiceIT {
   public void generateYumRepoMetadata() throws Exception {
     long startTime = currentTimeMillis();
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
     assertDbFile("primary");
     assertDbFile("other");
     assertDbFile("filelists");
@@ -70,7 +70,7 @@ public class MetadataServiceIT {
     repoEntryBefore.setLastMetadataGeneration(new Date());
     context.repoEntriesRepository().save(repoEntryBefore);
 
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
 
     RepoEntry repoEntryAfter = context.repoEntriesRepository().findFirstByName(reponame);
     assertThat(repoEntryAfter, is(repoEntryBefore));
@@ -84,7 +84,7 @@ public class MetadataServiceIT {
     ObjectId sqliteFileId = givenSomeSqliteFileFromOneHourAgo(reponame);
 
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
 
     assertThat(context.gridFs().findOne(sqliteFileId).getMetaData().get(DatabaseStructure.MARKED_AS_DELETED_KEY),
       is(notNullValue()));
