@@ -70,7 +70,7 @@ public class RepoCleaner {
             final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
             gridFsService.markForDeletionByPath(path);
             filesDeleted = true;
-            LOG.info("Deleted file {} during cleanup.", path);
+            LOG.info("Mark file {} as deleted during cleanup.", path);
           }
         }
       }
