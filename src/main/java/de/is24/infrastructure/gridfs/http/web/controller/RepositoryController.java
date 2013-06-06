@@ -58,7 +58,7 @@ public class RepositoryController {
     uploadRpm(reponame, multipartFile.getInputStream());
   }
 
-  @RequestMapping(value = "/{reponame}", method = DELETE)
+  @RequestMapping(value = "/{reponame:[a-zA-Z0-9-_.]*}", method = DELETE)
   @ResponseStatus(NO_CONTENT)
   public void deleteRepository(@PathVariable("reponame") String reponame) throws IOException {
     gridFs.deleteRepository(reponame);
