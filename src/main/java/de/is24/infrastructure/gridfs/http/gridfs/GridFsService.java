@@ -261,11 +261,11 @@ public class GridFsService {
   }
 
   @ManagedOperation
-  public List<String> listFilesMarkedAsDeleted() {
+  public List<String[]> listFilesMarkedAsDeleted() {
     final List<GridFSDBFile> gridFSDBFiles = gridFsTemplate.find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
-    final List<String> filenames = new ArrayList<>(gridFSDBFiles.size());
+    final List<String[]> filenames = new ArrayList<>(gridFSDBFiles.size());
     for (GridFSDBFile file : gridFSDBFiles) {
-      filenames.add(file.getFilename());
+      filenames.add(new String[] { file.getFilename(), file.getMetaData().get(MARKED_AS_DELETED_KEY).toString() });
     }
     return filenames;
   }
