@@ -8,6 +8,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
 import com.mongodb.ReplicaSetStatus;
 import com.mongodb.util.JSON;
+import de.is24.infrastructure.gridfs.http.AppVersion;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class StatusController {
   public static final String NOT_RESPONDING_STATUS = "not responding";
   private final MongoTemplate mongoTemplate;
   private final Mongo mongo;
+  private final AppVersion appVersion;
 
   private static final Set<String> EXPECTED_COLLECTION_NAMES = ImmutableSet.of(
     "fs.chunks",
@@ -44,9 +46,10 @@ public class StatusController {
     "yum.repos");
 
   @Autowired
-  public StatusController(final MongoTemplate mongoTemplate, Mongo mongo) {
+  public StatusController(final MongoTemplate mongoTemplate, Mongo mongo, AppVersion appVersion) {
     this.mongoTemplate = mongoTemplate;
     this.mongo = mongo;
+    this.appVersion = appVersion;
   }
 
   /**
@@ -95,6 +98,7 @@ public class StatusController {
         isOK = collectionNames.containsAll(EXPECTED_COLLECTION_NAMES);
 
         if (showExtendedInformation) {
+          appendVersionInfo(detailedInfo);
           appendInfoOnReplicaSet(detailedInfo);
           appendCollectionInfo(collectionNames, detailedInfo);
         }
@@ -109,6 +113,12 @@ public class StatusController {
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".status");
 
     return createJSONContent(isOK, detailedInfo);
+  }
+
+  private void appendVersionInfo(final StringBuilder detailedInfo) {
+    detailedInfo.append("version:\"");
+    detailedInfo.append(appVersion.getVersion());
+    detailedInfo.append("\"");
   }
 
   private String createJSONContent(final boolean OK, final StringBuilder detailedInfo) {
@@ -160,7 +170,7 @@ public class StatusController {
   }
 
   private void appendInfoOnReplicaSet(final StringBuilder content) {
-    content.append("replicaSetInfo: ");
+    content.append(",replicaSetInfo: ");
 
     ReplicaSetStatus replicaSetStatus = mongo.getReplicaSetStatus();
     if (replicaSetStatus == null) {

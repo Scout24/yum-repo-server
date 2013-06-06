@@ -7,3 +7,4 @@
     <span class="size"><strong>${model.formattedTotalSize}</strong></span>
   </li>
 </ul>
+<div id="versionInfoContainer" class="versionInfo"><span>Version: ${appVersion.version}</span></div>

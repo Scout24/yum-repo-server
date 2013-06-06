@@ -25,6 +25,8 @@
     <jackson.version>2.2.0</jackson.version>
     <embedded.mongodb.version>2.4.1</embedded.mongodb.version>
     <java.util.logging.config>de/is24/infrastructure/gridfs/http/log.properties</java.util.logging.config>
+    <scm.revision>0</scm.revision>
+    <build.revision>${project.version}-${scm.revision}</build.revision>
   </properties>
 
   <prerequisites>
@@ -536,6 +538,12 @@
 
   <build>
     <finalName>yum-repo-server</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
