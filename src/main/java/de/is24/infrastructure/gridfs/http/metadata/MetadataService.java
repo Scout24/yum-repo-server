@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,16 @@ public class MetadataService {
   private File tmpDir;
   private int outdatedMetaDataSurvivalTime;
 
+  //only for cglib porxy
+  public MetadataService() {
+    gridFsService = null;
+    repoMdGenerator = null;
+    entriesRepository = null;
+    repoService = null;
+    repoCleaner = null;
+    entriesHashCalculator = null;
+  }
+
   @Autowired
   public MetadataService(GridFsService gridFs, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
                          RepoService repoService, RepoCleaner repoCleaner,
@@ -60,16 +71,19 @@ public class MetadataService {
   }
 
   @ManagedOperation(description = "generate metadata if its necessary")
+  @MongoTx
   public void generateYumMetadataIfNecessary(String reponame) throws IOException, SQLException {
     generateYumMetadata(reponame, false);
   }
 
   @ManagedOperation(description = "always generate and cleanup repo")
+  @MongoTx
   public void generateYumMetadata(String reponame) throws IOException, SQLException {
     generateYumMetadata(reponame, true);
   }
 
   @ManagedOperation(description = "only generate metadata without cleanup, but always")
+  @MongoTx
   public void doYumMetadataGenerationOnly(String reponame) throws IOException, SQLException {
     doYumMetadataGenerationOnlyInternal(reponame, entriesHashCalculator.hashForRepo(reponame));
   }

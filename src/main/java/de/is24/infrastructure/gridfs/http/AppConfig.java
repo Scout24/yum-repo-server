@@ -24,7 +24,6 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.authentication.UserCredentials;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -39,7 +38,7 @@ import static com.mongodb.WriteConcern.NORMAL;
 import static com.mongodb.WriteConcern.REPLICAS_SAFE;
 
 
-@ComponentScan(basePackages = { "de.is24" })
+@ComponentScan(basePackages = { "de.is24", "org.springframework.data.mongodb.tx" })
 @Configuration
 @EnableAspectJAutoProxy
 @EnableMBeanExport
@@ -101,6 +100,7 @@ public class AppConfig extends AbstractMongoConfiguration {
       .autoConnectRetry(true)
       .socketKeepAlive(true)
       .readPreference(new FastestPingTimeReadPreference())
+      .writeConcern(getWriteConcern())
       .connectionsPerHost(20)
       .socketTimeout(10 * 1000)
       .build();
@@ -114,13 +114,6 @@ public class AppConfig extends AbstractMongoConfiguration {
   @Bean
   public GridFsTemplate gridFsTemplate() throws Exception {
     return new GridFsTemplate(mongoDbFactory(), mappingMongoConverter());
-  }
-
-  @Override
-  public SimpleMongoDbFactory mongoDbFactory() throws Exception {
-    SimpleMongoDbFactory dbFactory = super.mongoDbFactory();
-    dbFactory.setWriteConcern(getWriteConcern());
-    return dbFactory;
   }
 
   private WriteConcern getWriteConcern() {

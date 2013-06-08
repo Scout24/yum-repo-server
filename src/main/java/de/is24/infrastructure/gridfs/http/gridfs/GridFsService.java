@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
@@ -105,6 +106,7 @@ public class GridFsService {
   private int chunkSize = DEFAULT_CHUNKSIZE;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
 
+  //needed for cglib proxy
   public GridFsService() {
     this.gridFsTemplate = null;
     this.mongoTemplate = null;
@@ -271,6 +273,7 @@ public class GridFsService {
   }
 
   @ManagedOperation
+  @MongoTx(writeConcern = "ACKNOWLEDGED")
   public void removeFilesMarkedAsDeletedBefore(final Date before) {
     LOGGER.info("removing files marked as deleted before {}", before);
 
