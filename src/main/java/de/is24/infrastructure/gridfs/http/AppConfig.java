@@ -2,7 +2,6 @@ package de.is24.infrastructure.gridfs.http;
 
 import com.mongodb.FastestPingTimeReadPreference;
 import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
@@ -26,6 +25,7 @@ import org.springframework.data.authentication.UserCredentials;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.mongodb.tx.MongoTxProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
@@ -92,7 +92,7 @@ public class AppConfig extends AbstractMongoConfiguration {
   @Bean
   @Override
   public Mongo mongo() throws UnknownHostException {
-    return new MongoClient(getReplicatSet(), mongoOptions());
+    return new MongoTxProxy(getReplicatSet(), mongoOptions());
   }
 
   private MongoClientOptions mongoOptions() {
