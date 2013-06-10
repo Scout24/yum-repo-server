@@ -279,6 +279,8 @@ public class GridFsService {
 
     gridFsTemplate.delete(query(
         whereMetaData(MARKED_AS_DELETED_KEY).lt(before)));
+
+    LOGGER.info("finished removing files marked as deleted before {}", before);
   }
 
   public BoundedGridFsResource getResource(String path) throws IOException {
