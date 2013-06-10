@@ -1,18 +1,21 @@
 package org.springframework.data.mongodb.tx;
 
 public class MongoTxConfigHolder {
-  private static final ThreadLocal<MongoTxConfig> configs = new ThreadLocal<MongoTxConfig>();
+  private static final ThreadLocal<MongoTxConfig> CONFIGS = new ThreadLocal<MongoTxConfig>();
+
+  private MongoTxConfigHolder() {
+  }
 
   public static MongoTxConfig get() {
-    return configs.get();
+    return CONFIGS.get();
   }
 
   public static void registerConfig(final MongoTxConfig mongoTxConfig) {
-    configs.set(mongoTxConfig);
+    CONFIGS.set(mongoTxConfig);
   }
 
   public static void resetConfig() {
-    configs.remove();
+    CONFIGS.remove();
   }
 
 }

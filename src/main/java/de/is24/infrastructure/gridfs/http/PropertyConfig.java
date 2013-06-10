@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 
@@ -19,16 +20,16 @@ public class PropertyConfig {
       PropertyPlaceholderConfigurer.SYSTEM_PROPERTIES_MODE_OVERRIDE);
     propertyPlaceholderConfigurer.setSearchSystemEnvironment(true);
 
-    ArrayList<Resource> propertyResources = new ArrayList<>();
+    List<Resource> propertyResources = new ArrayList<>();
     // if configuration properties exists
 
     for (String propertiesFile : PROPERTY_FILES) {
-      ClassPathResource configurationResource = new ClassPathResource(propertiesFile);
+      Resource configurationResource = new ClassPathResource(propertiesFile);
       if (configurationResource.exists()) {
         propertyResources.add(configurationResource);
       }
     }
-    propertyPlaceholderConfigurer.setLocations(propertyResources.toArray(new Resource[] {}));
+    propertyPlaceholderConfigurer.setLocations(propertyResources.toArray(new Resource[propertyResources.size()]));
 
     // Allow for other PropertyPlaceholderConfigurer instances.
     propertyPlaceholderConfigurer.setIgnoreUnresolvablePlaceholders(true);
