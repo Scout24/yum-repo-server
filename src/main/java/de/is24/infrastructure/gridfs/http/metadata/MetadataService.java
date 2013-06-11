@@ -90,9 +90,11 @@ public class MetadataService {
 
   private void generateYumMetadata(String reponame, boolean allwaysGenerate) throws IOException, SQLException {
     final RepoEntry repoEntry = repoService.ensureEntry(reponame, RepoType.STATIC, RepoType.SCHEDULED);
-    final String calculatedHash = entriesHashCalculator.hashForRepo(repoEntry.getName());
+    String calculatedHash = entriesHashCalculator.hashForRepo(repoEntry.getName());
     if (allwaysGenerate || needsMetadataUpdate(repoEntry, calculatedHash)) {
-      repoCleaner.cleanup(reponame);
+      if (repoCleaner.cleanup(reponame)) {
+        calculatedHash = entriesHashCalculator.hashForRepo(repoEntry.getName());
+      }
       doYumMetadataGenerationOnlyInternal(reponame, calculatedHash);
     } else {
       LOG.debug("Generation for repository {} skipped. Because no update available.", reponame);
