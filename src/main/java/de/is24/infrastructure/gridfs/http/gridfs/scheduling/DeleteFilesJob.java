@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.gridfs.scheduling;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -62,7 +63,7 @@ public class DeleteFilesJob {
     return lastStackTrace;
   }
 
-  //just for easier testing
+  @VisibleForTesting
   void deleteFilesMarkedAsDeleted(final Date now) {
     if (primaryDetector.isPrimary()) {
       doRemoveFilesMarkedAsDeleted(now);
