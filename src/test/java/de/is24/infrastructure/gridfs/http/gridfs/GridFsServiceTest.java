@@ -2,21 +2,21 @@ package de.is24.infrastructure.gridfs.http.gridfs;
 
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryIsUndeletableException;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import org.bson.types.ObjectId;
@@ -28,6 +28,8 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
+import java.util.Arrays;
+import java.util.Date;
 
 
 public class GridFsServiceTest {
@@ -80,6 +82,21 @@ public class GridFsServiceTest {
   @Test(expected = GridFSFileNotFoundException.class)
   public void throwExceptionForFileNotFound() throws Exception {
     service.propagateRpm("repo/arch/file.rpm", "dest-repo");
+  }
+
+  @Test
+  public void waitAfterDeletionOfLargeFile() throws Exception {
+    GridFSDBFile file = mock(GridFSDBFile.class);
+    when(file.getFilename()).thenReturn("theFilename");
+    when(file.getLength()).thenReturn(12 * 1024 * 1024L);
+    when(gridFsTemplate.find((Query) anyObject())).thenReturn(Arrays.asList(file));
+
+    final long start = System.currentTimeMillis();
+
+    service.removeFilesMarkedAsDeletedBefore(new Date());
+
+    final long duration = System.currentTimeMillis() - start;
+    assertThat(duration, is(greaterThanOrEqualTo(400L)));
   }
 
   @Test

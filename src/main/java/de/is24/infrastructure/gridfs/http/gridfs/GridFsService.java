@@ -8,6 +8,7 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import com.mongodb.gridfs.GridFSInputFile;
+import com.mongodb.gridfs.GridFSUtil;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
@@ -90,6 +91,8 @@ import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaDa
 @ManagedResource
 @Service
 public class GridFsService {
+  private static final int MB = 1024 * 1024;
+  private static final int TEN_MB = 10 * MB;
   private static final String SHA256_KEY = "sha256";
   private static final String OPEN_SIZE_KEY = "open_size";
   private static final Logger LOGGER = LoggerFactory.getLogger(GridFsService.class);
@@ -277,8 +280,28 @@ public class GridFsService {
   public void removeFilesMarkedAsDeletedBefore(final Date before) {
     LOGGER.info("removing files marked as deleted before {}", before);
 
-    gridFsTemplate.delete(query(
-        whereMetaData(MARKED_AS_DELETED_KEY).lt(before)));
+    final List<GridFSDBFile> filesToDelete = gridFsTemplate.find(query(
+      whereMetaData(MARKED_AS_DELETED_KEY).lt(before)));
+
+    for (GridFSDBFile file : filesToDelete) {
+      final long lengthInBytes = file.getLength();
+      final String filename = file.getFilename();
+      LOGGER.info("removing file {}", filename);
+      GridFSUtil.remove(file);
+      if (lengthInBytes > TEN_MB) {
+        //wait depending on the size of deleted file to let the mongo cluster do the sync without 'dieing' on io wait
+        //24MB 800ms
+        //600MB 20sec
+        final long lengthInMb = lengthInBytes / MB;
+        final long millisToWait = (long) ((lengthInMb / 60f) * 2000);
+        LOGGER.info("waiting {}ms after remove of large file {}({}MB)", millisToWait, filename, lengthInMb);
+        try {
+          Thread.sleep(millisToWait);
+        } catch (InterruptedException e) {
+          //should only happen on server shutdown
+        }
+      }
+    }
 
     LOGGER.info("finished removing files marked as deleted before {}", before);
   }
