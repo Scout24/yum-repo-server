@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
@@ -244,11 +245,13 @@ public class GridFsServiceIT {
   @Test
   public void metaDataForDeletionIsSetByFilenameRegex() throws Exception {
     final String reponame = uniqueRepoName();
-    final String matchPath = reponame + "willmatch-filename.rpm";
-    givenFileWithPath(matchPath);
+    final String willMatch = "willmatch-filename.rpm";
+    final String matchPath = reponame + "/" +  willMatch;
+    givenFileWithPath(reponame, willMatch);
 
-    final String noMatchPath = reponame + "no_match";
-    givenFileWithPath(noMatchPath);
+    final String no_match = "no_match";
+    final String noMatchPath = reponame + "/" + no_match;
+    givenFileWithPath(reponame, no_match);
 
     context.gridFsService().markForDeletionByFilenameRegex(".*-filename");
 
@@ -293,8 +296,9 @@ public class GridFsServiceIT {
   public void metaDataForDeletionIsSetOnlyOnce() throws Exception {
     final String repoName = givenFullRepository();
     final Date yesterday = DateUtils.addDays(new Date(), -1);
-    final String path = repoName + "/a_file_to_be_deleted";
-    givenFileToBeDeleted(path, yesterday);
+    final String file = "a_file_to_be_deleted";
+    final String path = repoName + "/" + file;
+    givenFileToBeDeleted(repoName, file, yesterday);
 
     context.gridFsService().markForDeletionByPath(path);
 
@@ -321,22 +325,24 @@ public class GridFsServiceIT {
     assertThat(filesInNothingToDeleteRepo.size(), is(4));
   }
 
-  private void givenTowOfThreeFilesToBeDeleted(final Date now) {
+  private void givenTowOfThreeFilesToBeDeleted(final Date now) throws IOException {
+    final String repoToDeleteIn = uniqueRepoName();
     final Date past = DateUtils.addDays(now, -1);
-    givenFileToBeDeleted("toBeDeletedPast1", past);
-    givenFileToBeDeleted("toBeDeletedPast2", past);
-    givenFileToBeDeleted("toBeDeletedFuture", DateUtils.addDays(now, 1));
+    givenFileToBeDeleted(repoToDeleteIn, "toBeDeletedPast1", past);
+    givenFileToBeDeleted(repoToDeleteIn, "toBeDeletedPast2", past);
+    givenFileToBeDeleted(repoToDeleteIn, "toBeDeletedFuture", DateUtils.addDays(now, 1));
   }
 
-  private GridFSFile givenFileToBeDeleted(final String path, final Date time) {
-    final GridFSFile toBeDeleted = givenFileWithPath(path);
+  private GridFSFile givenFileToBeDeleted(final String reponame, final String path, final Date time) throws IOException {
+    final GridFSFile toBeDeleted = givenFileWithPath(reponame, path);
     GridFSUtil.mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
     toBeDeleted.save();
     return toBeDeleted;
   }
 
-  private GridFSFile givenFileWithPath(String path) {
-    return context.gridFsTemplate().store(contentInputStream(), path);
+  private GridFSFile givenFileWithPath(String repo, String path) throws IOException {
+    return context.gridFsService().storeFileWithMetaInfo(contentInputStream(), repo, "testing", path);
+    //return context.gridFsTemplate().store(contentInputStream(), path);
   }
 
 

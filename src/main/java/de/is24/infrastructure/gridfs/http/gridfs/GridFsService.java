@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
 import ch.lambdaj.function.compare.ArgumentComparator;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
@@ -100,13 +102,13 @@ public class GridFsService {
   private static final String BZ2_CONTENT_TYPE = new MediaType("application", "x-bzip2").toString();
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
+  public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
 
   private final GridFS gridFs;
-  private final GridFsTemplate gridFsTemplate;
+  private final GridFsOperations gridFsTemplate;
   private final MongoTemplate mongoTemplate;
   private final YumEntriesRepository yumEntriesRepository;
   private final RepoService repoService;
-  private int chunkSize = DEFAULT_CHUNKSIZE;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
 
   //needed for cglib proxy
@@ -119,7 +121,7 @@ public class GridFsService {
   }
 
   @Autowired
-  public GridFsService(GridFS gridFs, GridFsTemplate gridFsTemplate, MongoTemplate mongoTemplate,
+  public GridFsService(GridFS gridFs, GridFsOperations gridFsTemplate, MongoTemplate mongoTemplate,
                        YumEntriesRepository yumEntriesRepository, RepoService repoService) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
@@ -354,7 +356,7 @@ public class GridFsService {
     YumPackage yumPackage = convertHeader(bufferedInputStream);
     bufferedInputStream.reset();
 
-    GridFSInputFile dbFile = storeFileWithMetaInfo(bufferedInputStream, reponame, yumPackage.getArch(),
+    final GridFSFile dbFile = storeFileWithMetaInfo(bufferedInputStream, reponame, yumPackage.getArch(),
       yumPackage.getLocation().getHref());
 
     yumEntriesRepository.save(createYumEntry(yumPackage, dbFile));
@@ -418,16 +420,6 @@ public class GridFsService {
     repoService.delete(reponame);
   }
 
-  @ManagedAttribute
-  public int getChunkSize() {
-    return chunkSize;
-  }
-
-  @ManagedAttribute
-  public void setChunkSize(int chunkSize) {
-    this.chunkSize = chunkSize;
-  }
-
   @ManagedOperation
   public void regenerateMetadataFor(String path) throws InvalidRpmHeaderException {
     regenerateMetadataFor(getFileByPath(path));
@@ -440,9 +432,10 @@ public class GridFsService {
     }
   }
 
-  private GridFSInputFile storeFileWithMetaInfo(InputStream inputStream,
+  @VisibleForTesting
+  GridFSFile storeFileWithMetaInfo(InputStream inputStream,
                                                 String reponame, String arch, String pathInRepo)
-                                         throws InvalidRpmHeaderException, IOException {
+                                         throws IOException {
     String rpmPath = reponame + "/" + pathInRepo;
     GridFSDBFile existingDbFile = findFileByPath(rpmPath);
     if (existingDbFile != null) {
@@ -450,10 +443,7 @@ public class GridFsService {
     }
 
     DigestInputStream digestInputStream = new DigestInputStream(inputStream, getSha256Digest());
-    GridFSInputFile inputFile = (GridFSInputFile) gridFsTemplate.store(digestInputStream, rpmPath);
-    inputFile.setContentType("application/x-rpm");
-    inputFile.setChunkSize(chunkSize);
-    inputFile.save();
+    GridFSFile inputFile = gridFsTemplate.store(digestInputStream, rpmPath, CONTENT_TYPE_APPLICATION_X_RPM);
     closeQuietly(digestInputStream);
 
     String sha256Hash = encodeHexString(digestInputStream.getMessageDigest().digest());
