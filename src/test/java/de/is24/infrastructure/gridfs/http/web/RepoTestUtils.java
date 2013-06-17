@@ -9,6 +9,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.IOException;
 import static org.apache.http.auth.AuthScope.ANY_HOST;
@@ -32,9 +33,12 @@ public final class RepoTestUtils {
     post.setEntity(entity);
 
     HttpResponse response = httpClient.execute(post);
-    if (response.getStatusLine().getStatusCode() > 299) {
-      throw new RuntimeException("could not upload " + pathToRpm + " to " + repoUrl);
+    final int statusCode = response.getStatusLine().getStatusCode();
+    if (statusCode > 299) {
+      throw new RuntimeException("could not upload " + pathToRpm + " to " + repoUrl + "\nResponseCode:" + statusCode +
+        "\nResponsebody: " + EntityUtils.toString(response.getEntity()));
     }
+
     consume(response.getEntity());
     return response;
   }
