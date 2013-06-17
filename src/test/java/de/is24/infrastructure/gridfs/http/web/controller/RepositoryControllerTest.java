@@ -16,25 +16,11 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@RunWith(MockitoJUnitRunner.class)
-public class RepositoryControllerTest {
+public class RepositoryControllerTest extends AbstractControllerTest {
   private static final String REPONAME = "someRepo-18.0.346357";
 
   private static final MockHttpServletRequestBuilder MOCK_DELETE_REQUEST = MockMvcRequestBuilders.delete("/repo/" +
     REPONAME);
-
-  @Mock
-  private GridFsService gridFsService;
-
-  @Mock
-  private RepoService repoService;
-
-  private MockMvc mockMvc;
-
-  @Before
-  public void setUp() throws Exception {
-    mockMvc = MockMvcBuilders.standaloneSetup(new RepositoryController(gridFsService, repoService)).build();
-  }
 
   @Test
   public void deleteIsDelegated() throws Exception {
@@ -46,7 +32,7 @@ public class RepositoryControllerTest {
 
   @Test
   public void deleteIsDelegatedForReposOnly() throws Exception {
-    mockMvc.perform(MockMvcRequestBuilders.delete("/repo/arepo/noarch/some.file")).andExpect(status().isNotFound());
+    mockMvc.perform(MockMvcRequestBuilders.delete("/repo/arepo/some.file")).andExpect(status().isNotFound());
 
     verifyZeroInteractions(gridFsService);
   }

@@ -1,20 +1,12 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import com.mongodb.gridfs.GridFSDBFile;
-import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -35,8 +27,6 @@ import static org.springframework.test.util.AssertionErrors.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
-
 
 
 public class FileControllerTest extends AbstractControllerTest {
@@ -56,7 +46,7 @@ public class FileControllerTest extends AbstractControllerTest {
   @SuppressWarnings("unchecked")
   @Test
   public void get404ResponseWhenFileIsNotFound() throws Exception {
-    when(gridFs.getResource(anyString())).thenThrow(GridFSFileNotFoundException.class);
+    when(gridFsService.getResource(anyString())).thenThrow(GridFSFileNotFoundException.class);
 
     performRpmGet().andExpect(status().isNotFound());
   }
@@ -118,7 +108,7 @@ public class FileControllerTest extends AbstractControllerTest {
 
   @Test
   public void deliver204IfRpmDoesNotExists() throws Exception {
-    doThrow(GridFSFileNotFoundException.class).when(gridFs).delete(anyString());
+    doThrow(GridFSFileNotFoundException.class).when(gridFsService).delete(anyString());
 
     mockMvc.perform(DELETE_REQUEST).andExpect(status().isNoContent());
   }
@@ -132,14 +122,14 @@ public class FileControllerTest extends AbstractControllerTest {
   private void givenGridFSDBFile() throws IOException {
     GridFSDBFile gridFSDBFile = gridFSDBFile(CONTENT_WITH_200_CHARS);
 
-    when(gridFs.getFileByPath(anyString())).thenReturn(gridFSDBFile);
-    when(gridFs.getResource(anyString())).thenCallRealMethod();
-    when(gridFs.getResource(anyString(), anyLong())).thenCallRealMethod();
-    when(gridFs.getResource(anyString(), anyLong(), anyLong())).thenCallRealMethod();
+    when(gridFsService.getFileByPath(anyString())).thenReturn(gridFSDBFile);
+    when(gridFsService.getResource(anyString())).thenCallRealMethod();
+    when(gridFsService.getResource(anyString(), anyLong())).thenCallRealMethod();
+    when(gridFsService.getResource(anyString(), anyLong(), anyLong())).thenCallRealMethod();
   }
 
   private ResultActions performRpmGet() throws Exception {
-    return mockMvc.perform(MockMvcRequestBuilders.get(RPM_URL));
+    return performSimpleGet(RPM_URL);
   }
 
   private ResultMatcher contentLengthIs(final int length) {
@@ -151,9 +141,7 @@ public class FileControllerTest extends AbstractControllerTest {
     };
   }
 
-  private ResultMatcher badRangeStatus() {
-    return status().is(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
-  }
+  
 
   private ResultActions performRpmGetWithRange(final String rangeHeader) throws Exception {
     return mockMvc.perform(MockMvcRequestBuilders.get(RPM_URL).header("Range", rangeHeader));
