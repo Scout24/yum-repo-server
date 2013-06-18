@@ -91,17 +91,13 @@ public class StatusController {
 
     final StringBuilder detailedInfo = new StringBuilder();
     try {
-      isOK = checkPingTheNode();
+      Set<String> collectionNames = mongoTemplate.getCollectionNames();
+      isOK = collectionNames.containsAll(EXPECTED_COLLECTION_NAMES);
 
-      if (isOK) {
-        Set<String> collectionNames = mongoTemplate.getCollectionNames();
-        isOK = collectionNames.containsAll(EXPECTED_COLLECTION_NAMES);
-
-        if (showExtendedInformation) {
-          appendVersionInfo(detailedInfo);
-          appendInfoOnReplicaSet(detailedInfo);
-          appendCollectionInfo(collectionNames, detailedInfo);
-        }
+      if (showExtendedInformation) {
+        appendVersionInfo(detailedInfo);
+        appendInfoOnReplicaSet(detailedInfo);
+        appendCollectionInfo(collectionNames, detailedInfo);
       }
     } catch (Exception e) {
       LOGGER.warn("status not ok because", e);

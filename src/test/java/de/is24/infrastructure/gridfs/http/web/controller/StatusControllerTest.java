@@ -1,7 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import com.google.common.collect.Sets;
-import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.Mongo;
 import de.is24.infrastructure.gridfs.http.AppVersion;
@@ -17,7 +16,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.Set;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,26 +40,24 @@ public class StatusControllerTest {
   private MockMvc mockMvc;
   private MockHttpServletRequestBuilder requestBuilder;
 
+  private static final Set<String> ALL_COLLECTIONS = Sets.newHashSet(
+    "fs.chunks",
+    "fs.files",
+    "system.indexes",
+    "system.users",
+    "yum.entries",
+    "yum.repos");
+  ;
+
   @Before
   public void setUp() throws Exception {
     statusController = new StatusController(mongoTemplate, mongo, new AppVersion(TEST_VERSION));
     mockMvc = standaloneSetup(statusController).build();
-    when(mongoTemplate.executeCommand(any(BasicDBObject.class))).thenReturn(commandResult);
-
-    Set<String> set = Sets.newHashSet(
-      "fs.chunks",
-      "fs.files",
-      "system.indexes",
-      "system.users",
-      "yum.entries",
-      "yum.repos");
-    when(mongoTemplate.getCollectionNames()).thenReturn(set);
   }
 
   @Test
   public void getOKJsonWhenDBIsAvailable() throws Exception {
-    when(commandResult.ok()).thenReturn(true);
-
+    when(mongoTemplate.getCollectionNames()).thenReturn(ALL_COLLECTIONS);
     requestBuilder = MockMvcRequestBuilders.get("/status");
 
     mockMvc.perform(requestBuilder)
@@ -72,7 +68,7 @@ public class StatusControllerTest {
 
   @Test
   public void getOKJsonWhenDBIsAvailableInPrettyJson() throws Exception {
-    when(commandResult.ok()).thenReturn(true);
+    when(mongoTemplate.getCollectionNames()).thenReturn(ALL_COLLECTIONS);
 
     requestBuilder = MockMvcRequestBuilders.get("/status-full");
 
@@ -85,7 +81,7 @@ public class StatusControllerTest {
 
   @Test
   public void getNotRespondingJsonWhenDBIsNOAvailable() throws Exception {
-    when(commandResult.ok()).thenReturn(false);
+    when(mongoTemplate.getCollectionNames()).thenReturn(Sets.<String>newHashSet());
 
     requestBuilder = MockMvcRequestBuilders.get("/status");
 
