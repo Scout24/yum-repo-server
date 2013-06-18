@@ -104,6 +104,7 @@ public class StatusController {
         }
       }
     } catch (Exception e) {
+      LOGGER.warn("status not ok", e);
       isOK = false;
     }
     if (!isOK) {
