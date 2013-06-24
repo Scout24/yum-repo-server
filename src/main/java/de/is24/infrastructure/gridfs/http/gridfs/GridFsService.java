@@ -37,10 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
@@ -56,7 +54,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import static ch.lambdaj.Lambda.on;
-import static com.mongodb.gridfs.GridFS.DEFAULT_CHUNKSIZE;
 import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
 import static com.mongodb.gridfs.GridFSUtil.remove;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
@@ -285,27 +282,45 @@ public class GridFsService {
     final List<GridFSDBFile> filesToDelete = gridFsTemplate.find(query(
       whereMetaData(MARKED_AS_DELETED_KEY).lt(before)));
 
+    int counter = 0;
     for (GridFSDBFile file : filesToDelete) {
       final long lengthInBytes = file.getLength();
       final String filename = file.getFilename();
       LOGGER.info("removing file {}", filename);
       GridFSUtil.remove(file);
+
+      //wait depending on the size/count of deleted file to let the mongo cluster do the sync without 'dieing' on io wait
       if (lengthInBytes > TEN_MB) {
-        //wait depending on the size of deleted file to let the mongo cluster do the sync without 'dieing' on io wait
-        //24MB 800ms
-        //600MB 20sec
-        final long lengthInMb = lengthInBytes / MB;
-        final long millisToWait = (long) ((lengthInMb / 60f) * 2000);
-        LOGGER.info("waiting {}ms after remove of large file {}({}MB)", millisToWait, filename, lengthInMb);
+        waitAfterDeleteOfLargeFile(lengthInBytes, filename);
+
+      }
+      if (counter > 100) {
+        LOGGER.info("waiting 2000 ms after removal of 100 files");
         try {
-          Thread.sleep(millisToWait);
+          Thread.sleep(2000);
         } catch (InterruptedException e) {
           //should only happen on server shutdown
         }
+        counter = 0;
+      } else {
+        counter++;
       }
     }
 
     LOGGER.info("finished removing files marked as deleted before {}", before);
+  }
+
+  private void waitAfterDeleteOfLargeFile(long lengthInBytes, String filename) {
+    //24MB 800ms
+    //600MB 20sec
+    final long lengthInMb = lengthInBytes / MB;
+    final long millisToWait = (long) ((lengthInMb / 60f) * 2000);
+    LOGGER.info("waiting {}ms after remove of large file {}({}MB)", millisToWait, filename, lengthInMb);
+    try {
+      Thread.sleep(millisToWait);
+    } catch (InterruptedException e) {
+      //should only happen on server shutdown
+    }
   }
 
   public BoundedGridFsResource getResource(String path) throws IOException {
@@ -434,8 +449,7 @@ public class GridFsService {
 
   @VisibleForTesting
   GridFSFile storeFileWithMetaInfo(InputStream inputStream,
-                                                String reponame, String arch, String pathInRepo)
-                                         throws IOException {
+                                   String reponame, String arch, String pathInRepo) throws IOException {
     String rpmPath = reponame + "/" + pathInRepo;
     GridFSDBFile existingDbFile = findFileByPath(rpmPath);
     if (existingDbFile != null) {
