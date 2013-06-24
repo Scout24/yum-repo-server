@@ -124,6 +124,28 @@ public class GridFsServiceIT {
     assertRepoWasModifiedAfterStartTime(destinationRepo);
   }
 
+  @Test
+  public void propagateRepositoryWithDeletedFiles() throws Exception {
+    String sourceRepo = givenFullRepository();
+    givenFileToBeDeleted(sourceRepo, "noarch/myDeleteFile.rpm", new Date());
+
+    String destinationRepo = givenFullRepository();
+    startTime = currentTimeMillis();
+
+    context.gridFsService().propagateRepository(sourceRepo, destinationRepo);
+
+    assertOldRpmIsOverwritten(destinationRepo);
+    assertRepoMetadataExists(sourceRepo);
+
+    GridFSDBFile rpm = findNoarchRpm(destinationRepo);
+    assertThat(rpm, notNullValue());
+    assertFileMetaData(destinationRepo, rpm);
+    assertYumEntryHas(rpm, destinationRepo);
+    assertRepoMetadataExists(destinationRepo);
+    assertRepoWasModifiedAfterStartTime(sourceRepo);
+    assertRepoWasModifiedAfterStartTime(destinationRepo);
+  }
+
   @Test(expected = InvalidRpmHeaderException.class)
   public void throwExceptionForEmptyRpm() throws Exception {
     String reponame = uniqueRepoName();
@@ -246,7 +268,7 @@ public class GridFsServiceIT {
   public void metaDataForDeletionIsSetByFilenameRegex() throws Exception {
     final String reponame = uniqueRepoName();
     final String willMatch = "willmatch-filename.rpm";
-    final String matchPath = reponame + "/" +  willMatch;
+    final String matchPath = reponame + "/" + willMatch;
     givenFileWithPath(reponame, willMatch);
 
     final String no_match = "no_match";
@@ -333,7 +355,8 @@ public class GridFsServiceIT {
     givenFileToBeDeleted(repoToDeleteIn, "toBeDeletedFuture", DateUtils.addDays(now, 1));
   }
 
-  private GridFSFile givenFileToBeDeleted(final String reponame, final String path, final Date time) throws IOException {
+  private GridFSFile givenFileToBeDeleted(final String reponame, final String path, final Date time)
+                                   throws IOException {
     final GridFSFile toBeDeleted = givenFileWithPath(reponame, path);
     GridFSUtil.mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
     toBeDeleted.save();
@@ -342,7 +365,6 @@ public class GridFsServiceIT {
 
   private GridFSFile givenFileWithPath(String repo, String path) throws IOException {
     return context.gridFsService().storeFileWithMetaInfo(contentInputStream(), repo, "testing", path);
-    //return context.gridFsTemplate().store(contentInputStream(), path);
   }
 
 

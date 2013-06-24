@@ -352,7 +352,10 @@ public class GridFsService {
     validateRepoName(destinationRepo);
 
     List<GridFSDBFile> sourceRpms = gridFsTemplate.find(query(
-      whereMetaData(REPO_KEY).is(sourceRepo).andOperator(whereFilename().regex(".*\\.rpm$"))));
+      whereMetaData(REPO_KEY).is(sourceRepo)
+      .and(METADATA_MARKED_AS_DELETED_KEY)
+      .is(null)
+      .andOperator(whereFilename().regex(".*\\.rpm$"))));
     for (GridFSDBFile dbFile : sourceRpms) {
       move(dbFile, destinationRepo);
     }
