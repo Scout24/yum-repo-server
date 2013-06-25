@@ -91,7 +91,7 @@ import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaDa
 @Service
 public class GridFsService {
   private static final int MB = 1024 * 1024;
-  private static final int TEN_MB = 10 * MB;
+  private static final int FIVE_MB = 5 * MB;
   private static final String SHA256_KEY = "sha256";
   private static final String OPEN_SIZE_KEY = "open_size";
   private static final Logger LOGGER = LoggerFactory.getLogger(GridFsService.class);
@@ -275,7 +275,7 @@ public class GridFsService {
   }
 
   @ManagedOperation
-  @MongoTx(writeConcern = "ACKNOWLEDGED")
+  @MongoTx(writeConcern = "FSYNCED")
   public void removeFilesMarkedAsDeletedBefore(final Date before) {
     LOGGER.info("removing files marked as deleted before {}", before);
 
@@ -290,7 +290,7 @@ public class GridFsService {
       GridFSUtil.remove(file);
 
       //wait depending on the size/count of deleted file to let the mongo cluster do the sync without 'dieing' on io wait
-      if (lengthInBytes > TEN_MB) {
+      if (lengthInBytes > FIVE_MB) {
         waitAfterDeleteOfLargeFile(lengthInBytes, filename);
 
       }
@@ -311,10 +311,10 @@ public class GridFsService {
   }
 
   private void waitAfterDeleteOfLargeFile(long lengthInBytes, String filename) {
-    //24MB 800ms
-    //600MB 20sec
+    //24MB 1600ms
+    //600MB 40sec
     final long lengthInMb = lengthInBytes / MB;
-    final long millisToWait = (long) ((lengthInMb / 60f) * 2000);
+    final long millisToWait = (long) ((lengthInMb / 60f) * 4000);
     LOGGER.info("waiting {}ms after remove of large file {}({}MB)", millisToWait, filename, lengthInMb);
     try {
       Thread.sleep(millisToWait);

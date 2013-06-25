@@ -88,7 +88,7 @@ public class GridFsServiceTest {
   public void waitAfterDeletionOfLargeFile() throws Exception {
     GridFSDBFile file = mock(GridFSDBFile.class);
     when(file.getFilename()).thenReturn("theFilename");
-    when(file.getLength()).thenReturn(12 * 1024 * 1024L);
+    when(file.getLength()).thenReturn(6 * 1024 * 1024L);
     when(gridFsTemplate.find((Query) anyObject())).thenReturn(Arrays.asList(file));
 
     final long start = System.currentTimeMillis();
