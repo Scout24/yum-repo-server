@@ -1,39 +1,37 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.infrastructure.gridfs.http.web.controller.PropagationController;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-public class PropagationControllerTest {
+public class PropagationControllerTest extends AbstractControllerTest {
 
-  private PropagationController controller;
-  private GridFsService gridFs;
+  public static final String DEST_REPO = "dest-repo";
 
-  @Before
-  public void setUp() throws Exception {
-    gridFs = mock(GridFsService.class);
-    controller = new PropagationController(gridFs);
+  @Test
+  public void throwExceptionForFileNotFound() throws Exception {
+    doThrow(GridFSFileNotFoundException.class).when(gridFsService).propagateRpm(anyString(), anyString());
+
+    mockMvc.perform(postPorpagationWithSourceFile("not/existing/file")).andExpect(status().isNotFound());
   }
 
-  @Test(expected = GridFSFileNotFoundException.class)
-  public void throwExceptionForFileNotFound() throws Exception {
-    doThrow(GridFSFileNotFoundException.class).when(gridFs).propagateRpm(anyString(), anyString());
-
-    controller.propgateRpm("not/existing/file", "dest-repo", new MockHttpServletResponse());
+  private MockHttpServletRequestBuilder postPorpagationWithSourceFile(String sourceFile) {
+    return post("/propagation").param("source", sourceFile).param("destination", DEST_REPO);
   }
 
   @Test
   public void moveFileToDestRepo() throws Exception {
-    controller.propgateRpm("not/existing/file", "dest-repo", new MockHttpServletResponse());
 
-    verify(gridFs).propagateRpm(anyString(), anyString());
+    final String sourceFile = "my/existing/file";
+    mockMvc.perform(postPorpagationWithSourceFile(sourceFile)).andExpect(status().isCreated());
+
+    verify(gridFsService).propagateRpm(sourceFile, DEST_REPO);
   }
 
 }

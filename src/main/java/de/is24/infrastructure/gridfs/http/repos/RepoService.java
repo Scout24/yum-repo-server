@@ -62,9 +62,10 @@ public class RepoService {
     }
   }
 
-  public void updateLastMetadataGeneration(String reponame, Date date) {
+  public void updateLastMetadataGeneration(String reponame, Date date, String newHashOfEntries) {
     RepoEntry repoEntry = ensureEntry(reponame, STATIC, SCHEDULED);
     repoEntry.setLastMetadataGeneration(date);
+    repoEntry.setHashOfEntries(newHashOfEntries);
     if (repoEntry.getLastModified() == null) {
       repoEntry.setLastModified(new Date(date.getTime() - ONE_SEC_IN_MS));
     }
@@ -94,16 +95,28 @@ public class RepoService {
 
   public RepoEntry ensureEntry(String reponame, RepoType... types) {
     RepoEntry repoEntry = entriesRepository.findFirstByName(reponame);
-    if ((repoEntry != null) && (types != null) && !contains(types, repoEntry.getType())) {
-      throw new IllegalArgumentException("Repository " + reponame + " found but has type: " + repoEntry.getType() +
-        ". Expected: " + ArrayUtils.toString(types));
+    boolean nullChecksOk = (repoEntry != null) && (types != null) && ((types.length > 0) && (types[0] != null));
+    if (nullChecksOk && !contains(types, repoEntry.getType())) {
+      String repoMsg = "Repository " + reponame + " found";
+      String typeMsg = "but has type: " + repoEntry.getType() + ". Expected: " + ArrayUtils.toString(types);
+      throw new IllegalArgumentException(repoMsg + ", " + typeMsg);
     }
 
     if (repoEntry == null) {
-      validateRepoName(reponame);
-      repoEntry = new RepoEntry();
-      repoEntry.setName(reponame);
-      repoEntry.setType((types != null) ? types[0] : STATIC);
+      repoEntry = fillRepoEntry(reponame, types);
+    }
+    return repoEntry;
+  }
+
+  private static RepoEntry fillRepoEntry(final String reponame, final RepoType[] types) {
+    validateRepoName(reponame);
+
+    RepoEntry repoEntry = new RepoEntry();
+    repoEntry.setName(reponame);
+    if ((types == null) || ((types.length > 0) && (types[0] == null))) {
+      repoEntry.setType(STATIC);
+    } else {
+      repoEntry.setType(types[0]);
     }
     return repoEntry;
   }

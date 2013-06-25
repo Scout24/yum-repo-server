@@ -5,6 +5,7 @@ import com.mongodb.gridfs.GridFS;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesHashCalculator;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
@@ -17,6 +18,10 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
 
 
+/**
+ *  <strong>Attention</strong>
+ *  If used as {@link org.junit.ClassRule} all test of the class use the same mongoDB instance!
+ */
 public class IntegrationTestContext extends MongoTestContext {
   public static final String RPM_DB = "rpm_db";
 
@@ -32,6 +37,7 @@ public class IntegrationTestContext extends MongoTestContext {
   private RepoMdGenerator repoMdGenerator;
 
   private MetadataService metadataService;
+  private YumEntriesHashCalculator entriesHashCalculator;
 
   public GridFS gridFs() {
     if (gridFs == null) {
@@ -86,7 +92,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public RepoCleaner repoCleaner() {
     if (repoCleaner == null) {
-      repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), gridFs(), repoService());
+      repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), gridFsService(), repoService());
     }
 
     return repoCleaner;
@@ -99,10 +105,18 @@ public class IntegrationTestContext extends MongoTestContext {
     return repoMdGenerator;
   }
 
+  public YumEntriesHashCalculator entriesHashCalculator() {
+    if (entriesHashCalculator == null) {
+      entriesHashCalculator = new YumEntriesHashCalculator(mongoTemplate());
+    }
+    return entriesHashCalculator;
+  }
+
   public MetadataService metadataService() {
     if (metadataService == null) {
+      entriesHashCalculator = new YumEntriesHashCalculator(mongoTemplate());
       metadataService = new MetadataService(gridFsService(), yumEntriesRepository(), repoMdGenerator(),
-        repoService(), repoCleaner());
+        repoService(), repoCleaner(), entriesHashCalculator());
     }
     return metadataService;
   }

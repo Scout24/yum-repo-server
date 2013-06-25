@@ -88,7 +88,7 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
 
     sleep(1000);
 
-    HttpGet get = new HttpGet(repoUrl + "/noarch/test-artifact-1.2-1.noarch.rpm");
+    HttpGet get = new HttpGet(repoUrl);
     response = httpClient.execute(get);
     assertThat(response.getStatusLine().getStatusCode(), is(SC_NOT_FOUND));
   }

@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
 import ch.lambdaj.function.compare.ArgumentComparator;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -8,6 +9,7 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import com.mongodb.gridfs.GridFSInputFile;
+import com.mongodb.gridfs.GridFSUtil;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
@@ -33,9 +35,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
-import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
@@ -47,10 +50,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import static ch.lambdaj.Lambda.on;
-import static com.mongodb.gridfs.GridFS.DEFAULT_CHUNKSIZE;
+import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
 import static com.mongodb.gridfs.GridFSUtil.remove;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
@@ -59,11 +63,13 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KE
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY_REPO_DATA;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.FILENAME_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_ARCH_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_UPLOAD_DATE_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.UPLOAD_DATE_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.ObjectIdCriteria.whereObjectIdIs;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
 import static java.lang.String.format;
 import static java.nio.channels.Channels.newChannel;
@@ -76,6 +82,7 @@ import static org.apache.commons.lang.StringUtils.countMatches;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
@@ -83,6 +90,8 @@ import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaDa
 @ManagedResource
 @Service
 public class GridFsService {
+  private static final int MB = 1024 * 1024;
+  private static final int FIVE_MB = 5 * MB;
   private static final String SHA256_KEY = "sha256";
   private static final String OPEN_SIZE_KEY = "open_size";
   private static final Logger LOGGER = LoggerFactory.getLogger(GridFsService.class);
@@ -90,15 +99,16 @@ public class GridFsService {
   private static final String BZ2_CONTENT_TYPE = new MediaType("application", "x-bzip2").toString();
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
+  public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
 
   private final GridFS gridFs;
-  private final GridFsTemplate gridFsTemplate;
+  private final GridFsOperations gridFsTemplate;
   private final MongoTemplate mongoTemplate;
   private final YumEntriesRepository yumEntriesRepository;
   private final RepoService repoService;
-  private int chunkSize = DEFAULT_CHUNKSIZE;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
 
+  //needed for cglib proxy
   public GridFsService() {
     this.gridFsTemplate = null;
     this.mongoTemplate = null;
@@ -108,7 +118,7 @@ public class GridFsService {
   }
 
   @Autowired
-  public GridFsService(GridFS gridFs, GridFsTemplate gridFsTemplate, MongoTemplate mongoTemplate,
+  public GridFsService(GridFS gridFs, GridFsOperations gridFsTemplate, MongoTemplate mongoTemplate,
                        YumEntriesRepository yumEntriesRepository, RepoService repoService) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
@@ -123,6 +133,7 @@ public class GridFsService {
     filesCollection.ensureIndex(METADATA_REPO_KEY);
     filesCollection.ensureIndex(METADATA_ARCH_KEY);
     filesCollection.ensureIndex(METADATA_UPLOAD_DATE_KEY);
+    filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
   }
 
   public String propagateRpm(String sourceFile, String destinationRepo) {
@@ -204,10 +215,8 @@ public class GridFsService {
   }
 
   @TimeMeasurement
-  public List<GridFSDBFile> findByFilenamePatternAndBeforeUploadDate(String regex, Date uploadedBefore) {
-    return gridFsTemplate.find(
-      query(
-        whereFilename().regex(regex).andOperator(where(UPLOAD_DATE_KEY).lt(uploadedBefore))));
+  public List<GridFSDBFile> findByFilenamePattern(String regex) {
+    return gridFsTemplate.find(query(whereFilename().regex(regex)));
   }
 
   @TimeMeasurement
@@ -234,6 +243,83 @@ public class GridFsService {
   public void delete(List<GridFSDBFile> dbFiles) {
     for (GridFSDBFile dbFile : dbFiles) {
       delete(dbFile);
+    }
+  }
+
+  public void markForDeletionById(ObjectId id) {
+    markForDeletion(whereObjectIdIs(id));
+  }
+
+  public void markForDeletionByPath(final String path) {
+    markForDeletion(whereFilename().is(path));
+  }
+
+  public void markForDeletionByFilenameRegex(final String regex) {
+    markForDeletion(whereFilename().regex(regex));
+  }
+
+  private void markForDeletion(final Criteria criteria) {
+    mongoTemplate.updateMulti(query(criteria.and(METADATA_MARKED_AS_DELETED_KEY).is(null)),
+      update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
+      GRIDFS_FILES_COLLECTION);
+  }
+
+  @ManagedOperation
+  public List<String> listFilesMarkedAsDeleted() {
+    final List<GridFSDBFile> gridFSDBFiles = gridFsTemplate.find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
+    final List<String> filenames = new ArrayList<>(gridFSDBFiles.size());
+    for (GridFSDBFile file : gridFSDBFiles) {
+      filenames.add(file.getFilename() + " " + file.getMetaData().get(MARKED_AS_DELETED_KEY).toString());
+    }
+    return filenames;
+  }
+
+  @ManagedOperation
+  @MongoTx(writeConcern = "FSYNCED")
+  public void removeFilesMarkedAsDeletedBefore(final Date before) {
+    LOGGER.info("removing files marked as deleted before {}", before);
+
+    final List<GridFSDBFile> filesToDelete = gridFsTemplate.find(query(
+      whereMetaData(MARKED_AS_DELETED_KEY).lt(before)));
+
+    int counter = 0;
+    for (GridFSDBFile file : filesToDelete) {
+      final long lengthInBytes = file.getLength();
+      final String filename = file.getFilename();
+      LOGGER.info("removing file {}", filename);
+      GridFSUtil.remove(file);
+
+      //wait depending on the size/count of deleted file to let the mongo cluster do the sync without 'dieing' on io wait
+      if (lengthInBytes > FIVE_MB) {
+        waitAfterDeleteOfLargeFile(lengthInBytes, filename);
+
+      }
+      if (counter > 100) {
+        LOGGER.info("waiting 2000 ms after removal of 100 files");
+        try {
+          Thread.sleep(2000);
+        } catch (InterruptedException e) {
+          //should only happen on server shutdown
+        }
+        counter = 0;
+      } else {
+        counter++;
+      }
+    }
+
+    LOGGER.info("finished removing files marked as deleted before {}", before);
+  }
+
+  private void waitAfterDeleteOfLargeFile(long lengthInBytes, String filename) {
+    //24MB 1600ms
+    //600MB 40sec
+    final long lengthInMb = lengthInBytes / MB;
+    final long millisToWait = (long) ((lengthInMb / 60f) * 4000);
+    LOGGER.info("waiting {}ms after remove of large file {}({}MB)", millisToWait, filename, lengthInMb);
+    try {
+      Thread.sleep(millisToWait);
+    } catch (InterruptedException e) {
+      //should only happen on server shutdown
     }
   }
 
@@ -266,7 +352,10 @@ public class GridFsService {
     validateRepoName(destinationRepo);
 
     List<GridFSDBFile> sourceRpms = gridFsTemplate.find(query(
-      whereMetaData(REPO_KEY).is(sourceRepo).andOperator(whereFilename().regex(".*\\.rpm$"))));
+      whereMetaData(REPO_KEY).is(sourceRepo)
+      .and(METADATA_MARKED_AS_DELETED_KEY)
+      .is(null)
+      .andOperator(whereFilename().regex(".*\\.rpm$"))));
     for (GridFSDBFile dbFile : sourceRpms) {
       move(dbFile, destinationRepo);
     }
@@ -285,7 +374,7 @@ public class GridFsService {
     YumPackage yumPackage = convertHeader(bufferedInputStream);
     bufferedInputStream.reset();
 
-    GridFSInputFile dbFile = storeFileWithMetaInfo(bufferedInputStream, reponame, yumPackage.getArch(),
+    final GridFSFile dbFile = storeFileWithMetaInfo(bufferedInputStream, reponame, yumPackage.getArch(),
       yumPackage.getLocation().getHref());
 
     yumEntriesRepository.save(createYumEntry(yumPackage, dbFile));
@@ -343,19 +432,10 @@ public class GridFsService {
     }
 
     mongoTemplate.remove(query(where(REPO_KEY).is(reponame)), YumEntry.class);
-    gridFsTemplate.delete(query(whereMetaData(REPO_KEY).is(reponame)));
+
+    markForDeletion(whereMetaData(REPO_KEY).is(reponame));
 
     repoService.delete(reponame);
-  }
-
-  @ManagedAttribute
-  public int getChunkSize() {
-    return chunkSize;
-  }
-
-  @ManagedAttribute
-  public void setChunkSize(int chunkSize) {
-    this.chunkSize = chunkSize;
   }
 
   @ManagedOperation
@@ -370,9 +450,9 @@ public class GridFsService {
     }
   }
 
-  private GridFSInputFile storeFileWithMetaInfo(InputStream inputStream,
-                                                String reponame, String arch, String pathInRepo)
-                                         throws InvalidRpmHeaderException, IOException {
+  @VisibleForTesting
+  GridFSFile storeFileWithMetaInfo(InputStream inputStream,
+                                   String reponame, String arch, String pathInRepo) throws IOException {
     String rpmPath = reponame + "/" + pathInRepo;
     GridFSDBFile existingDbFile = findFileByPath(rpmPath);
     if (existingDbFile != null) {
@@ -380,15 +460,13 @@ public class GridFsService {
     }
 
     DigestInputStream digestInputStream = new DigestInputStream(inputStream, getSha256Digest());
-    GridFSInputFile inputFile = (GridFSInputFile) gridFsTemplate.store(digestInputStream, rpmPath);
-    inputFile.setContentType("application/x-rpm");
-    inputFile.setChunkSize(chunkSize);
-    inputFile.save();
+    GridFSFile inputFile = gridFsTemplate.store(digestInputStream, rpmPath, CONTENT_TYPE_APPLICATION_X_RPM);
     closeQuietly(digestInputStream);
 
     String sha256Hash = encodeHexString(digestInputStream.getMessageDigest().digest());
     DBObject metaData = createBasicMetaDataObject(reponame, arch, sha256Hash);
-    inputFile.getMetaData().putAll(metaData);
+    mergeMetaData(inputFile, metaData);
+
     inputFile.save();
 
     return inputFile;
@@ -465,8 +543,9 @@ public class GridFsService {
       YumPackage yumPackage = convertHeader(dbFile.getInputStream());
       YumEntry yumEntry = createYumEntry(yumPackage, dbFile);
       yumEntriesRepository.save(yumEntry);
-    } catch (Exception e) {
+    } catch (InvalidRpmHeaderException e) {
       LOGGER.error("Generating metadata for " + dbFile.getFilename() + " failed.", e);
+      throw e;
     }
   }
 }

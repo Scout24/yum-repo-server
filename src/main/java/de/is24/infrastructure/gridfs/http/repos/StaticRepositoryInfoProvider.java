@@ -87,9 +87,14 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
     if (sortOrder == SortOrder.asc) {
       Collections.sort(list, comparator);
     } else {
-      Collections.sort(list, ComparatorUtils.reversedComparator(comparator));
+      Collections.sort(list, getReversedComparator(comparator));
     }
     return new LinkedHashSet<>(list);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Comparator<FolderInfo> getReversedComparator(final Comparator<FolderInfo> comparator) {
+    return ComparatorUtils.reversedComparator(comparator);
   }
 
   private Comparator<FolderInfo> getComparator(SortField sortBy) {
@@ -107,8 +112,8 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
 
   @Override
   public Iterable<DBObject> getReposAggregation(SortField sortBy, SortOrder sortOrder) {
-    AggregationOutput aggregation = getFilesCollection().aggregate(
-      groupBy(DatabaseStructure.METADATA_REPO_KEY) //
+    AggregationOutput aggregation = getFilesCollection().aggregate(match(where(METADATA_REPO_KEY).ne(null)),
+      groupBy(METADATA_REPO_KEY) //
       .sum("length").max("uploadDate").build(),
       sort(sortBy, sortOrder));
     return aggregation.results();

@@ -321,6 +321,12 @@ span.value .ui-switchbutton.ui-state-active {
     margin: 9px 0 0 50px;
 }
 
+.versionInfo {
+    font-size: 75%;
+    margin-top: 30px;
+    text-align: center;
+}
+
 /* CLUETIP END */
 
 /* FILE TABLE BEGIN */

@@ -1,5 +1,16 @@
 package de.is24.infrastructure.gridfs.http.metadata.scheduling;
 
+import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
+import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
+import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.springframework.scheduling.TaskScheduler;
+import java.net.UnknownHostException;
+import java.util.concurrent.ScheduledFuture;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,17 +22,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import java.net.UnknownHostException;
-import java.util.concurrent.ScheduledFuture;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.springframework.scheduling.TaskScheduler;
-import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
-import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
-import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
-import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 
 
 public class RepoMetadataSchedulerJobIT {
@@ -33,10 +33,10 @@ public class RepoMetadataSchedulerJobIT {
   public static IntegrationTestContext context = new IntegrationTestContext();
 
   @Before
+  @SuppressWarnings("unchecked")
   public void setUp() throws UnknownHostException {
     RepoMdGenerator repoMdGenerator = new RepoMdGenerator(context.gridFs());
-    MetadataService metadataService = new MetadataService(context.gridFsService(), context.yumEntriesRepository(),
-      repoMdGenerator, context.repoService(), context.repoCleaner());
+    MetadataService metadataService = context.metadataService();
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
     ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
     TaskScheduler taskScheduler = mock(TaskScheduler.class);

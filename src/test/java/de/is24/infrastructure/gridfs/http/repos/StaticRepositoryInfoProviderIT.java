@@ -48,12 +48,21 @@ public class StaticRepositoryInfoProviderIT {
   public void setUp() throws Exception {
     provider = new StaticRepositoryInfoProvider(context.mongoTemplate(), context.repoEntriesRepository());
     gridFsService = context.gridFsService();
+    cleanExistingRepos();
+  }
+
+  private void cleanExistingRepos() {
+    final List<RepoEntry> repoEntries = context.repoEntriesRepository().findAll();
+    for (RepoEntry entry : repoEntries) {
+      gridFsService.deleteRepository(entry.getName());
+    }
+    context.gridFsTemplate().delete(null);
   }
 
   @Test
   public void shouldFindReposForQueryStaticByMatchingRegex() throws Exception {
     String givenReponameRegex = "r.po-[0-9]*";
-    String reponame = createRepoFromDaysAgoWithData(0);
+    String reponame = createRepoFromDaysAgoWithData(1);
 
     List<RepoEntry> entries = findRepoByNameAndOlderDays(givenReponameRegex, 0);
     assertResultContainsRepoWithGivenName(reponame, entries);
@@ -71,6 +80,7 @@ public class StaticRepositoryInfoProviderIT {
     cleanUpRepositories(givenReponame);
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void shouldGetEmptyAndNotEmptyRepos() throws Exception {
     String givenRepoWithData = createRepoFromDaysAgoWithData(0);
@@ -119,7 +129,7 @@ public class StaticRepositoryInfoProviderIT {
   private String createRepoFromDaysAgoWithData(int days) throws Exception {
     String reponame = uniqueRepoName();
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
-    context.metadataService().generateYumMetadata(reponame);
+    context.metadataService().generateYumMetadataIfNecessary(reponame);
     context.mongoTemplate()
     .updateFirst(
       query(where("name").is(reponame)), update("lastModified", now().minusDays(days).toDate()),
@@ -130,10 +140,10 @@ public class StaticRepositoryInfoProviderIT {
   private List<RepoEntry> findRepoByNameAndOlderDays(String givenReponameRegex, int olderdays) {
     Date newerSevenDaysAgo = now().minusDays(7).toDate();
     Date olderOneDayAgo = now().minusDays(olderdays).toDate();
-    List<RepoEntry> entries = provider.find(givenReponameRegex, newerSevenDaysAgo, olderOneDayAgo);
-    return entries;
+    return provider.find(givenReponameRegex, newerSevenDaysAgo, olderOneDayAgo);
   }
 
+  @SuppressWarnings("unchecked")
   private void thenReposAreSortedByName(Container<FolderInfo> givenStaticRepos, String expectedValue1,
                                         String expectedValue2, String expectedValue3) {
     Matcher<FolderInfo> matcher1 = havingValue(on(FolderInfo.class).getName(), is(expectedValue1));

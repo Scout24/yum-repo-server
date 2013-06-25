@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import java.io.IOException;
 import java.util.Date;
+import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -47,13 +48,16 @@ public class MetadataServiceIT {
   public void generateYumRepoMetadata() throws Exception {
     long startTime = currentTimeMillis();
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
     assertDbFile("primary");
     assertDbFile("other");
     assertDbFile("filelists");
     assertRepoMdXml();
-    assertThat(context.repoEntriesRepository().findFirstByName(reponame).getLastMetadataGeneration().getTime(),
+
+    final RepoEntry repoEntry = context.repoEntriesRepository().findFirstByName(reponame);
+    assertThat(repoEntry.getLastMetadataGeneration().getTime(),
       greaterThan(startTime));
+    assertThat(repoEntry.getHashOfEntries(), is(notNullValue()));
   }
 
   @Test
@@ -62,10 +66,11 @@ public class MetadataServiceIT {
     context.repoService().createOrUpdate(reponame);
 
     RepoEntry repoEntryBefore = context.repoEntriesRepository().findFirstByName(reponame);
-    repoEntryBefore.setLastMetadataGeneration(new Date(repoEntryBefore.getLastModified().getTime() + 100));
+    repoEntryBefore.setHashOfEntries(context.entriesHashCalculator().hashForRepo(reponame));
+    repoEntryBefore.setLastMetadataGeneration(new Date());
     context.repoEntriesRepository().save(repoEntryBefore);
 
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
 
     RepoEntry repoEntryAfter = context.repoEntriesRepository().findFirstByName(reponame);
     assertThat(repoEntryAfter, is(repoEntryBefore));
@@ -79,9 +84,10 @@ public class MetadataServiceIT {
     ObjectId sqliteFileId = givenSomeSqliteFileFromOneHourAgo(reponame);
 
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
-    service.generateYumMetadata(reponame);
+    service.generateYumMetadataIfNecessary(reponame);
 
-    assertThat(context.gridFs().findOne(sqliteFileId), nullValue());
+    assertThat(context.gridFs().findOne(sqliteFileId).getMetaData().get(DatabaseStructure.MARKED_AS_DELETED_KEY),
+      is(notNullValue()));
   }
 
   private ObjectId givenSomeSqliteFileFromOneHourAgo(String reponame) throws IOException {
@@ -115,6 +121,7 @@ public class MetadataServiceIT {
       .get(0);
     String sha256 = dbFile.getMetaData().get("sha256").toString();
     assertThat(dbFile.getFilename(), endsWith(type + "-" + sha256 + ".sqlite.bz2"));
+    assertThat(dbFile.getMetaData().get(DatabaseStructure.MARKED_AS_DELETED_KEY), is(nullValue()));
   }
 
 }

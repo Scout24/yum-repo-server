@@ -150,6 +150,18 @@ that have already downloaded an old *repomd.xml* with references to old database
     Time in seconds of the interval between two repository updates for scheduled repositories.
     
     *Default:* 10
+ 
+*   *scheduler.delete.files.delay.minuets*
+
+    Time in minuets to wait until files are actually removed, when there are marked as deleted
+    
+    *Default:* 10
+
+*   *scheduler.delete.files.cron*
+
+    Cron expression to check for files to delete
+    
+    *Default:* every 15min 
     
 *   *pam.service.name*
 

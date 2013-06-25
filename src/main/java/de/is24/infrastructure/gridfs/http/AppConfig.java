@@ -2,7 +2,7 @@ package de.is24.infrastructure.gridfs.http;
 
 import com.mongodb.FastestPingTimeReadPreference;
 import com.mongodb.Mongo;
-import com.mongodb.MongoOptions;
+import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
@@ -23,12 +23,13 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.authentication.UserCredentials;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
-import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.mongodb.tx.MongoTxProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +38,7 @@ import static com.mongodb.WriteConcern.NORMAL;
 import static com.mongodb.WriteConcern.REPLICAS_SAFE;
 
 
-@ComponentScan(basePackages = { "de.is24" })
+@ComponentScan(basePackages = { "de.is24", "org.springframework.data.mongodb.tx" })
 @Configuration
 @EnableAspectJAutoProxy
 @EnableMBeanExport
@@ -90,18 +91,19 @@ public class AppConfig extends AbstractMongoConfiguration {
 
   @Bean
   @Override
-  public Mongo mongo() throws Exception {
-    return new Mongo(getReplicatSet(), mongoOptions());
+  public Mongo mongo() throws UnknownHostException {
+    return new MongoTxProxy(getReplicatSet(), mongoOptions());
   }
 
-  private MongoOptions mongoOptions() throws Exception {
-    MongoOptions mongoOptions = new MongoOptions();
-    mongoOptions.setAutoConnectRetry(true);
-    mongoOptions.setSocketKeepAlive(true);
-    mongoOptions.setReadPreference(new FastestPingTimeReadPreference());
-    mongoOptions.setConnectionsPerHost(20);
-    mongoOptions.setSocketTimeout(10 * 1000);
-    return mongoOptions;
+  private MongoClientOptions mongoOptions() {
+    return new MongoClientOptions.Builder() //
+      .autoConnectRetry(true)
+      .socketKeepAlive(true)
+      .readPreference(new FastestPingTimeReadPreference())
+      .writeConcern(getWriteConcern())
+      .connectionsPerHost(20)
+      .socketTimeout(10 * 1000)
+      .build();
   }
 
   @Bean
@@ -114,13 +116,6 @@ public class AppConfig extends AbstractMongoConfiguration {
     return new GridFsTemplate(mongoDbFactory(), mappingMongoConverter());
   }
 
-  @Override
-  public SimpleMongoDbFactory mongoDbFactory() throws Exception {
-    SimpleMongoDbFactory dbFactory = super.mongoDbFactory();
-    dbFactory.setWriteConcern(getWriteConcern());
-    return dbFactory;
-  }
-
   private WriteConcern getWriteConcern() {
     if (mongoDBServerList.contains(SEPARATOR)) {
       return REPLICAS_SAFE;
@@ -130,7 +125,7 @@ public class AppConfig extends AbstractMongoConfiguration {
   }
 
   @Bean
-  public StatsdPlugin statsdPlugin() throws Exception {
+  public StatsdPlugin statsdPlugin() throws SocketException, UnknownHostException {
     if (statsdHost != null) {
       StatsdPlugin statsdPlugin = new StatsdPlugin(statsdHost, statsdPort, typ);
       statsdPlugin.register();

@@ -1,14 +1,13 @@
 package de.is24.infrastructure.gridfs.http.repos;
 
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryNotFoundException;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Date;
-
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
@@ -19,6 +18,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
 
 public class RepoServiceTest {
   private static final Date BEFORE = new Date();
@@ -77,12 +77,15 @@ public class RepoServiceTest {
   @Test
   public void updateLastMetadataGeneration() throws Exception {
     Date date = new Date();
+    final String newHashOfEntries = "newHashOfEntries";
     RepoEntry entry = new RepoEntry();
     entry.setLastMetadataGeneration(date);
     entry.setType(STATIC);
     entry.setName(ANY_REPONAME);
     entry.setLastModified(new Date(date.getTime() - 1000));
-    service.updateLastMetadataGeneration(ANY_REPONAME, date);
+    entry.setHashOfEntries(newHashOfEntries);
+
+    service.updateLastMetadataGeneration(ANY_REPONAME, date, newHashOfEntries);
 
     verify(repository).save(entry);
   }
@@ -122,14 +125,14 @@ public class RepoServiceTest {
 
   @Test
   public void ensureEntry() throws Exception {
-    RepoEntry repoEntry = service.ensureEntry(ANY_REPONAME, null);
+    RepoEntry repoEntry = service.ensureEntry(ANY_REPONAME, (RepoType) null);
     assertThat(repoEntry.getName(), is(ANY_REPONAME));
     assertThat(repoEntry.getType(), is(STATIC));
   }
 
   @Test(expected = BadRequestException.class)
   public void failForInvalidReponameInEnsureEntry() throws Exception {
-    service.ensureEntry("?.-456456()", null);
+    service.ensureEntry("?.-456456()", (RepoType) null);
   }
 
 
@@ -190,6 +193,18 @@ public class RepoServiceTest {
     RepoEntry entry = createRepoEntry(false);
     when(repository.findFirstByNameAndType(ANY_REPONAME, STATIC)).thenReturn(entry);
     assertThat(service.getRepo(ANY_REPONAME, STATIC), is(entry));
+  }
+
+  //Issue #11
+  @Test(expected = BadRequestException.class)
+  public void shouldNotCreateNullStaticRepoNames() {
+    service.createOrUpdate(null);
+  }
+
+  //Issue #11
+  @Test(expected = BadRequestException.class)
+  public void shouldNotCreateRepoWithInvalidNamePattern() {
+    service.createOrUpdate("äää&&%%");
   }
 
   private RepoEntry createRepoEntry(boolean scheduled) {

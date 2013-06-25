@@ -1,22 +1,21 @@
 package de.is24.infrastructure.gridfs.http.mongo;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory;
 import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-
 import java.net.UnknownHostException;
 
-public class MongoTestContext implements TestRule {
 
+public class MongoTestContext implements TestRule {
   private MongoProcessHolder mongoProcessHolder;
 
   @Override
   public Statement apply(final Statement baseStatement, Description description) {
     return new Statement() {
-
       @Override
       public void evaluate() throws Throwable {
         mongoProcessHolder = LocalMongoFactory.createMongoProcess();
@@ -46,10 +45,10 @@ public class MongoTestContext implements TestRule {
     return mongoProcessHolder.getMongoPort();
   }
 
-  public Mongo getMongo()  {
+  public Mongo getMongo() {
     checkMongoIsRunning();
     try {
-      return new Mongo("localhost", getPort());
+      return new MongoClient("localhost", getPort());
     } catch (UnknownHostException e) {
       throw new IllegalStateException("Could not resolve 'localhost'", e);
     }

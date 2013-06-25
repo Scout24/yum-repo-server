@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.migration;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoClient;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
@@ -19,25 +20,23 @@ import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.UnknownHostException;
 import java.util.List;
-
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 import static java.nio.channels.Channels.newChannel;
 import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
+
 /**
  * Class to regenerate all YumEntries for all RPMs
  */
 public class YumEntryGenerator {
-
   public static final String DB_NAME = "rpm_db";
   private static final String SERVER_ADDRESS = "bergfs01.be.ber.is24.loc";
   public static final String USERNAME = "reposerver";
@@ -50,7 +49,7 @@ public class YumEntryGenerator {
 
 
   public YumEntryGenerator() throws UnknownHostException {
-    mongo = new Mongo(SERVER_ADDRESS);
+    mongo = new MongoClient(SERVER_ADDRESS);
     dbFactory = new SimpleMongoDbFactory(mongo, DB_NAME, new UserCredentials(USERNAME, PASSWORD));
     gridFs = new GridFsTemplate(dbFactory, new MappingMongoConverter(dbFactory, new MongoMappingContext()));
     mongoTemplate = new MongoTemplate(dbFactory);
@@ -63,6 +62,7 @@ public class YumEntryGenerator {
 
   private void generate() throws InvalidRpmHeaderException, IOException {
     mongoTemplate.getCollection(YUM_ENTRY_COLLECTION).ensureIndex(REPO_KEY);
+
     FileOutputStream fos = new FileOutputStream("migrate.log");
     try {
       List<GridFSDBFile> gridFSDBFiles = gridFs.find(query(whereMetaData(REPO_KEY).exists(true)));
@@ -94,6 +94,7 @@ public class YumEntryGenerator {
     InputStream inputStream = dbFile.getInputStream();
     RpmHeaderWrapper headerWrapper = new RpmHeaderWrapper(readHeader(inputStream));
     inputStream.close();
+
     RpmHeaderToYumPackageConverter converter = new RpmHeaderToYumPackageConverter(headerWrapper);
     return converter.convert();
   }

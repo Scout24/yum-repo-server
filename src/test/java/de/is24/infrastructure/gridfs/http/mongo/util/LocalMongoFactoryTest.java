@@ -42,7 +42,7 @@ public class LocalMongoFactoryTest {
     assertThat(downloadedMongoArchive.getTotalSpace()).isGreaterThan(1024 * 1024L);
   }
 
-  @Test //(expected = SocketTimeoutException.class)
+  @Test
   public void shouldStartAndStopMongoD() throws Throwable {
     MongoProcessHolder mongoProcess = LocalMongoFactory.createMongoProcess();
     mongoProcess.stopMongo();
