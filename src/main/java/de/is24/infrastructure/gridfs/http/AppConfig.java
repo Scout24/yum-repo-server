@@ -71,6 +71,9 @@ public class AppConfig extends AbstractMongoConfiguration {
   @Value("${mongodb.port:27017}")
   String mongoDBPort;
 
+  @Value("${mongodb.socket.timeout:30}")
+  int mongoDBSocketTimeoutInSec;
+
   @Value("${graphite.host:@null}")
   String graphiteHost;
 
@@ -102,7 +105,7 @@ public class AppConfig extends AbstractMongoConfiguration {
       .readPreference(new FastestPingTimeReadPreference())
       .writeConcern(getWriteConcern())
       .connectionsPerHost(20)
-      .socketTimeout(10 * 1000)
+      .socketTimeout(mongoDBSocketTimeoutInSec * 1000)
       .build();
   }
 
