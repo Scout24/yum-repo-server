@@ -27,6 +27,11 @@ public class MongoTxAspectIT {
     testComponent.txMethodNativeMongoWithDefaults(WriteConcern.JOURNALED, ReadPreference.primary());
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void doInMongoTxForNativeMongoWithUnknownWriteConcern() throws Exception {
+    testComponent.txMethodNativeMongoWithUnknownWriteConcern(WriteConcern.JOURNALED, ReadPreference.primary());
+  }
+
   @Test
   public void doInMongoTxForMongoFactory() throws Exception {
     testComponent.txMethodMongoFactory(WriteConcern.REPLICAS_SAFE, ReadPreference.nearest());

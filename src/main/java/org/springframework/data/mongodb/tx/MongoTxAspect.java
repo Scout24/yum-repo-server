@@ -35,8 +35,11 @@ public class MongoTxAspect {
 
     WriteConcern writeConcern = null;
     final String writeConcernStr = mongoTx.writeConcern();
-    if (StringUtils.isNotBlank(writeConcernStr) && !"defaulte".equals(writeConcernStr)) {
+    if (StringUtils.isNotBlank(writeConcernStr) && !MongoTx.DEFAULT_WRITE_CONCERN.equals(writeConcernStr)) {
       writeConcern = WriteConcern.valueOf(writeConcernStr);
+      if (writeConcern == null) {
+        throw new IllegalArgumentException("writeConcern '" + writeConcernStr + "' not known");
+      }
     }
     return new MongoTxConfig(writeConcern, readPreference);
   }

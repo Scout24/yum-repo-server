@@ -39,6 +39,12 @@ public class MongoTxTestComponent {
     expectMongoConfigApplied(expectedWriteConcern, expectedReadPref, dbFromNativeMongo);
   }
 
+  @MongoTx(writeConcern = "not_known")
+  public void txMethodNativeMongoWithUnknownWriteConcern(final WriteConcern expectedWriteConcern,
+                                                         final ReadPreference expectedReadPref) {
+    expectMongoConfigApplied(expectedWriteConcern, expectedReadPref, dbFromNativeMongo);
+  }
+
   @MongoTx(readPreference = "nearest", writeConcern = "REPLICAS_SAFE")
   public void txMethodMongoFactory(final WriteConcern expectedWriteConcern, final ReadPreference expectedReadPref) {
     expectMongoConfigApplied(expectedWriteConcern, expectedReadPref, dbFromFactory);

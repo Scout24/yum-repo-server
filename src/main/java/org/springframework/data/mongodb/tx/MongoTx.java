@@ -15,8 +15,10 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.TYPE })
 @Transactional
 public @interface MongoTx {
+  String DEFAULT_WRITE_CONCERN = "default";
+
   String readPreference() default "primary";
 
-  String writeConcern() default "default";
+  String writeConcern() default DEFAULT_WRITE_CONCERN;
 
 }
