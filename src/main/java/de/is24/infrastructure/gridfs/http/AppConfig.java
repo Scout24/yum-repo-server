@@ -71,7 +71,7 @@ public class AppConfig extends AbstractMongoConfiguration {
   @Value("${mongodb.port:27017}")
   String mongoDBPort;
 
-  @Value("${mongodb.socket.timeout:10}")
+  @Value("${mongodb.socket.timeout:20}")
   int mongoDBSocketTimeoutInSec;
 
   @Value("${graphite.host:@null}")
