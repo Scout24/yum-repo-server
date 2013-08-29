@@ -4,6 +4,7 @@ import de.is24.infrastructure.gridfs.http.domain.Container;
 import de.is24.infrastructure.gridfs.http.domain.FileInfo;
 import de.is24.infrastructure.gridfs.http.domain.FolderInfo;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.domain.SizeProvider;
 import de.is24.infrastructure.gridfs.http.domain.SortField;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
@@ -68,15 +69,16 @@ public abstract class AbstractRepositoryInfoController {
 
   @RequestMapping(method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json")
   @ResponseBody
-  public Container<FolderInfo> getRepositoriesAsJson(@RequestParam(
-                                                                   value = "sortBy", required = false,
-                                                                   defaultValue = "name"
-                                                                  ) SortField sortBy,
-                                                     @RequestParam(
-                                                                   value = "order", required = false,
-                                                                   defaultValue = "asc"
-                                                                  ) SortOrder sortOrder) {
-    return infoProvider.getRepos(sortBy, sortOrder);
+  public Container<? extends SizeProvider> getRepositoriesAsJson(
+    @RequestParam(value = "sortBy", required = false, defaultValue = "name") SortField sortBy,
+    @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder,
+    @RequestParam(value = "search", required = false) String searchBy) {
+    if (isNullOrEmpty(searchBy)) {
+      return infoProvider.getRepos(sortBy, sortOrder);
+    } else {
+      return infoProvider.find(searchBy, sortBy, sortOrder);
+    }
+
   }
 
   @RequestMapping(value = "/{repoName}", method = GET, produces = TEXT_HTML_VALUE)
@@ -108,11 +110,17 @@ public abstract class AbstractRepositoryInfoController {
 
   @RequestMapping(value = "/{repoName}", method = GET, produces = APPLICATION_JSON_VALUE)
   @ResponseBody
-  public Container<FolderInfo> getArchsAsJson(
+  public Container<? extends SizeProvider> getArchsAsJson(
     @PathVariable("repoName") String repoName,
     @RequestParam(value = "sortBy", required = false, defaultValue = "name") SortField sortBy,
-    @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
-    return infoProvider.getArchs(repoName, sortBy, sortOrder);
+    @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder,
+    @RequestParam(value = "search", required = false) String searchBy) {
+    if (isNullOrEmpty(searchBy)) {
+      return infoProvider.getArchs(repoName, sortBy, sortOrder);
+    } else {
+      return infoProvider.find(searchBy, repoName, sortBy, sortOrder);
+    }
+
   }
 
   @RequestMapping(value = "/{repoName}/{arch}", method = GET, produces = TEXT_HTML_VALUE)

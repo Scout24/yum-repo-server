@@ -25,6 +25,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -61,6 +62,35 @@ public class StaticRepositoryInfoControllerIT extends RepositoryInfoControllerIT
     assertThat(response.getStatusLine().getStatusCode(), is(HttpServletResponse.SC_OK));
     assertThat(content, not(containsString(givenReponame)));
   }
+
+  @Test
+  public void shouldSearchOnTopLevelIfJsonAccepted() throws IOException {
+    HttpGet get = new HttpGet(deploymentURL + "/repo/?search=is24-httpd");
+    get.setHeader("Accept", APPLICATION_JSON_VALUE);
+
+    HttpResponse response = httpClient.execute(get);
+
+    String content = EntityUtils.toString(response.getEntity());
+    assertThat(response.getStatusLine().getStatusCode(), is(HttpServletResponse.SC_OK));
+    assertThat(content, containsString("items"));
+    assertThat(content, startsWith("{"));
+
+  }
+
+  @Test
+  public void shouldSearchInRepoIfJsonAccepted() throws IOException {
+    HttpGet get = new HttpGet(deploymentURL + "/repo/testrepo/?search=is24-httpd");
+    get.setHeader("Accept", APPLICATION_JSON_VALUE);
+
+    HttpResponse response = httpClient.execute(get);
+
+    String content = EntityUtils.toString(response.getEntity());
+    assertThat(response.getStatusLine().getStatusCode(), is(HttpServletResponse.SC_OK));
+    assertThat(content, containsString("items"));
+    assertThat(content, startsWith("{"));
+
+  }
+
 
   @Test
   public void shouldFindReposForQueryStaticByMatchingName() throws IOException {
