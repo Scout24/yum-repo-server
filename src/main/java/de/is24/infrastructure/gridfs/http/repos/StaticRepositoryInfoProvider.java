@@ -99,9 +99,12 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
 
   private Comparator<FolderInfo> getComparator(SortField sortBy) {
     switch (sortBy) {
-      case uploadDate:
-      case size: {
+      case uploadDate: {
         return new ArgumentComparator<>(on(FolderInfo.class).getLastModified());
+      }
+
+      case size: {
+        return new ArgumentComparator<>(on(FolderInfo.class).getSize());
       }
 
       default: {
