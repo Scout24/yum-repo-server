@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import java.util.List;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -37,6 +39,16 @@ public class RpmInfoController {
     YumPackage yumPackage = getUniqueEntry(entries, repo + "/" + arch + "/" + filename).getYumPackage();
     return new ModelAndView("rpmInfo", "model", yumPackage);
   }
+
+  @RequestMapping(value = "/{repo}/{arch}/{filename}/info.json", method = GET, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public YumPackage rpmInfoJson(@PathVariable("repo") String repo,
+                                @PathVariable("arch") String arch,
+                                @PathVariable("filename") String filename) {
+    List<YumEntry> entries = yumEntriesRepository.findByRepoAndYumPackageLocationHref(repo, arch + "/" + filename);
+    return getUniqueEntry(entries, repo + "/" + arch + "/" + filename).getYumPackage();
+  }
+
 
   private YumEntry getUniqueEntry(List<YumEntry> entries, String path) {
     if (entries.isEmpty()) {
