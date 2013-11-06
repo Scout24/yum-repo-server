@@ -1,6 +1,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@ taglib prefix="util" uri="http://immobilienscout24.de/jsp-util" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 
 <html>
@@ -15,10 +16,10 @@
 		<ul class="tablelist">
 			<li class="head">
 				<span class="icon">&nbsp;</span>
-				<span class="filename"><a href="?search=${searchBy}&sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionName}.png"></a></span>
-				<span class="size"><a href="?search=${searchBy}&sortBy=size&order=${sortOrderSize}">Size&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionSize}.png"></a></span>
-				<span class="mtime"><a href="?search=${searchBy}&sortBy=uploadDate&order=${sortOrderUploadDate}">Modified&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionUploadDate}.png"></a></span> 
-				<span class="repo"><a href="?search=${searchBy}&sortBy=repo&order=${sortOrderRepo}">Repo&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionRepo}.png"></a></span>
+				<span class="filename"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionName}.png"></a></span>
+				<span class="size"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=size&order=${sortOrderSize}">Size&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionSize}.png"></a></span>
+				<span class="mtime"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=uploadDate&order=${sortOrderUploadDate}">Modified&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionUploadDate}.png"></a></span>
+				<span class="repo"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=repo&order=${sortOrderRepo}">Repo&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionRepo}.png"></a></span>
 			</li>
       <li>
         <a href="/repo/${model.path}">
