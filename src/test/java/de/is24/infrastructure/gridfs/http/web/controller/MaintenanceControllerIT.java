@@ -38,12 +38,12 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     sourceRepoUrl = deploymentURL + "/repo/" + sourceReponame;
     targetRepoUrl = deploymentURL + "/repo/" + targetReponame;
 
-    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-httpd-28-16.36638.9.noarch.rpm");
-    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-httpd-32-17.37319.15.noarch.rpm");
-    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-httpd-with-dav-svn-1-1.4195.noarch.rpm");
+    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57034-2.noarch.rpm");
+    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57035-4.noarch.rpm");
+    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57037-6.noarch.rpm");
 
-    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-httpd-28-16.36645.10.noarch.rpm");
-    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-httpd-53751-18.noarch.rpm");
+    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57034-3.noarch.rpm");
+    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57037-5.noarch.rpm");
 
   }
 
@@ -65,8 +65,8 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     while (yumPackageIterator.hasNext()) {
       hrefs.add(yumPackageIterator.next().getLocation().getHref());
     }
-    assertThat(hrefs.contains("noarch/is24-httpd-32-17.37319.15.noarch.rpm"), is(true));
-    assertThat(hrefs.contains("noarch/is24-httpd-28-16.36638.9.noarch.rpm"), is(true));
+    assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57034-2.noarch.rpm"), is(true));
+    assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57035-4.noarch.rpm"), is(true));
   }
 
   protected <T> T readJson(HttpResponse response, TypeReference<T> typeReference) throws IOException {
