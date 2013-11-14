@@ -13,6 +13,10 @@ public class YumPackageFile {
   private String name;
   private String dir;
 
+  // default constructor for json binding
+  public YumPackageFile() {
+  }
+
   public YumPackageFile(final YumPackageFileType type, final String name, final String dir) {
     this.type = type;
     this.name = name;
