@@ -7,10 +7,16 @@
             <span class="label">Name</span><span class="value">${model.name}</span>
         </li>
         <li>
-            <span class="label">Version</span><span class="value">${model.version.ver}</span>
+            <span class="label">Epoch</span><span class="value">${model.version.epoch}</span>
         </li>
         <li>
             <span class="label">Vendor</span><span class="value">${model.packageFormat.vendor}</span>
+        </li>
+        <li>
+            <span class="label">Version</span><span class="value">${model.version.ver}</span>
+        </li>
+        <li>
+            <span class="label">Group</span><span class="value">${model.packageFormat.group}</span>
         </li>
         <li>
             <span class="label">Release</span><span class="value">${model.version.rel}</span>
@@ -22,16 +28,13 @@
             <span class="label">Build Host</span><span class="value">${model.packageFormat.buildHost}</span>
         </li>
         <li>
-            <span class="label">Group</span><span class="value">${model.packageFormat.group}</span>
-        </li>
-        <li>
-            <span class="label">Source RPM</span><span class="value">${model.packageFormat.sourceRpm}</span>
-        </li>
-        <li>
             <span class="label">Size</span><span class="value">${model.size.packagedAsString}</span>
         </li>
         <li>
             <span class="label">License</span><span class="value">${model.packageFormat.license}</span>
+        </li>
+        <li>
+            <span class="label">Source RPM</span><span class="value long">${model.packageFormat.sourceRpm}</span>
         </li>
         <li>
             <span class="label">Packager</span><span class="value long">${model.packager}</span>
