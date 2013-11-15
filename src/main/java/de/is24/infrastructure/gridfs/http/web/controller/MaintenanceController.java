@@ -2,9 +2,12 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +26,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RequestMapping("/maintenance")
 @TimeMeasurement
 public class MaintenanceController {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MaintenanceController.class);
+
   private YumPackageVersionComparator versionComparator = new YumPackageVersionComparator();
 
   private YumEntriesRepository yumEntriesRepository;
@@ -34,25 +39,28 @@ public class MaintenanceController {
 
   @RequestMapping(method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json")
   @ResponseBody
-  public Set<YumPackage> getRepositoriesAsJson(@RequestParam(value = "targetRepo", required = true) String targetRepo,
-                                               @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
+  public Set<YumPackageReducedView> getRepositoriesAsJson(
+    @RequestParam(value = "targetRepo", required = true) String targetRepo,
+    @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
       targetRepo));
     List<YumEntry> sourceRepoEntries = yumEntriesRepository.findByRepo(sourceRepo);
-    Set<YumPackage> result = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
+    Set<YumPackageReducedView> result = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
     return result;
   }
 
-  private Set<YumPackage> determineObsoleteRPMs(Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch,
-                                                List<YumEntry> sourceRepoEntries) {
-    Set<YumPackage> result = new HashSet<YumPackage>();
+  private Set<YumPackageReducedView> determineObsoleteRPMs(
+    Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch, List<YumEntry> sourceRepoEntries) {
+    Set<YumPackageReducedView> result = new HashSet<YumPackageReducedView>();
     for (YumEntry entry : sourceRepoEntries) {
       YumPackage yumPackage = entry.getYumPackage();
       YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,
         yumPackage);
+      LOGGER.info("comparing " + yumPackage + " to " + newestPackageInTargetRepo + " ...");
       if ((newestPackageInTargetRepo != null) &&
           (versionComparator.compare(newestPackageInTargetRepo.getVersion(), yumPackage.getVersion()) > 0)) {
-        result.add(yumPackage);
+        LOGGER.info(".. is obsolete");
+        result.add(new YumPackageReducedView(yumPackage));
       }
     }
     return result;
