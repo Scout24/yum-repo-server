@@ -110,10 +110,17 @@ window.yum = {
         max: 10,
         value: keepRpmsValue.text(),
         slide: function( event, ui ) {
-          keepRpmsValue.text(ui.value);
+            var value = ui.value;
+            if ( value == 0){
+                value = "ALL";
+            }
+            keepRpmsValue.text(value);
           yum.setMaxKeepRpms(keepRpmsValue.attr('name'), ui.value);
         }
       });
+      if ( keepRpmsValue.text() == 0){
+          keepRpmsValue.text("ALL");
+      }
   },
   
   renderTags: function() {
