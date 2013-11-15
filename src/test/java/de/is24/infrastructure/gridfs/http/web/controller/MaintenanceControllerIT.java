@@ -45,6 +45,15 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57034-3.noarch.rpm");
     uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57037-5.noarch.rpm");
 
+    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-1-1.src.rpm");
+    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-2-2.src.rpm");
+    uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-5-3.src.rpm");
+
+    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-1-2.src.rpm");
+    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-3-2.src.rpm");
+    uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-4-3.src.rpm");
+
+
   }
 
 
@@ -58,7 +67,7 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
 
     final Set<YumPackage> removableYumPackages = readJson(response, new TypeReference<Set<YumPackage>>() {
       });
-    assertThat(removableYumPackages.size(), is(2));
+    assertThat(removableYumPackages.size(), is(4));
 
     HashSet<String> hrefs = new HashSet<String>();
     Iterator<YumPackage> yumPackageIterator = removableYumPackages.iterator();
@@ -67,6 +76,10 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     }
     assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57034-2.noarch.rpm"), is(true));
     assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57035-4.noarch.rpm"), is(true));
+    assertThat(hrefs.contains("src/is24-dummyRpmForTesting-1-1.src.rpm"), is(true));
+    assertThat(hrefs.contains("src/is24-dummyRpmForTesting-2-2.src.rpm"), is(true));
+
+
   }
 
   protected <T> T readJson(HttpResponse response, TypeReference<T> typeReference) throws IOException {

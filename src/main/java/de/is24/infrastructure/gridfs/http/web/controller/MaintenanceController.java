@@ -36,18 +36,20 @@ public class MaintenanceController {
   @ResponseBody
   public Set<YumPackage> getRepositoriesAsJson(@RequestParam(value = "targetRepo", required = true) String targetRepo,
                                                @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
-    Map<String, YumPackage> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(targetRepo));
+    Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
+      targetRepo));
     List<YumEntry> sourceRepoEntries = yumEntriesRepository.findByRepo(sourceRepo);
     Set<YumPackage> result = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
     return result;
   }
 
-  private Set<YumPackage> determineObsoleteRPMs(Map<String, YumPackage> newestTargetPackages,
+  private Set<YumPackage> determineObsoleteRPMs(Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch,
                                                 List<YumEntry> sourceRepoEntries) {
     Set<YumPackage> result = new HashSet<YumPackage>();
     for (YumEntry entry : sourceRepoEntries) {
       YumPackage yumPackage = entry.getYumPackage();
-      YumPackage newestPackageInTargetRepo = newestTargetPackages.get(yumPackage.getName());
+      YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,
+        yumPackage);
       if ((newestPackageInTargetRepo != null) &&
           (versionComparator.compare(newestPackageInTargetRepo.getVersion(), yumPackage.getVersion()) > 0)) {
         result.add(yumPackage);
@@ -56,17 +58,36 @@ public class MaintenanceController {
     return result;
   }
 
-  private Map<String, YumPackage> findNewestPackages(List<YumEntry> inputList) {
-    Map<String, YumPackage> result = new HashMap<String, YumPackage>();
+  private YumPackage getMatchingYumPackageByNameAndArchIfAny(Map<String, Map<String, YumPackage>> packagesByNameAndArch,
+                                                             YumPackage yumPackage) {
+    Map<String, YumPackage> rpmsByArch = packagesByNameAndArch.get(yumPackage.getName());
+    if (rpmsByArch != null) {
+      return rpmsByArch.get(yumPackage.getArch());
+    }
+    return null;
+  }
+
+  /**
+  * determine newest RPMs by name and architecture
+  * @param inputList list of yum entries in repo
+  * @return a map of maps, first map key is rpm name, second maps key is arch
+  */
+  private Map<String, Map<String, YumPackage>> findNewestPackages(List<YumEntry> inputList) {
+    Map<String, Map<String, YumPackage>> result = new HashMap<String, Map<String, YumPackage>>();
     for (YumEntry entry : inputList) {
       YumPackage yumPackage = entry.getYumPackage();
-      YumPackage packageInMap = result.get(yumPackage.getName());
-      if (packageInMap == null) {
-        result.put(yumPackage.getName(), yumPackage);
+
+      Map<String, YumPackage> packageMap = result.get(yumPackage.getName());
+      YumPackage packageForArchInMap = null;
+      if (packageMap == null) {
+        packageMap = new HashMap<String, YumPackage>();
+        result.put(yumPackage.getName(), packageMap);
       } else {
-        if (versionComparator.compare(yumPackage.getVersion(), packageInMap.getVersion()) > 0) {
-          result.put(yumPackage.getName(), yumPackage);
-        }
+        packageForArchInMap = packageMap.get(yumPackage.getArch());
+      }
+      if ((packageForArchInMap == null) ||
+          (versionComparator.compare(yumPackage.getVersion(), packageForArchInMap.getVersion()) > 0)) {
+        packageMap.put(yumPackage.getArch(), yumPackage);
       }
     }
     return result;
