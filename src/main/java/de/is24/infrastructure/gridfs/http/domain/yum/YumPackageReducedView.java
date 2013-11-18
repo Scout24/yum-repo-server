@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.domain.yum;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
@@ -34,6 +35,16 @@ public class YumPackageReducedView {
   public YumPackageLocation getLocation() {
     return yumPackage.getLocation();
   }
+
+  public YumPackageSize getSize() {
+    return yumPackage.getSize();
+  }
+
+  @JsonIgnore
+  public String getFormattedLength() {
+    return yumPackage.getSize().getPackagedAsString();
+  }
+
 
   @Override
   public boolean equals(final Object o) {

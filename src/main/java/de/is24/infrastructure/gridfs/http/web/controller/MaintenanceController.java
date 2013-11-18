@@ -13,12 +13,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -37,9 +39,26 @@ public class MaintenanceController {
     this.yumEntriesRepository = yumEntriesRepository;
   }
 
+
+  @RequestMapping(method = GET, produces = TEXT_HTML_VALUE)
+  public ModelAndView getRepositoriesAsHtml(@RequestParam(value = "targetRepo", required = true) String targetRepo,
+                                            @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
+    Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
+      targetRepo));
+    List<YumEntry> sourceRepoEntries = yumEntriesRepository.findByRepo(sourceRepo);
+    Set<YumPackageReducedView> obsoleteRPMs = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
+
+    Map<String, Object> model = new HashMap<>();
+    model.put("targetRepo", targetRepo);
+    model.put("sourceRepo", sourceRepo);
+    model.put("obsoleteRPMs", obsoleteRPMs);
+    return new ModelAndView("obsoleteRPMs", model);
+  }
+
+
   @RequestMapping(method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json")
   @ResponseBody
-  public Set<YumPackageReducedView> getRepositoriesAsJson(
+  public Set<YumPackageReducedView> getObsoletePRMsAsJson(
     @RequestParam(value = "targetRepo", required = true) String targetRepo,
     @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
