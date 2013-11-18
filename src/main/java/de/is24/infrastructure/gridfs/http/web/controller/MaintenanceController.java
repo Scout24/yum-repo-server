@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -70,7 +70,7 @@ public class MaintenanceController {
 
   private Set<YumPackageReducedView> determineObsoleteRPMs(
     Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch, List<YumEntry> sourceRepoEntries) {
-    Set<YumPackageReducedView> result = new HashSet<YumPackageReducedView>();
+    Set<YumPackageReducedView> result = new TreeSet<YumPackageReducedView>();
     for (YumEntry entry : sourceRepoEntries) {
       YumPackage yumPackage = entry.getYumPackage();
       YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,

@@ -1,11 +1,14 @@
 package de.is24.infrastructure.gridfs.http.domain.yum;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 
-public class YumPackageReducedView {
+public class YumPackageReducedView implements Comparable<YumPackageReducedView> {
+  public static final YumPackageVersionComparator YUM_PACKAGE_VERSION_COMPARATOR = new YumPackageVersionComparator();
   private YumPackage yumPackage;
 
   public YumPackageReducedView(YumPackage yumPackage) {
@@ -59,21 +62,20 @@ public class YumPackageReducedView {
     return new EqualsBuilder().append(getName(), other.getName())
       .append(getArch(), other.getArch())
       .append(getVersion(), other.getVersion())
-      .append(getDescription(), other.getDescription())
-      .append(getUrl(), other.getUrl())
-      .append(getLocation(), other.getLocation())
       .isEquals();
   }
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(17, 37).append(getName())
-      .append(getArch())
-      .append(getVersion())
-      .append(getDescription())
-      .append(getUrl())
-      .append(getLocation())
-      .toHashCode();
+    return new HashCodeBuilder(17, 37).append(getName()).append(getArch()).append(getVersion()).toHashCode();
   }
 
+
+  @Override
+  public int compareTo(YumPackageReducedView o) {
+    return new CompareToBuilder().append(getName(), o.getName())
+      .append(getArch(), o.getArch())
+      .append(getVersion(), o.getVersion(), YUM_PACKAGE_VERSION_COMPARATOR)
+      .toComparison();
+  }
 }
