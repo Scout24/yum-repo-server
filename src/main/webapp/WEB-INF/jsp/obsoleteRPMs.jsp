@@ -30,7 +30,7 @@
                 </span>
                 <span class="size">${fileInfo.formattedLength}</span>
                 <span class="action">
-                    <a href="#" onclick="yum.deleteRPM('${sourceRepo}','${fileInfo.location.href}')"><img src="/static/images/icons/trash.png"></a>
+                    <a href="#" onclick="yum.deleteRPM('${sourceRepo}','${fileInfo.location.href}')" title="delete"><img src="/static/images/icons/trash.png"></a>
                 </span>
             </li>
 		</c:forEach>
