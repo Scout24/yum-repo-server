@@ -243,3 +243,7 @@ To filter the list you have several url parameters:
  * Filter by older then X days: <code>http://myyum-repo-server/repo.txt?older=10</code> This will retrieve all repositories older then 10 days.
 
 All filters are concatable and are combined via _and_, so <code>http://myyum-repo-server/repo.txt?older=10&newer=30</code> will retrieve all repositories older then 10 days and newer then 30 days.
+
+## Contribution
+
+* some icons: devine-Icons Part-2 from http://ipapun.deviantart.com/
