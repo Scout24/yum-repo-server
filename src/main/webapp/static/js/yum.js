@@ -173,7 +173,23 @@ window.yum = {
     });
   },
 
-  saveTags : function(tags) {
+  deleteRPM: function(repoName,rpmHref) {
+        $.ajax({
+            type : 'DELETE',
+            async: false,
+            cache : false,
+            url : '/repo/'+repoName+"/"+rpmHref,
+            success: function () {
+                alert('deleting file succeeded : ' + status);
+            },
+            error: function (xhr, status, error) {
+                alert('deleting file failed : ' + status);
+            }
+        });
+    },
+
+
+    saveTags : function(tags) {
 	$(tags).each(function() {
 		var newTag = this.name;
 		$.ajax({

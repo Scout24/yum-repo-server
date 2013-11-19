@@ -17,19 +17,21 @@
             <span class="icon">&nbsp;</span>
             <span class="filename">Name&nbsp;</span>
             <span class="size">Size&nbsp;</span>
+            <span class="action">action</span>
         </li>
 		<c:forEach var="fileInfo" items="${obsoleteRPMs}">
             <li>
-              <a href="/repo/${sourceRepo}/${fileInfo.location.href}">
                 <span class="icon"><img src="/static/images/icons/rpm.gif"></span>
                 <span class="filename">
                     ${fileInfo.location.href}
                           <c:if test="${fn:endsWith(fileInfo.location.href, '.rpm')}">
                               <img src="/static/images/icons/info.png" rel="/repo/${sourceRepo}/${fileInfo.location.href}/info.html" onclick="return false;" title="RPM Info" class="rpmInfo">
                           </c:if>
-                      </span>
+                </span>
                 <span class="size">${fileInfo.formattedLength}</span>
-              </a>
+                <span class="action">
+                    <a href="#" onclick="yum.deleteRPM('${sourceRepo}','${fileInfo.location.href}')"><img src="/static/images/icons/trash.png"></a>
+                </span>
             </li>
 		</c:forEach>
 	  </ul>

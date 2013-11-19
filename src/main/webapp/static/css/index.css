@@ -157,6 +157,12 @@ li span.mtime {
 	float: right;
 }
 
+li span.action {
+    width: 100px;
+    text-align: center;
+    float: right;
+}
+
 li span.target {
   text-align: right;
   float: right;
