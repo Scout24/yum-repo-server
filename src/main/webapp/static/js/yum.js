@@ -173,14 +173,14 @@ window.yum = {
     });
   },
 
-  deleteRPM: function(repoName,rpmHref) {
+  deleteRPM: function(target,repoName,rpmHref) {
         $.ajax({
             type : 'DELETE',
             async: false,
             cache : false,
             url : '/repo/'+repoName+"/"+rpmHref,
             success: function () {
-                alert('deleting file succeeded : ' + status);
+                $('#'+target).remove();
             },
             error: function (xhr, status, error) {
                 alert('deleting file failed : ' + status);

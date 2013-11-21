@@ -59,7 +59,7 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
 
   @Test
   public void findRPMsThatWillNeverBeInstalledFromSourceIfTargetAlsoRegisterdInClient() throws Exception {
-    HttpGet get = new HttpGet(deploymentURL + "/maintenance/?sourceRepo=" + sourceReponame + "&targetRepo=" +
+    HttpGet get = new HttpGet(deploymentURL + "/maintenance/obsolete?sourceRepo=" + sourceReponame + "&targetRepo=" +
       targetReponame);
     HttpResponse response = httpClient.execute(get);
 

@@ -41,6 +41,11 @@ public class MaintenanceController {
 
 
   @RequestMapping(method = GET, produces = TEXT_HTML_VALUE)
+  public ModelAndView showMaintenaceOptions() {
+    return new ModelAndView("maintenanceOptions");
+  }
+
+  @RequestMapping(value = "/obsolete", method = GET, produces = TEXT_HTML_VALUE)
   public ModelAndView getRepositoriesAsHtml(@RequestParam(value = "targetRepo", required = true) String targetRepo,
                                             @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
@@ -56,7 +61,9 @@ public class MaintenanceController {
   }
 
 
-  @RequestMapping(method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json")
+  @RequestMapping(
+    value = "/obsolete", method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
+  )
   @ResponseBody
   public Set<YumPackageReducedView> getObsoletePRMsAsJson(
     @RequestParam(value = "targetRepo", required = true) String targetRepo,

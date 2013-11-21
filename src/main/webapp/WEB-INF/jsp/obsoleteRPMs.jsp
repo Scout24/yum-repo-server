@@ -19,8 +19,8 @@
             <span class="size">Size&nbsp;</span>
             <span class="action">action</span>
         </li>
-		<c:forEach var="fileInfo" items="${obsoleteRPMs}">
-            <li>
+		<c:forEach var="fileInfo" items="${obsoleteRPMs}" varStatus="status">
+            <li id="rpm${status.index}">
                 <span class="icon"><img src="/static/images/icons/rpm.gif"></span>
                 <span class="filename">
                     ${fileInfo.location.href}
@@ -30,7 +30,7 @@
                 </span>
                 <span class="size">${fileInfo.formattedLength}</span>
                 <span class="action">
-                    <a href="#" onclick="yum.deleteRPM('${sourceRepo}','${fileInfo.location.href}')" title="delete"><img src="/static/images/icons/trash.png"></a>
+                    <a href="#" onclick="yum.deleteRPM('rpm${status.index}','${sourceRepo}','${fileInfo.location.href}')" title="delete"><img src="/static/images/icons/trash.png"></a>
                 </span>
             </li>
 		</c:forEach>
