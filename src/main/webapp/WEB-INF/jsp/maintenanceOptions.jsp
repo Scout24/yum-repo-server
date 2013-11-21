@@ -9,6 +9,7 @@
 <body>
 	<div id="content">
     <div>
+      <tags:headlabel/>
       <h1 class="left">Maintenance options </h1>
       <tags:logo />
     </div>

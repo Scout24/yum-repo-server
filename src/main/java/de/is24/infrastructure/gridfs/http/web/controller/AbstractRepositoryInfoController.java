@@ -54,7 +54,7 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
     Map<String, Object> model = new HashMap<>();
     model.putAll(sorting(sortBy, sortOrder));
-    model.put("isStatic", isStatic);
+    setViewInModel(model);
     if (isNullOrEmpty(searchBy)) {
       Container<FolderInfo> repos = infoProvider.getRepos(sortBy, sortOrder);
       repos.setShowInfo(true);
@@ -65,6 +65,11 @@ public abstract class AbstractRepositoryInfoController {
       model.put("searchBy", searchBy);
       return new ModelAndView("searchView", model);
     }
+  }
+
+  private void setViewInModel(Map<String, Object> model) {
+    model.put("isStatic", isStatic);
+    model.put("viewName", isStatic ? "static" : "virtual");
   }
 
   @RequestMapping(method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json")
@@ -89,7 +94,7 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
     Map<String, Object> model = new HashMap<String, Object>();
     model.putAll(sorting(sortBy, sortOrder));
-    model.put("isStatic", isStatic);
+    setViewInModel(model);
     if (isNullOrEmpty(searchBy)) {
       model.put("model", infoProvider.getArchs(repoName, sortBy, sortOrder));
       return new ModelAndView("folderView", model);
@@ -132,7 +137,7 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
     Map<String, Object> model = new HashMap<>();
     model.putAll(sorting(sortBy, sortOrder));
-    model.put("isStatic", isStatic);
+    setViewInModel(model);
     if (isNullOrEmpty(searchBy)) {
       model.put("model", infoProvider.getFileInfo(repoName, arch, sortBy, sortOrder));
       return new ModelAndView("fileView", model);

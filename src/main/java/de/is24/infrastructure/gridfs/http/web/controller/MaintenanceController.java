@@ -42,7 +42,9 @@ public class MaintenanceController {
 
   @RequestMapping(method = GET, produces = TEXT_HTML_VALUE)
   public ModelAndView showMaintenaceOptions() {
-    return new ModelAndView("maintenanceOptions");
+    Map<String, Object> model = new HashMap<>();
+    setViewName(model);
+    return new ModelAndView("maintenanceOptions", model);
   }
 
   @RequestMapping(value = "/obsolete", method = GET, produces = TEXT_HTML_VALUE)
@@ -54,6 +56,7 @@ public class MaintenanceController {
     Set<YumPackageReducedView> obsoleteRPMs = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
 
     Map<String, Object> model = new HashMap<>();
+    setViewName(model);
     model.put("targetRepo", targetRepo);
     model.put("sourceRepo", sourceRepo);
     model.put("obsoleteRPMs", obsoleteRPMs);
@@ -129,6 +132,10 @@ public class MaintenanceController {
 
 
   public void onError() {
+  }
+
+  private void setViewName(Map<String, Object> model) {
+    model.put("viewName", "maintenance");
   }
 
 
