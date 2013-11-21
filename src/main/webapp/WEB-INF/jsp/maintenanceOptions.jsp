@@ -11,7 +11,7 @@
     <div>
       <div class="left">
         <tags:headlabel/>
-        <h1 class="left">Maintenance options </h1>
+        <h1>Maintenance options </h1>
       </div>
       <tags:logo />
     </div>

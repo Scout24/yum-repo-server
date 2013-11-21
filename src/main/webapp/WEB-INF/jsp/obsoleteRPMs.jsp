@@ -11,7 +11,7 @@
     <div>
       <div class="left">
         <tags:headlabel/>
-        <h1 class="left">Obsolete RPMs in <strong>${sourceRepo}</strong> if ${targetRepo} is propagation target</h1>
+        <h1>Obsolete RPMs in <strong>${sourceRepo}</strong> if ${targetRepo} is propagation target</h1>
       </div>
       <tags:logo />
     </div>
