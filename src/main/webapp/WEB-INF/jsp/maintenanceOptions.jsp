@@ -9,8 +9,10 @@
 <body>
 	<div id="content">
     <div>
-      <tags:headlabel/>
-      <h1 class="left">Maintenance options </h1>
+      <div class="left">
+        <tags:headlabel/>
+        <h1 class="left">Maintenance options </h1>
+      </div>
       <tags:logo />
     </div>
     <div id="forms">
