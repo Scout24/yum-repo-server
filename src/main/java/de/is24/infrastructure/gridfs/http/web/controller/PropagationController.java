@@ -22,7 +22,7 @@ public class PropagationController {
   private static final Logger LOG = LoggerFactory.getLogger(PropagationController.class);
 
   // just for CGLIB
-  PropagationController() {
+  protected PropagationController() {
     this.gridFs = null;
   }
 

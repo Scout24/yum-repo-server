@@ -33,6 +33,11 @@ public class RepositoryTaggingController {
 
   private final RepoTaggingService taggingService;
 
+  /* for CGLIB */
+  protected RepositoryTaggingController() {
+    taggingService = null;
+  }
+
   @Autowired
   public RepositoryTaggingController(RepoTaggingService taggingService) {
     this.taggingService = taggingService;

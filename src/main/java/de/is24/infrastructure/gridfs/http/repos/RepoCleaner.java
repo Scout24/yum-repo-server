@@ -44,6 +44,14 @@ public class RepoCleaner {
   private final RepoService repoService;
   private final CachingVersionDBObjectComparator comparator = new CachingVersionDBObjectComparator();
 
+  /* for CGLIB */
+  protected RepoCleaner() {
+    mongo = null;
+    entriesRepository = null;
+    gridFsService = null;
+    repoService = null;
+  }
+
   @Autowired
   public RepoCleaner(MongoTemplate mongo, YumEntriesRepository entriesRepository, GridFsService gridFsService,
                      RepoService repoService) {

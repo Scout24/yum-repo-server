@@ -38,6 +38,12 @@ public class RepositoryController {
   private final GridFsService gridFs;
   private final RepoService repoService;
 
+  /* for cglib */
+  protected RepositoryController() {
+    gridFs = null;
+    repoService = null;
+  }
+
   @Autowired
   public RepositoryController(GridFsService gridFs, RepoService repoService) {
     this.gridFs = gridFs;

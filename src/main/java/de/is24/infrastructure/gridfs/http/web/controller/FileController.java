@@ -51,7 +51,7 @@ public class FileController {
   private final GridFsService gridFs;
 
   // just for cglib
-  FileController() {
+  protected FileController() {
     this.gridFs = null;
   }
 

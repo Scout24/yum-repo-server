@@ -34,6 +34,11 @@ public class MaintenanceController {
 
   private YumEntriesRepository yumEntriesRepository;
 
+  /* for AOP autoproxying */
+  public MaintenanceController() {
+  }
+
+
   @Autowired
   public MaintenanceController(YumEntriesRepository yumEntriesRepository) {
     this.yumEntriesRepository = yumEntriesRepository;
@@ -41,6 +46,7 @@ public class MaintenanceController {
 
 
   @RequestMapping(method = GET, produces = TEXT_HTML_VALUE)
+  @TimeMeasurement
   public ModelAndView showMaintenaceOptions() {
     Map<String, Object> model = new HashMap<>();
     setViewName(model);
@@ -48,6 +54,7 @@ public class MaintenanceController {
   }
 
   @RequestMapping(value = "/obsolete", method = GET, produces = TEXT_HTML_VALUE)
+  @TimeMeasurement
   public ModelAndView getRepositoriesAsHtml(@RequestParam(value = "targetRepo", required = true) String targetRepo,
                                             @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
@@ -68,6 +75,7 @@ public class MaintenanceController {
     value = "/obsolete", method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
   )
   @ResponseBody
+  @TimeMeasurement
   public Set<YumPackageReducedView> getObsoletePRMsAsJson(
     @RequestParam(value = "targetRepo", required = true) String targetRepo,
     @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {

@@ -26,6 +26,12 @@ public class RepoMdGenerator {
   private final GridFS gridFs;
   private final JAXBContext jaxbContext;
 
+  /* for cglib */
+  protected RepoMdGenerator() {
+    jaxbContext = null;
+    gridFs = null;
+  }
+
   @Autowired
   public RepoMdGenerator(GridFS gridFs) {
     this.gridFs = gridFs;
