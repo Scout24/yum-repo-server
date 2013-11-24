@@ -16,12 +16,13 @@
       <tags:logo />
     </div>
     <div id="forms">
-      <div id="obsoletes"> Search for obsolete RPMs assuming a repo propagation chain from 
+      <div id="obsoletes">
+        <h3>Search for obsolete RPMs assuming a repo propagation chain from</h3>
         <form action="obsolete" method="GET">
-          <input type="text" name="sourceRepo" title="source repo">
+          <input type="text" name="sourceRepo" title="source repo" class="round" />
           to
-          <input type="text" name="targetRepo" title="target repo">
-          <input type="submit" value="go" name="go" title="go" >
+          <input type="text" name="targetRepo" title="target repo" class="round" />
+          <input type="submit" value="go" name="go" title="go" class="round" />
         </form>
       </div>
     </div>
