@@ -6,7 +6,11 @@ import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
+import de.is24.util.monitoring.CorePlugin;
 import de.is24.util.monitoring.InApplicationMonitor;
+import de.is24.util.monitoring.jmx.SimpleJmxAppmon4jNamingStrategy;
+import de.is24.util.monitoring.keyhandler.DefaultKeyEscaper;
+import de.is24.util.monitoring.keyhandler.KeyHandler;
 import de.is24.util.monitoring.state2graphite.StateValuesToGraphite;
 import de.is24.util.monitoring.statsd.StatsdPlugin;
 import org.slf4j.Logger;
@@ -127,19 +131,42 @@ public class AppConfig extends AbstractMongoConfiguration {
     return NORMAL;
   }
 
+
   @Bean
-  public StatsdPlugin statsdPlugin() throws SocketException, UnknownHostException {
+  public KeyHandler keyHandler() {
+    return new DefaultKeyEscaper();
+  }
+
+  @Bean(destroyMethod = "destroy")
+  public CorePlugin corePlugin() {
+    CorePlugin corePlugin = new CorePlugin(new SimpleJmxAppmon4jNamingStrategy("yumRepoServer"), keyHandler());
+    corePlugin.readJMXExporterPatternFromDir("/etc/appmon4j-jmxexport/yumRepoServer");
+    return corePlugin;
+  }
+
+  @Bean
+  public InApplicationMonitor inApplicationMonitor() {
+    return InApplicationMonitor.initInstance(corePlugin(), keyHandler());
+  }
+
+
+  @Bean(initMethod = "register", destroyMethod = "afterRemovalNotification")
+  public StatsdPlugin appmon4jStatsdPlugin() throws UnknownHostException, SocketException {
     if (statsdHost != null) {
-      StatsdPlugin statsdPlugin = new StatsdPlugin(statsdHost, statsdPort, typ);
-      statsdPlugin.register();
-      return statsdPlugin;
+      try {
+        return new StatsdPlugin(statsdHost, statsdPort, typ);
+      } catch (UnknownHostException e) {
+        return null;
+      } catch (SocketException e) {
+        return null;
+      }
     }
 
     return null;
   }
 
   @Bean(destroyMethod = "shutdown")
-  public StateValuesToGraphite stateValuesToGraphite() {
+  public StateValuesToGraphite appmon4jStateValuesExport() {
     if (graphiteHost != null) {
       return new StateValuesToGraphite(graphiteHost, graphitePort, typ);
     }
@@ -190,11 +217,7 @@ public class AppConfig extends AbstractMongoConfiguration {
   }
 
   private void setupMonitorForQueueSize(final ThreadPoolTaskScheduler scheduler) {
-    InApplicationMonitor.getInstance().registerStateValue(new QueueSizeValueProvider(scheduler));
+    inApplicationMonitor().registerStateValue(new QueueSizeValueProvider(scheduler));
   }
 
-  @Bean
-  public InApplicationMonitor inApplicationMonitor() {
-    return InApplicationMonitor.getInstance();
-  }
 }

@@ -2,17 +2,13 @@ package de.is24.infrastructure.gridfs.http;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import de.is24.util.monitoring.tools.DoNothingReportVisitor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import de.is24.util.monitoring.Counter;
-import de.is24.util.monitoring.HistorizableList;
 import de.is24.util.monitoring.InApplicationMonitor;
-import de.is24.util.monitoring.ReportVisitor;
 import de.is24.util.monitoring.StateValueProvider;
-import de.is24.util.monitoring.Timer;
-import de.is24.util.monitoring.Version;
 
 
 public class AppConfigTest {
@@ -40,20 +36,14 @@ public class AppConfigTest {
     assertThat(queueSizeVisitor.knowsQueueSizeState(), is(true));
   }
 
-  private final class QueueSizeVisitor implements ReportVisitor {
+  private final class QueueSizeVisitor extends DoNothingReportVisitor {
     private boolean knowsQueueSizeState = false;
 
-    @Override
-    public void reportVersion(Version version) {
-    }
 
     public boolean knowsQueueSizeState() {
       return knowsQueueSizeState;
     }
 
-    @Override
-    public void reportTimer(Timer timer) {
-    }
 
     @Override
     public void reportStateValue(StateValueProvider stateValueProvider) {
@@ -62,13 +52,6 @@ public class AppConfigTest {
       }
     }
 
-    @Override
-    public void reportHistorizableList(HistorizableList historizableList) {
-    }
-
-    @Override
-    public void reportCounter(Counter counter) {
-    }
   }
 
 }
