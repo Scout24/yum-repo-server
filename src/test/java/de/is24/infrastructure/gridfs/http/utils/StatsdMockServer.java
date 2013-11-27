@@ -70,35 +70,35 @@ public class StatsdMockServer extends ExternalResource implements Runnable {
   public void run() {
     try {
       while (!thread.isInterrupted()) {
-        selector.select();
+        if (selector.select() > 0) {
+          Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
+          while (iterator.hasNext()) {
+            SelectionKey key = iterator.next();
+            iterator.remove();
 
-        Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
-        while (iterator.hasNext()) {
-          SelectionKey key = iterator.next();
-          iterator.remove();
-
-          if (!key.isValid()) {
-            continue;
-          }
-
-          if (key.isAcceptable()) {
-            SocketChannel client = server.accept();
-            client.configureBlocking(false);
-            client.register(selector, SelectionKey.OP_READ);
-            continue;
-          }
-
-          if (key.isReadable()) {
-            SocketChannel client = (SocketChannel) key.channel();
-            int BUFFER_SIZE = 32;
-            ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
-            try {
-              client.read(buffer);
-            } catch (Exception e) {
-              e.printStackTrace();
+            if (!key.isValid()) {
+              continue;
             }
 
-            continue;
+            if (key.isAcceptable()) {
+              SocketChannel client = server.accept();
+              client.configureBlocking(false);
+              client.register(selector, SelectionKey.OP_READ);
+              continue;
+            }
+
+            if (key.isReadable()) {
+              SocketChannel client = (SocketChannel) key.channel();
+              int BUFFER_SIZE = 32;
+              ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+              try {
+                client.read(buffer);
+              } catch (Exception e) {
+                e.printStackTrace();
+              }
+
+              continue;
+            }
           }
         }
       }
