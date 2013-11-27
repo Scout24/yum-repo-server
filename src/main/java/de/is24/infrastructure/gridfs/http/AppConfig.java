@@ -144,7 +144,7 @@ public class AppConfig extends AbstractMongoConfiguration {
     return corePlugin;
   }
 
-  @Bean
+  @Bean(destroyMethod = "removeAllPlugins")
   public InApplicationMonitor inApplicationMonitor() {
     return InApplicationMonitor.initInstance(corePlugin(), keyHandler());
   }
