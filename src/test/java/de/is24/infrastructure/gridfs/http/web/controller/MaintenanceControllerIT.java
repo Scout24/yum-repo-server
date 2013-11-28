@@ -79,8 +79,31 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     assertThat(hrefs.contains("src/is24-dummyRpmForTesting-1-1.src.rpm"), is(true));
     assertThat(hrefs.contains("src/is24-dummyRpmForTesting-2-2.src.rpm"), is(true));
 
+  }
+
+  @Test
+  public void findRPMsThatMayBePropagatedFromSourceToTarget() throws Exception {
+    HttpGet get = new HttpGet(deploymentURL + "/maintenance/propagatable?sourceRepo=" + sourceReponame +
+      "&targetRepo=" +
+      targetReponame);
+    HttpResponse response = httpClient.execute(get);
+
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
+
+    final Set<YumPackage> removableYumPackages = readJson(response, new TypeReference<Set<YumPackage>>() {
+      });
+    assertThat(removableYumPackages.size(), is(2));
+
+    HashSet<String> hrefs = new HashSet<String>();
+    Iterator<YumPackage> yumPackageIterator = removableYumPackages.iterator();
+    while (yumPackageIterator.hasNext()) {
+      hrefs.add(yumPackageIterator.next().getLocation().getHref());
+    }
+    assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57037-6.noarch.rpm"), is(true));
+    assertThat(hrefs.contains("src/is24-dummyRpmForTesting-5-3.src.rpm"), is(true));
 
   }
+
 
   protected <T> T readJson(HttpResponse response, TypeReference<T> typeReference) throws IOException {
     return new ObjectMapper().readValue(response.getEntity().getContent(), typeReference);

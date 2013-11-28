@@ -29,13 +29,15 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @TimeMeasurement
 public class MaintenanceController {
   private static final Logger LOGGER = LoggerFactory.getLogger(MaintenanceController.class);
+  private final Filter obsoleteRpmFiler = new ObsoleteRpmFilter();
+  private final Filter propagatableRpmFilter = new PropagatableRpmFilter();
 
   private YumPackageVersionComparator versionComparator = new YumPackageVersionComparator();
 
   private YumEntriesRepository yumEntriesRepository;
 
   /* for AOP autoproxying */
-  public MaintenanceController() {
+  protected MaintenanceController() {
   }
 
 
@@ -55,18 +57,13 @@ public class MaintenanceController {
 
   @RequestMapping(value = "/obsolete", method = GET, produces = TEXT_HTML_VALUE)
   @TimeMeasurement
-  public ModelAndView getRepositoriesAsHtml(@RequestParam(value = "targetRepo", required = true) String targetRepo,
+  public ModelAndView getObsoleteRPMsAsHtml(@RequestParam(value = "targetRepo", required = true) String targetRepo,
                                             @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
-    Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
-      targetRepo));
-    List<YumEntry> sourceRepoEntries = yumEntriesRepository.findByRepo(sourceRepo);
-    Set<YumPackageReducedView> obsoleteRPMs = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
-
     Map<String, Object> model = new HashMap<>();
     setViewName(model);
     model.put("targetRepo", targetRepo);
     model.put("sourceRepo", sourceRepo);
-    model.put("obsoleteRPMs", obsoleteRPMs);
+    model.put("obsoleteRPMs", filterRPMsFromPropagationChain(obsoleteRpmFiler, targetRepo, sourceRepo));
     return new ModelAndView("obsoleteRPMs", model);
   }
 
@@ -79,29 +76,61 @@ public class MaintenanceController {
   public Set<YumPackageReducedView> getObsoletePRMsAsJson(
     @RequestParam(value = "targetRepo", required = true) String targetRepo,
     @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
+    return filterRPMsFromPropagationChain(obsoleteRpmFiler, targetRepo, sourceRepo);
+  }
+
+  @RequestMapping(value = "/propagatable", method = GET, produces = TEXT_HTML_VALUE)
+  @TimeMeasurement
+  public ModelAndView getPropagatableRPMsAsHtml(
+    @RequestParam(value = "targetRepo", required = true) String targetRepo,
+    @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
+    Map<String, Object> model = new HashMap<>();
+    setViewName(model);
+    model.put("targetRepo", targetRepo);
+    model.put("sourceRepo", sourceRepo);
+    model.put("propagatableRPMs", filterRPMsFromPropagationChain(propagatableRpmFilter, targetRepo, sourceRepo));
+    return new ModelAndView("propagatableRPMs", model);
+  }
+
+  @RequestMapping(
+    value = "/propagatable", method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
+  )
+  @ResponseBody
+  @TimeMeasurement
+  public Set<YumPackageReducedView> getPropagatablePRMsAsJson(
+    @RequestParam(value = "targetRepo", required = true) String targetRepo,
+    @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
+    return filterRPMsFromPropagationChain(propagatableRpmFilter, targetRepo, sourceRepo);
+  }
+
+
+  private Set<YumPackageReducedView> filterRPMsFromPropagationChain(Filter filter, String targetRepo,
+                                                                    String sourceRepo) {
     Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
       targetRepo));
     List<YumEntry> sourceRepoEntries = yumEntriesRepository.findByRepo(sourceRepo);
-    Set<YumPackageReducedView> result = determineObsoleteRPMs(newestTargetPackages, sourceRepoEntries);
-    return result;
+    return filterRPMs(filter, newestTargetPackages,
+      sourceRepoEntries);
   }
 
-  private Set<YumPackageReducedView> determineObsoleteRPMs(
-    Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch, List<YumEntry> sourceRepoEntries) {
+
+  private Set<YumPackageReducedView> filterRPMs(Filter filter,
+                                                Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch,
+                                                List<YumEntry> sourceRepoEntries) {
     Set<YumPackageReducedView> result = new TreeSet<YumPackageReducedView>();
     for (YumEntry entry : sourceRepoEntries) {
       YumPackage yumPackage = entry.getYumPackage();
       YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,
         yumPackage);
       LOGGER.info("comparing " + yumPackage + " to " + newestPackageInTargetRepo + " ...");
-      if ((newestPackageInTargetRepo != null) &&
-          (versionComparator.compare(newestPackageInTargetRepo.getVersion(), yumPackage.getVersion()) > 0)) {
-        LOGGER.info(".. is obsolete");
+      if (filter.select(newestPackageInTargetRepo, yumPackage)) {
+        LOGGER.info(".. {}", filter.getFilterDescription());
         result.add(new YumPackageReducedView(yumPackage));
       }
     }
     return result;
   }
+
 
   private YumPackage getMatchingYumPackageByNameAndArchIfAny(Map<String, Map<String, YumPackage>> packagesByNameAndArch,
                                                              YumPackage yumPackage) {
@@ -144,6 +173,38 @@ public class MaintenanceController {
 
   private void setViewName(Map<String, Object> model) {
     model.put("viewName", "maintenance");
+  }
+
+  private interface Filter {
+    boolean select(YumPackage newestTargetPackage, YumPackage sourcePackage);
+
+    String getFilterDescription();
+  }
+
+  private class ObsoleteRpmFilter implements Filter {
+    @Override
+    public boolean select(YumPackage newestTargetPackage, YumPackage sourcePackage) {
+      return (newestTargetPackage != null) &&
+        (versionComparator.compare(newestTargetPackage.getVersion(), sourcePackage.getVersion()) > 0);
+    }
+
+    @Override
+    public String getFilterDescription() {
+      return "is obsolete";
+    }
+  }
+
+  private class PropagatableRpmFilter implements Filter {
+    @Override
+    public boolean select(YumPackage newestTargetPackage, YumPackage sourcePackage) {
+      return (newestTargetPackage == null) ||
+        (versionComparator.compare(newestTargetPackage.getVersion(), sourcePackage.getVersion()) < 0);
+    }
+
+    @Override
+    public String getFilterDescription() {
+      return "is propagatable";
+    }
   }
 
 

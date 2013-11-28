@@ -25,6 +25,15 @@
           <input type="submit" value="go" name="go" title="go" class="round" />
         </form>
       </div>
+      <div id="propagatables">
+        <h3>Search for RPMs that could be propagated given a propagation chain from</h3>
+        <form action="propagatable" method="GET">
+          <input type="text" name="sourceRepo" title="source repo" class="round" />
+          to
+          <input type="text" name="targetRepo" title="target repo" class="round" />
+          <input type="submit" value="go" name="go" title="go" class="round" />
+        </form>
+      </div>
     </div>
   <tags:scripts />
 </body>

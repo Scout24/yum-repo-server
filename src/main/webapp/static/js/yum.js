@@ -174,19 +174,35 @@ window.yum = {
   },
 
   deleteRPM: function(target,repoName,rpmHref) {
-        $.ajax({
-            type : 'DELETE',
-            async: false,
-            cache : false,
-            url : '/repo/'+repoName+"/"+rpmHref,
-            success: function () {
-                $('#'+target).remove();
-            },
-            error: function (xhr, status, error) {
-                alert('deleting file failed : ' + status);
-            }
-        });
+      $.ajax({
+          type : 'DELETE',
+          async: false,
+          cache : false,
+          url : '/repo/'+repoName+"/"+rpmHref,
+          success: function () {
+              $('#'+target).remove();
+          },
+          error: function (xhr, status, error) {
+              alert('deleting file failed : ' + status);
+          }
+      });
     },
+
+  propagateRPM: function(target,sourcePath,targetRepoName) {
+    $.ajax({
+        type : 'POST',
+        async: false,
+        cache : false,
+        url : '/propagation',
+        data : {source:sourcePath, destination:targetRepoName},
+        success: function () {
+            $('#'+target).remove();
+        },
+        error: function (xhr, status, error) {
+            alert('propagating RPM failed : ' + status);
+        }
+    });
+  },
 
 
     saveTags : function(tags) {
