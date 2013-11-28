@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 public class RepoMetadataSchedulerJobIT {
   public static final int DELAY = 10;
 
-  private RepoMetadataSchedulerJob schedulerJob;
+  private RepoMetadataScheduler metadataScheduler;
 
   @ClassRule
   public static IntegrationTestContext context = new IntegrationTestContext();
@@ -41,7 +41,7 @@ public class RepoMetadataSchedulerJobIT {
     ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
     TaskScheduler taskScheduler = mock(TaskScheduler.class);
     when(taskScheduler.scheduleWithFixedDelay(any(Runnable.class), anyLong())).thenReturn(scheduledFuture);
-    schedulerJob = new RepoMetadataSchedulerJob(context.repoEntriesRepository(), metadataService, primaryDetector,
+    metadataScheduler = new RepoMetadataScheduler(context.repoEntriesRepository(), metadataService, primaryDetector,
       taskScheduler,
       DELAY);
   }
@@ -49,7 +49,7 @@ public class RepoMetadataSchedulerJobIT {
   @Test
   public void createNewJobForConfiguredRepos() throws Exception {
     String repoName = givenSchedulerWithOneRunningJob();
-    RepoMetadataGeneratorJob job = schedulerJob.getRepoJobs().get(repoName);
+    RepoMetadataGeneratorJob job = metadataScheduler.getRepoJobs().get(repoName);
     assertThat(job, notNullValue());
   }
 
@@ -57,10 +57,10 @@ public class RepoMetadataSchedulerJobIT {
   public void doNotCreateJobIfAlreadyExists() throws Exception {
     String repoName = givenSchedulerWithOneRunningJob();
 
-    RepoMetadataGeneratorJob jobBeforeSecondUpdate = schedulerJob.getRepoJobs().get(repoName);
-    schedulerJob.update();
+    RepoMetadataGeneratorJob jobBeforeSecondUpdate = metadataScheduler.getRepoJobs().get(repoName);
+    metadataScheduler.update();
 
-    RepoMetadataGeneratorJob jobAfterSecondUpdate = schedulerJob.getRepoJobs().get(repoName);
+    RepoMetadataGeneratorJob jobAfterSecondUpdate = metadataScheduler.getRepoJobs().get(repoName);
 
     assertThat(jobBeforeSecondUpdate, sameInstance(jobAfterSecondUpdate));
   }
@@ -70,11 +70,11 @@ public class RepoMetadataSchedulerJobIT {
     String repoName = givenSchedulerWithOneRunningJob();
     context.repoEntriesRepository().delete(context.repoEntriesRepository().findFirstByName(repoName).getId());
 
-    RepoMetadataGeneratorJob existingJob = schedulerJob.getRepoJobs().get(repoName);
+    RepoMetadataGeneratorJob existingJob = metadataScheduler.getRepoJobs().get(repoName);
     assertThat(existingJob.isActive(), is(true));
 
-    schedulerJob.update();
-    assertThat(schedulerJob.getRepoJobs().get(repoName), nullValue());
+    metadataScheduler.update();
+    assertThat(metadataScheduler.getRepoJobs().get(repoName), nullValue());
     assertThat(existingJob.isActive(), is(false));
   }
 
@@ -84,7 +84,7 @@ public class RepoMetadataSchedulerJobIT {
     entry.setName(repoName);
     entry.setType(SCHEDULED);
     context.repoEntriesRepository().save(entry);
-    schedulerJob.update();
+    metadataScheduler.update();
     return repoName;
   }
 
