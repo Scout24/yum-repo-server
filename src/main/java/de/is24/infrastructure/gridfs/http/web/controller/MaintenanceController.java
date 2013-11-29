@@ -6,16 +6,20 @@ import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -70,6 +74,15 @@ public class MaintenanceController {
     @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     return maintenanceService.getObsoleteRPMs(targetRepo, sourceRepo);
   }
+
+  @RequestMapping(value = "/obsolete", method = DELETE)
+  @ResponseStatus(ACCEPTED)
+  public void deleteObsoletePRMs(@RequestParam(value = "targetRepo", required = true) String targetRepo,
+                                 @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
+    maintenanceService.triggerDeletionOfObsoleteRPMs("Request by " +
+      (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal(), targetRepo, sourceRepo);
+  }
+
 
   @RequestMapping(value = "/propagatable", method = GET, produces = TEXT_HTML_VALUE)
   @TimeMeasurement

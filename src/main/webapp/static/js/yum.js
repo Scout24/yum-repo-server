@@ -187,6 +187,20 @@ window.yum = {
           }
       });
     },
+  deleteObsoleteRPMs: function(targetRepo,sourceRepo) {
+    $.ajax({
+      type : 'DELETE',
+      async: false,
+      cache : false,
+      url : '/maintenance/obsolete?targetRepo='+targetRepo+'&sourceRepo='+sourceRepo,
+      success: function () {
+        alert('Asynchronous deleting of obsolete RPMs successfully triggered. Deletion may take some time due to delete volume limits to prevent mongodb replica locks. Reload page to see progress.');
+      },
+      error: function (xhr, status, error) {
+        alert('deleting file failed : ' + status);
+      }
+    });
+  },
 
   propagateRPM: function(target,sourcePath,targetRepoName) {
     $.ajax({
