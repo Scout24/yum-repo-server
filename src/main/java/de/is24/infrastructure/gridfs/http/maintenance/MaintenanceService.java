@@ -96,8 +96,6 @@ public class MaintenanceService {
       YumPackage yumPackage = entry.getYumPackage();
       YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,
         yumPackage);
-      LOGGER.info("comparing " + yumPackage.getName() + " " + yumPackage.getVersion() + " to " +
-        newestPackageInTargetRepo.getName() + " " + newestPackageInTargetRepo.getVersion() + " ...");
       if (filter.select(newestPackageInTargetRepo, yumPackage)) {
         LOGGER.info(".. {}", filter.getFilterDescription());
         result.add(new YumPackageReducedView(yumPackage));
