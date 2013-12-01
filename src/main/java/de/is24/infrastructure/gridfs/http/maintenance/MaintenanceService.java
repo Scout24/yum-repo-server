@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.maintenance;
 
+import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
@@ -8,19 +9,22 @@ import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
 import org.apache.log4j.MDC;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.DocumentCallbackHandler;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.join;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 
 
 @Service
@@ -36,6 +40,8 @@ public class MaintenanceService {
 
   private YumEntriesRepository yumEntriesRepository;
   private GridFsService gridFsService;
+  private MongoTemplate mongoTemplate;
+  private GridFsOperations gridFsTemplate;
 
   /* for AOP autoproxying */
   protected MaintenanceService() {
@@ -44,10 +50,12 @@ public class MaintenanceService {
 
   @Autowired
   public MaintenanceService(TaskScheduler taskScheduler, YumEntriesRepository yumEntriesRepository,
-                            GridFsService gridFsService) {
+                            GridFsService gridFsService, MongoTemplate mongoTemplate, GridFsOperations gridFsTemplate) {
     this.taskScheduler = taskScheduler;
     this.yumEntriesRepository = yumEntriesRepository;
     this.gridFsService = gridFsService;
+    this.mongoTemplate = mongoTemplate;
+    this.gridFsTemplate = gridFsTemplate;
   }
 
   public Set<YumPackageReducedView> getPropagatableRPMs(String targetRepo,
@@ -65,6 +73,21 @@ public class MaintenanceService {
       targetRepo);
     taskScheduler.schedule(job, new Date());
     LOGGER.info("triggered delete obsolete RPMs in propagation chain from {} to {}", sourceRepo, targetRepo);
+  }
+
+  public Set<YumPackageReducedView> getYumEntriesWithoutAssociatedFiles() {
+    final Query query = new Query();
+    query.fields().include("_id");
+
+
+    CheckForMissingFsFilesCallbackHandler callbackHandler = new CheckForMissingFsFilesCallbackHandler();
+    mongoTemplate.executeQuery(query, YUM_ENTRY_COLLECTION, callbackHandler);
+
+    Set<YumPackageReducedView> result = new TreeSet<YumPackageReducedView>();
+    for (ObjectId id : callbackHandler.getEntriesWithMissingFile()) {
+      result.add(new YumPackageReducedView(yumEntriesRepository.findOne(id).getYumPackage()));
+    }
+    return result;
   }
 
   private void deleteObsoleteRPMs(String targetRepo, String sourceRepo) {
@@ -200,4 +223,24 @@ public class MaintenanceService {
   }
 
 
+  private class CheckForMissingFsFilesCallbackHandler implements DocumentCallbackHandler {
+    private List<ObjectId> entriesWithMissingFile = new ArrayList<ObjectId>();
+
+    @Override
+    public void processDocument(DBObject dbObject) {
+      ObjectId id = getId(dbObject);
+
+      if (gridFsTemplate.findOne(Query.query(where("_id").is(id))) == null) {
+        entriesWithMissingFile.add(id);
+      }
+    }
+
+    private ObjectId getId(DBObject dbObject) {
+      return ((ObjectId) dbObject.get("_id"));
+    }
+
+    private List<ObjectId> getEntriesWithMissingFile() {
+      return entriesWithMissingFile;
+    }
+  }
 }

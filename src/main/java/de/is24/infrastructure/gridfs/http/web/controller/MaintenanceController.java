@@ -108,6 +108,16 @@ public class MaintenanceController {
     return maintenanceService.getPropagatableRPMs(targetRepo, sourceRepo);
   }
 
+  @RequestMapping(
+    value = "/consistency/entries", method = GET, produces = APPLICATION_JSON_VALUE,
+    headers = "Accept=application/json"
+  )
+  @ResponseBody
+  @TimeMeasurement
+  public Set<YumPackageReducedView> getInconsistencies() {
+    return maintenanceService.getYumEntriesWithoutAssociatedFiles();
+  }
+
 
   public void onError() {
   }
