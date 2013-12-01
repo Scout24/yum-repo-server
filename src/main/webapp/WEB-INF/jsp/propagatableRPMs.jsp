@@ -16,6 +16,14 @@
       <tags:logo />
     </div>
 	  <ul class="tablelist">
+      <li>
+        <a href="/maintenance/">
+          <span class="icon"><img src="/static/images/icons/up.gif"></span>
+          <span class="filename">back to maintenance Options</span>
+          <span class="size">&nbsp;</span>
+          <span class="action">&nbsp;</span>
+        </a>
+      </li>
       <li class="head">
           <span class="icon">&nbsp;</span>
           <span class="filename">Name&nbsp;</span>
