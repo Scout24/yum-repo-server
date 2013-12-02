@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.maintenance;
 
 import com.mongodb.DBObject;
+import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
@@ -25,6 +26,7 @@ import static org.apache.commons.lang.StringUtils.join;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 
 
 @Service
@@ -75,7 +77,7 @@ public class MaintenanceService {
     LOGGER.info("triggered delete obsolete RPMs in propagation chain from {} to {}", sourceRepo, targetRepo);
   }
 
-  public Set<YumPackageReducedView> getYumEntriesWithoutAssociatedFiles() {
+  public Map<ObjectId, YumPackageReducedView> getYumEntriesWithoutAssociatedFiles() {
     final Query query = new Query();
     query.fields().include("_id");
 
@@ -83,12 +85,29 @@ public class MaintenanceService {
     CheckForMissingFsFilesCallbackHandler callbackHandler = new CheckForMissingFsFilesCallbackHandler();
     mongoTemplate.executeQuery(query, YUM_ENTRY_COLLECTION, callbackHandler);
 
-    Set<YumPackageReducedView> result = new TreeSet<YumPackageReducedView>();
+    Map<ObjectId, YumPackageReducedView> result = new HashMap<ObjectId, YumPackageReducedView>();
     for (ObjectId id : callbackHandler.getEntriesWithMissingFile()) {
-      result.add(new YumPackageReducedView(yumEntriesRepository.findOne(id).getYumPackage()));
+      YumEntry yumEntry = yumEntriesRepository.findOne(id);
+      result.put(yumEntry.getId(), new YumPackageReducedView(yumEntry.getYumPackage()));
     }
     return result;
   }
+
+  public Set<GridFSDBFile> getFilesWithoutYumEntry() {
+    final Query query = new Query(where("metadata.arch").ne("repodata"));
+    query.addCriteria(where("metadata.markedAsDeleted").exists(false));
+
+    CheckForMissingEntriesCallbackHandler callbackHandler = new CheckForMissingEntriesCallbackHandler();
+    mongoTemplate.executeQuery(query, GRIDFS_FILES_COLLECTION, callbackHandler);
+
+    Set<GridFSDBFile> result = new HashSet<GridFSDBFile>();
+    for (ObjectId id : callbackHandler.getFilesWithMissingEntry()) {
+      GridFSDBFile gridFSDBFile = gridFsTemplate.findOne(Query.query(where("_id").is(id)));
+      result.add(gridFSDBFile);
+    }
+    return result;
+  }
+
 
   private void deleteObsoleteRPMs(String targetRepo, String sourceRepo) {
     Set<YumPackageReducedView> obsoleteRPMs = filterRPMsFromPropagationChain(obsoleteRpmFiler, targetRepo, sourceRepo);
@@ -241,6 +260,27 @@ public class MaintenanceService {
 
     private List<ObjectId> getEntriesWithMissingFile() {
       return entriesWithMissingFile;
+    }
+  }
+
+  private class CheckForMissingEntriesCallbackHandler implements DocumentCallbackHandler {
+    private List<ObjectId> filesWithMissingEntry = new ArrayList<ObjectId>();
+
+    @Override
+    public void processDocument(DBObject dbObject) {
+      ObjectId id = getId(dbObject);
+
+      if (yumEntriesRepository.findOne(id) == null) {
+        filesWithMissingEntry.add(id);
+      }
+    }
+
+    private ObjectId getId(DBObject dbObject) {
+      return ((ObjectId) dbObject.get("_id"));
+    }
+
+    private List<ObjectId> getFilesWithMissingEntry() {
+      return filesWithMissingEntry;
     }
   }
 }

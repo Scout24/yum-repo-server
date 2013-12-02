@@ -1,8 +1,10 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.maintenance.MaintenanceService;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -114,8 +116,17 @@ public class MaintenanceController {
   )
   @ResponseBody
   @TimeMeasurement
-  public Set<YumPackageReducedView> getInconsistencies() {
+  public Map<ObjectId, YumPackageReducedView> getYumEntriesWithoutGridFsFile() {
     return maintenanceService.getYumEntriesWithoutAssociatedFiles();
+  }
+
+  @RequestMapping(
+    value = "/consistency/files", method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
+  )
+  @ResponseBody
+  @TimeMeasurement
+  public Set<GridFSDBFile> getGridFsFilesWithoutYumEntries() {
+    return maintenanceService.getFilesWithoutYumEntry();
   }
 
 
