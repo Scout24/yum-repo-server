@@ -10,6 +10,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
 import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.REMOTE_HOST_KEY;
+import static org.apache.commons.lang.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 
@@ -26,6 +27,7 @@ public class MDCFilter implements Filter {
   private static final String NOT_AVAILABLE = "not_available";
   public static final String REMOTE_HOST = "remoteHost";
   public static final String PRINCIPAL = "principal";
+  public static final String SERVER_NAME = "serverName";
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -35,12 +37,13 @@ public class MDCFilter implements Filter {
   public void doFilter(ServletRequest req, ServletResponse res,
                        FilterChain chain) throws IOException, ServletException {
     try {
-      String remoteHost = remoteHost(req);
-      MDC.put(REMOTE_HOST, isBlank(remoteHost) ? NOT_AVAILABLE : remoteHost);
+      MDC.put(REMOTE_HOST, defaultIfBlank(remoteHost(req), NOT_AVAILABLE));
+      MDC.put(SERVER_NAME, defaultIfBlank(req.getServerName(), NOT_AVAILABLE));
       MDC.put(PRINCIPAL, (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
       chain.doFilter(req, res);
     } finally {
       MDC.remove(REMOTE_HOST);
+      MDC.remove(SERVER_NAME);
       MDC.remove(PRINCIPAL);
     }
   }

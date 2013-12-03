@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http;
 
 import de.is24.infrastructure.gridfs.http.log4j.MDCFilter;
 import de.is24.infrastructure.gridfs.http.web.WebConfig;
+import de.is24.infrastructure.gridfs.http.web.filter.AccessLogFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.WebApplicationInitializer;
@@ -33,6 +34,7 @@ public class AppInitializer implements WebApplicationInitializer {
   // the size threshold after which files will be written to disk (temporarily)
   public static final int FILE_SIZE_THRESHOLD_IN_MB = 5;
   public static final String UPLOAD_FILE_SIZE_THRESHOLD_KEY = "upload.file.size.threshold.in.mb";
+  public static final String ALL_URLS = "/*";
 
   public void onStartup(ServletContext servletContext) throws ServletException {
     WebApplicationContext rootContext = createRootContext(servletContext);
@@ -41,6 +43,7 @@ public class AppInitializer implements WebApplicationInitializer {
     registerSecurityFilter(servletContext);
     registerContentTypeFilter(servletContext);
     registerMDCFilter(servletContext);
+    registerAccessLogFilter(servletContext);
   }
 
   private AnnotationConfigWebApplicationContext createRootContext(ServletContext servletContext) {
@@ -75,21 +78,25 @@ public class AppInitializer implements WebApplicationInitializer {
 
   private void registerUrlRewirteFilter(ServletContext servletContext) {
     servletContext.addFilter("urlRewriteFilter", new UrlRewriteFilter())
-    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, "/*");
+    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
   private void registerSecurityFilter(ServletContext servletContext) {
     servletContext.addFilter("springSecurityFilterChain", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(null, false, "/*");
+    .addMappingForUrlPatterns(null, false, ALL_URLS);
   }
 
   private void registerContentTypeFilter(ServletContext servletContext) {
     servletContext.addFilter("formEncodedContentTypeFilter", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(null, false, "/*");
+    .addMappingForUrlPatterns(null, false, ALL_URLS);
   }
 
   private void registerMDCFilter(ServletContext servletContext) {
-    servletContext.addFilter("mdcFilter", new MDCFilter()).addMappingForUrlPatterns(null, false, "/*");
+    servletContext.addFilter("mdcFilter", new MDCFilter()).addMappingForUrlPatterns(null, false, ALL_URLS);
+  }
+
+  private void registerAccessLogFilter(ServletContext servletContext) {
+    servletContext.addFilter("accessLogFilter", new AccessLogFilter()).addMappingForUrlPatterns(null, false, ALL_URLS);
   }
 
 }
