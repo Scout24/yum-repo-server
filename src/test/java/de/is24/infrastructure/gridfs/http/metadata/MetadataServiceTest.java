@@ -7,6 +7,7 @@ import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.util.monitoring.InApplicationMonitor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +44,8 @@ public class MetadataServiceTest {
   private RepoService repoService;
   @Mock
   private RepoMdGenerator repoMdGenerator;
+  @Mock
+  private InApplicationMonitor inApplicationMonitor;
 
   private RepoEntry repoEntry;
 

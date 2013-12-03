@@ -10,6 +10,7 @@ import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.util.monitoring.InApplicationMonitor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -116,7 +117,7 @@ public class IntegrationTestContext extends MongoTestContext {
     if (metadataService == null) {
       entriesHashCalculator = new YumEntriesHashCalculator(mongoTemplate());
       metadataService = new MetadataService(gridFsService(), yumEntriesRepository(), repoMdGenerator(),
-        repoService(), repoCleaner(), entriesHashCalculator());
+        repoService(), repoCleaner(), entriesHashCalculator(), InApplicationMonitor.getInstance());
     }
     return metadataService;
   }
