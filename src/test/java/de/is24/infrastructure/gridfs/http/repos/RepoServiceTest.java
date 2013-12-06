@@ -46,7 +46,7 @@ public class RepoServiceTest {
 
   @Test
   public void callRepoEntriesRepositoryWithReponame() {
-    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(false));
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(STATIC));
 
     service.isRepoScheduled(ANY_REPONAME);
 
@@ -54,22 +54,50 @@ public class RepoServiceTest {
   }
 
   @Test
+  public void staticRepoExistsIsTrueForStaticRepo() {
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(STATIC));
+
+    boolean repoExists = service.staticRepoExists(ANY_REPONAME);
+
+    assertThat(repoExists, is(true));
+  }
+
+  @Test
+  public void staticRepoExistsIsTrueForScheduledRepo() {
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(SCHEDULED));
+
+    boolean repoExists = service.staticRepoExists(ANY_REPONAME);
+
+    assertThat(repoExists, is(true));
+  }
+
+  @Test
+  public void staticRepoExistsIsFalseForVirtualRepo() {
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(VIRTUAL));
+
+    boolean repoExists = service.staticRepoExists(ANY_REPONAME);
+
+    assertThat(repoExists, is(false));
+  }
+
+
+  @Test
   public void returnsFalseIfRepoIsNotScheduled() {
-    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(false));
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(STATIC));
 
     assertThat(service.isRepoScheduled(ANY_REPONAME), equalTo(false));
   }
 
   @Test
   public void returnsTrueIfRepoIsScheduled() {
-    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(true));
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(SCHEDULED));
 
     assertThat(service.isRepoScheduled(ANY_REPONAME), equalTo(true));
   }
 
   @Test
   public void returnsFalseIfRepoIsNotFound() {
-    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(false));
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(STATIC));
 
     assertThat(service.isRepoScheduled(ANY_REPONAME), equalTo(false));
   }
@@ -78,9 +106,8 @@ public class RepoServiceTest {
   public void updateLastMetadataGeneration() throws Exception {
     Date date = new Date();
     final String newHashOfEntries = "newHashOfEntries";
-    RepoEntry entry = new RepoEntry();
+    RepoEntry entry = createRepoEntry(STATIC);
     entry.setLastMetadataGeneration(date);
-    entry.setType(STATIC);
     entry.setName(ANY_REPONAME);
     entry.setLastModified(new Date(date.getTime() - 1000));
     entry.setHashOfEntries(newHashOfEntries);
@@ -92,7 +119,7 @@ public class RepoServiceTest {
 
   @Test
   public void activateSchedulingForRepo() throws Exception {
-    RepoEntry repoEntry = createRepoEntry(false);
+    RepoEntry repoEntry = createRepoEntry(STATIC);
     when(repository.findFirstByName(ANY_REPONAME)).thenReturn(repoEntry);
 
     service.activateSchedulingForRepo(ANY_REPONAME);
@@ -103,7 +130,7 @@ public class RepoServiceTest {
 
   @Test(expected = BadRequestException.class)
   public void failForInvalidReponame() throws Exception {
-    when(repository.findFirstByNameAndType("found", STATIC)).thenReturn(createRepoEntry(false));
+    when(repository.findFirstByNameAndType("found", STATIC)).thenReturn(createRepoEntry(STATIC));
     service.createVirtualRepo("?name", "static/found");
   }
 
@@ -119,7 +146,7 @@ public class RepoServiceTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void throwExceptionIfExistingStaticRepoWithSameName() throws Exception {
-    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(false));
+    when(repository.findFirstByName(ANY_REPONAME)).thenReturn(createRepoEntry(STATIC));
     service.ensureEntry(ANY_REPONAME, SCHEDULED);
   }
 
@@ -138,13 +165,12 @@ public class RepoServiceTest {
 
   @Test
   public void saveVirtualRepoLinkedToStatic() throws Exception {
-    RepoEntry staticEntry = createRepoEntry(false);
+    RepoEntry staticEntry = createRepoEntry(STATIC);
     when(repository.findFirstByName("static-repo")).thenReturn(staticEntry);
     service.createVirtualRepo(ANY_REPONAME, "static/static-repo");
 
-    RepoEntry virtualEntry = new RepoEntry();
+    RepoEntry virtualEntry = createRepoEntry(VIRTUAL);
     virtualEntry.setName(ANY_REPONAME);
-    virtualEntry.setType(VIRTUAL);
     virtualEntry.setExternal(false);
     virtualEntry.setTarget("static-repo");
     verify(repository).save(eq(virtualEntry));
@@ -157,15 +183,14 @@ public class RepoServiceTest {
 
   @Test
   public void saveVirtualRepoLinkedToVirtual() throws Exception {
-    RepoEntry virtualTargetEntry = createRepoEntry(false);
+    RepoEntry virtualTargetEntry = createRepoEntry(STATIC);
     virtualTargetEntry.setExternal(false);
     virtualTargetEntry.setTarget("static-repo");
     when(repository.findFirstByNameAndType("virtual-repo", VIRTUAL)).thenReturn(virtualTargetEntry);
     service.createVirtualRepo(ANY_REPONAME, "virtual/virtual-repo");
 
-    RepoEntry virtualEntry = new RepoEntry();
+    RepoEntry virtualEntry = createRepoEntry(VIRTUAL);
     virtualEntry.setName(ANY_REPONAME);
-    virtualEntry.setType(VIRTUAL);
     virtualEntry.setExternal(false);
     virtualEntry.setTarget("static-repo");
     verify(repository).save(eq(virtualEntry));
@@ -175,9 +200,8 @@ public class RepoServiceTest {
   public void saveVirtualRepoLinkedToExternal() throws Exception {
     service.createVirtualRepo(ANY_REPONAME, EXTERNAL_URL);
 
-    RepoEntry virtualEntry = new RepoEntry();
+    RepoEntry virtualEntry = createRepoEntry(VIRTUAL);
     virtualEntry.setName(ANY_REPONAME);
-    virtualEntry.setType(VIRTUAL);
     virtualEntry.setExternal(true);
     virtualEntry.setTarget(EXTERNAL_URL);
     verify(repository).save(eq(virtualEntry));
@@ -190,7 +214,7 @@ public class RepoServiceTest {
 
   @Test
   public void getRepoEntry() throws Exception {
-    RepoEntry entry = createRepoEntry(false);
+    RepoEntry entry = createRepoEntry(STATIC);
     when(repository.findFirstByNameAndType(ANY_REPONAME, STATIC)).thenReturn(entry);
     assertThat(service.getRepo(ANY_REPONAME, STATIC), is(entry));
   }
@@ -207,9 +231,9 @@ public class RepoServiceTest {
     service.createOrUpdate("äää&&%%");
   }
 
-  private RepoEntry createRepoEntry(boolean scheduled) {
+  private RepoEntry createRepoEntry(RepoType repoType) {
     RepoEntry repoEntry = new RepoEntry();
-    repoEntry.setType(scheduled ? SCHEDULED : STATIC);
+    repoEntry.setType(repoType);
     return repoEntry;
   }
 
