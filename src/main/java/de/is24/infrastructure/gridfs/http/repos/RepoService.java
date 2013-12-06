@@ -86,6 +86,11 @@ public class RepoService {
     return (null != entry) && SCHEDULED.equals(entry.getType());
   }
 
+  public boolean staticRepoExists(String repoName) {
+    RepoEntry repoEntry = entriesRepository.findFirstByName(repoName);
+    return (repoEntry != null) && !(repoEntry.getType() == RepoType.VIRTUAL);
+  }
+
   @ManagedOperation
   public void activateSchedulingForRepo(String reponame) {
     RepoEntry entry = ensureEntry(reponame, STATIC, SCHEDULED);

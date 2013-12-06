@@ -34,6 +34,10 @@ input, select {
     border-radius: 14px;
 }
 
+.error {
+    border: 2px solid #ff0000;
+}
+
 form {
 	margin-bottom: 0px;
 }
@@ -58,6 +62,11 @@ span img.sortIcon {
 
 #forms {
     clear: both;
+}
+
+#errorMessage {
+    clear: both;
+    color: red;
 }
 
 .headlabel {

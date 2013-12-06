@@ -4,6 +4,7 @@ import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.maintenance.MaintenanceService;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class MaintenanceController {
   private static final Logger LOGGER = LoggerFactory.getLogger(MaintenanceController.class);
 
   private MaintenanceService maintenanceService;
+  private RepoService repoService;
 
 
   /* for AOP autoproxying */
@@ -40,8 +42,9 @@ public class MaintenanceController {
 
 
   @Autowired
-  public MaintenanceController(MaintenanceService maintenanceService) {
+  public MaintenanceController(MaintenanceService maintenanceService, RepoService repoService) {
     this.maintenanceService = maintenanceService;
+    this.repoService = repoService;
   }
 
 
@@ -59,10 +62,20 @@ public class MaintenanceController {
                                             @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     Map<String, Object> model = new HashMap<>();
     setViewName(model);
-    model.put("targetRepo", targetRepo);
-    model.put("sourceRepo", sourceRepo);
-    model.put("obsoleteRPMs", maintenanceService.getObsoleteRPMs(targetRepo, sourceRepo));
-    return new ModelAndView("obsoleteRPMs", model);
+
+    boolean reposAreVaid = validateRepos(model, "obsolete", sourceRepo, targetRepo);
+    if (reposAreVaid) {
+      model.put("obsoleteRPMs", maintenanceService.getObsoleteRPMs(targetRepo, sourceRepo));
+      model.put("targetRepo", targetRepo);
+      model.put("sourceRepo", sourceRepo);
+      return new ModelAndView("obsoleteRPMs", model);
+    } else {
+      model.put("error", Boolean.TRUE);
+      model.put("errorMessage", "At least one of the given repos does not exist or is not a static repository");
+      model.put("obsoleteTargetRepo", targetRepo);
+      model.put("obsoleteSourceRepo", sourceRepo);
+      return new ModelAndView("maintenanceOptions", model);
+    }
   }
 
 
@@ -93,10 +106,22 @@ public class MaintenanceController {
     @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
     Map<String, Object> model = new HashMap<>();
     setViewName(model);
-    model.put("targetRepo", targetRepo);
-    model.put("sourceRepo", sourceRepo);
-    model.put("propagatableRPMs", maintenanceService.getPropagatableRPMs(targetRepo, sourceRepo));
-    return new ModelAndView("propagatableRPMs", model);
+
+    boolean reposAreVaid = validateRepos(model, "propagatable", sourceRepo, targetRepo);
+    if (reposAreVaid) {
+      model.put("targetRepo", targetRepo);
+      model.put("sourceRepo", sourceRepo);
+      model.put("propagatableRPMs", maintenanceService.getPropagatableRPMs(targetRepo, sourceRepo));
+      return new ModelAndView("propagatableRPMs", model);
+    } else {
+      model.put("error", Boolean.TRUE);
+      model.put("errorMessage", "At least one of the given repos does not exist or is not a static repository");
+      model.put("propagatableTargetRepo", targetRepo);
+      model.put("propagatableSourceRepo", sourceRepo);
+      return new ModelAndView("maintenanceOptions", model);
+    }
+
+
   }
 
   @RequestMapping(
@@ -127,6 +152,20 @@ public class MaintenanceController {
   @TimeMeasurement
   public Set<GridFSDBFile> getGridFsFilesWithoutYumEntries() {
     return maintenanceService.getFilesWithoutYumEntry();
+  }
+
+  private boolean validateRepos(Map<String, Object> model, String prefix, String sourceRepo,
+                                String targetRepo) {
+    boolean okay = true;
+    if (!repoService.staticRepoExists(sourceRepo)) {
+      okay = false;
+      model.put(prefix + "SourceRepoInvalid", Boolean.TRUE);
+    }
+    if (!repoService.staticRepoExists(targetRepo)) {
+      okay = false;
+      model.put(prefix + "TargetRepoInvalid", Boolean.TRUE);
+    }
+    return okay;
   }
 
 
