@@ -13,7 +13,7 @@
     </li>
     <li>
       <span class="label">Target</span>
-      <span class="value">
+      <span class="value long">
         <input id="currentTarget" type="hidden" value="${repo.target}" />
         <select id="targetRepos" ${repo.external ? 'style="display:none;"' : ''} class="round" onchange="$('#saveButton').show()">
         </select>
