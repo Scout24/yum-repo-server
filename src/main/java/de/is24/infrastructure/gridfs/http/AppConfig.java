@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http;
 import com.mongodb.FastestPingTimeReadPreference;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
@@ -27,6 +28,7 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.authentication.UserCredentials;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.data.mongodb.tx.MongoTxProxy;
@@ -101,6 +103,29 @@ public class AppConfig extends AbstractMongoConfiguration {
   public Mongo mongo() throws UnknownHostException {
     return new MongoTxProxy(getReplicatSet(), mongoOptions());
   }
+
+  @Bean
+  @Override
+  public MongoTemplate mongoTemplate() throws Exception {
+    int tries = 0;
+    while (tries < 3) {
+      try {
+        MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory(), mappingMongoConverter());
+        return mongoTemplate;
+      } catch (MongoException e) {
+        if (e.getMessage().indexOf("can't find a master") >= 0) {
+          tries++;
+
+          // switching mongo primary takes ~10 seconds
+          Thread.sleep(10000);
+        } else {
+          throw e;
+        }
+      }
+    }
+    throw new MongoException("could not find a master after three tries");
+  }
+
 
   private MongoClientOptions mongoOptions() {
     return new MongoClientOptions.Builder() //
