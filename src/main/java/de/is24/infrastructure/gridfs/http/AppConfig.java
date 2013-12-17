@@ -115,6 +115,7 @@ public class AppConfig extends AbstractMongoConfiguration {
       } catch (MongoException e) {
         if (e.getMessage().indexOf("can't find a master") >= 0) {
           tries++;
+          LOGGER.warn("when creatig MongoTemplate: could not find a master, will retry in 10 seconds");
 
           // switching mongo primary takes ~10 seconds
           Thread.sleep(10000);
