@@ -71,8 +71,10 @@ public class GridFsServiceIT {
   private static final String REPOMD_PATH = "/repodata/repomd.xml";
   private static final String PRIMARY_XMl_PATH = "/repodata/primary.xml.gz";
   private static final String METADATA_PATH = "/generation-metadata.yaml";
-  private static final String VALID_NOARCH_RPM_PATH_WITHOUT_VERSION = "/noarch/test-artifact";
-  private static final String VALID_NOARCH_RPM_PATH = VALID_NOARCH_RPM_PATH_WITHOUT_VERSION + "-1.2-1.noarch.rpm";
+  private static final String VALID_FILENAME_WITHOUT_VERSION = "test-artifact";
+  private static final String VALID_NOARCH_RPM_PATH_WITHOUT_VERSION = "/noarch/" + VALID_FILENAME_WITHOUT_VERSION;
+  public static final String NOARCH_RPM_VERSION = "-1.2-1.noarch.rpm";
+  private static final String VALID_NOARCH_RPM_PATH = VALID_NOARCH_RPM_PATH_WITHOUT_VERSION + NOARCH_RPM_VERSION;
   private static final String VALID_SOURCE_RPM_PATH = "/src/yum-repo-client-1.1-273.src.rpm";
   private long startTime = Long.MAX_VALUE;
   private Date testStart = new Date();
@@ -258,7 +260,9 @@ public class GridFsServiceIT {
     String reponame = givenFullRepository();
     startTime = currentTimeMillis();
 
-    context.gridFsService().delete(reponame + VALID_NOARCH_RPM_PATH);
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "noarch",
+      VALID_FILENAME_WITHOUT_VERSION + NOARCH_RPM_VERSION);
+    context.gridFsService().delete(descriptor);
     assertThat(context.gridFsService().findFileByPath(reponame + VALID_NOARCH_RPM_PATH), nullValue());
     assertThat(context.yumEntriesRepository().findByRepo(reponame).size(), is(0));
     assertRepoWasModifiedAfterStartTime(reponame);

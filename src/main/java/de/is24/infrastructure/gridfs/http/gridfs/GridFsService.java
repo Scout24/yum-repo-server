@@ -220,17 +220,17 @@ public class GridFsService {
   }
 
   @TimeMeasurement
-  public GridFSDBFile getFileByPath(String path) {
-    GridFSDBFile dbFile = findFileByPath(path);
+  public GridFSDBFile getFileByDescriptor(GridFsFileDescriptor descriptor) {
+    GridFSDBFile dbFile = findFileByPath(descriptor.getPath());
     if (dbFile == null) {
-      throw new GridFSFileNotFoundException("Could not find file in gridfs.", path);
+      throw new GridFSFileNotFoundException("Could not find file in gridfs.", descriptor.getPath());
     }
     return dbFile;
   }
 
   @TimeMeasurement
-  public void delete(String path) {
-    GridFSDBFile dbFile = getFileByPath(path);
+  public void delete(GridFsFileDescriptor descriptor) {
+    GridFSDBFile dbFile = getFileByDescriptor(descriptor);
     delete(dbFile);
 
     String sourceRepo = (String) dbFile.getMetaData().get(REPO_KEY);
@@ -323,26 +323,27 @@ public class GridFsService {
     }
   }
 
-  public BoundedGridFsResource getResource(String path) throws IOException {
-    return getResource(path, 0);
+  public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor) throws IOException {
+    return getResource(descriptor, 0);
   }
 
-  public BoundedGridFsResource getResource(String path, long startPos) throws IOException {
-    return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(path, startPos), startPos);
+  public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos) throws IOException {
+    return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(descriptor, startPos), startPos);
   }
 
-  public BoundedGridFsResource getResource(String path, long startPos, long size) throws IOException {
-    return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(path, startPos), startPos, size);
+  public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos, long size)
+                                    throws IOException {
+    return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(descriptor, startPos), startPos, size);
   }
 
-  private GridFSDBFile getGridFSDBFileCheckedStartPosIsValid(String path, long startPos) {
-    GridFSDBFile gridFSDBFile = getFileByPath(path);
+  private GridFSDBFile getGridFSDBFileCheckedStartPosIsValid(GridFsFileDescriptor descriptor, long startPos) {
+    GridFSDBFile gridFSDBFile = getFileByDescriptor(descriptor);
     if (startPos >= gridFSDBFile.getLength()) {
       throw new BadRangeRequestException(format(
           "Range start is bigger than file size.\n" +
           "\tpath: %s\n" +
           "\tstartPos: %s\n" +
-          "\tlength: %s\n", path, startPos, gridFSDBFile.getLength()));
+          "\tlength: %s\n", descriptor.getPath(), startPos, gridFSDBFile.getLength()));
     }
     return gridFSDBFile;
   }
@@ -439,8 +440,8 @@ public class GridFsService {
   }
 
   @ManagedOperation
-  public void regenerateMetadataFor(String path) throws InvalidRpmHeaderException {
-    regenerateMetadataFor(getFileByPath(path));
+  public void regenerateMetadataFor(GridFsFileDescriptor descriptor) throws InvalidRpmHeaderException {
+    regenerateMetadataFor(getFileByDescriptor(descriptor));
   }
 
   @ManagedOperation

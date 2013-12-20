@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.springframework.core.io.InputStreamResource;
@@ -12,14 +13,12 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 import java.io.IOException;
-
 import static com.mongodb.gridfs.GridFSTestUtil.gridFSDBFile;
 import static org.apache.commons.lang.RandomStringUtils.random;
 import static org.apache.commons.lang.StringUtils.repeat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.valueOf;
@@ -41,38 +40,35 @@ public class FileControllerTest extends AbstractControllerTest {
 
   public static final String CONTENT_WITH_200_CHARS = random(200, "a");
 
-  
 
   @SuppressWarnings("unchecked")
   @Test
   public void get404ResponseWhenFileIsNotFound() throws Exception {
-    when(gridFsService.getResource(anyString())).thenThrow(GridFSFileNotFoundException.class);
+    when(gridFsService.getResource(any(GridFsFileDescriptor.class))).thenThrow(GridFSFileNotFoundException.class);
 
     performRpmGet().andExpect(status().isNotFound());
   }
-  
+
   @Test
   public void deliverFileWhenFileIsFoundInDB() throws Exception {
     givenGridFSDBFile();
 
-    performRpmGet()
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(APPLICATION_X_RPM))
-        .andExpect(content().string(CONTENT_WITH_200_CHARS))
-        .andExpect(contentLengthIs(200));
+    performRpmGet().andExpect(status().isOk())
+    .andExpect(content().contentType(APPLICATION_X_RPM))
+    .andExpect(content().string(CONTENT_WITH_200_CHARS))
+    .andExpect(contentLengthIs(200));
   }
 
   @Test
   public void deliverFirstBytesWhenByteRangeRequestWithEnd() throws Exception {
     givenGridFSDBFile();
-    
-    performRpmGetWithRange("bytes=0-100")
-        .andExpect(status().isPartialContent())
-        .andExpect(header().string("Accept-Ranges", "bytes"))
-        .andExpect(header().string("Content-Range", "bytes 0-100/200"))
-        .andExpect(contentLengthIs(101))
-        .andExpect(content().contentType(APPLICATION_X_RPM))
-        .andExpect(content().string(repeat("a", 101)));
+
+    performRpmGetWithRange("bytes=0-100").andExpect(status().isPartialContent())
+    .andExpect(header().string("Accept-Ranges", "bytes"))
+    .andExpect(header().string("Content-Range", "bytes 0-100/200"))
+    .andExpect(contentLengthIs(101))
+    .andExpect(content().contentType(APPLICATION_X_RPM))
+    .andExpect(content().string(repeat("a", 101)));
   }
 
   @Test
@@ -108,7 +104,7 @@ public class FileControllerTest extends AbstractControllerTest {
 
   @Test
   public void deliver204IfRpmDoesNotExists() throws Exception {
-    doThrow(GridFSFileNotFoundException.class).when(gridFsService).delete(anyString());
+    doThrow(GridFSFileNotFoundException.class).when(gridFsService).delete(any(GridFsFileDescriptor.class));
 
     mockMvc.perform(DELETE_REQUEST).andExpect(status().isNoContent());
   }
@@ -122,10 +118,10 @@ public class FileControllerTest extends AbstractControllerTest {
   private void givenGridFSDBFile() throws IOException {
     GridFSDBFile gridFSDBFile = gridFSDBFile(CONTENT_WITH_200_CHARS);
 
-    when(gridFsService.getFileByPath(anyString())).thenReturn(gridFSDBFile);
-    when(gridFsService.getResource(anyString())).thenCallRealMethod();
-    when(gridFsService.getResource(anyString(), anyLong())).thenCallRealMethod();
-    when(gridFsService.getResource(anyString(), anyLong(), anyLong())).thenCallRealMethod();
+    when(gridFsService.getFileByDescriptor(any(GridFsFileDescriptor.class))).thenReturn(gridFSDBFile);
+    when(gridFsService.getResource(any(GridFsFileDescriptor.class))).thenCallRealMethod();
+    when(gridFsService.getResource(any(GridFsFileDescriptor.class), anyLong())).thenCallRealMethod();
+    when(gridFsService.getResource(any(GridFsFileDescriptor.class), anyLong(), anyLong())).thenCallRealMethod();
   }
 
   private ResultActions performRpmGet() throws Exception {
@@ -141,7 +137,6 @@ public class FileControllerTest extends AbstractControllerTest {
     };
   }
 
-  
 
   private ResultActions performRpmGetWithRange(final String rangeHeader) throws Exception {
     return mockMvc.perform(MockMvcRequestBuilders.get(RPM_URL).header("Range", rangeHeader));

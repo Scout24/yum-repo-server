@@ -5,6 +5,7 @@ import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
@@ -20,11 +21,15 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
-import java.util.*;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.join;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 
@@ -112,10 +117,11 @@ public class MaintenanceService {
   private void deleteObsoleteRPMs(String targetRepo, String sourceRepo) {
     Set<YumPackageReducedView> obsoleteRPMs = filterRPMsFromPropagationChain(obsoleteRpmFiler, targetRepo, sourceRepo);
     for (YumPackageReducedView obsoletePackage : obsoleteRPMs) {
-      String path = join(asList(sourceRepo, obsoletePackage.getLocation().getHref()), "/");
-      LOGGER.info("delete obsolete RPM {} obsoleted by a RPM in {}", path, targetRepo);
+      String[] strings = obsoletePackage.getLocation().getHref().split("/");
+      GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceRepo, strings[0], strings[1]);
+      LOGGER.info("delete obsolete RPM {} obsoleted by a RPM in {}", descriptor.getPath(), targetRepo);
 
-      gridFsService.delete(path);
+      gridFsService.delete(descriptor);
     }
   }
 
