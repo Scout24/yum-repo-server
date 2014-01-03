@@ -136,44 +136,38 @@ public class GridFsService {
     filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
   }
 
-  public String propagateRpm(String sourceFile, String destinationRepo) {
+  public GridFsFileDescriptor propagateRpm(String sourceFile, String destinationRepo) {
     validatePathToRpm(sourceFile);
+
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceFile);
     validateRepoName(destinationRepo);
 
-    GridFSDBFile dbFile = findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(sourceFile);
+    GridFSDBFile dbFile = findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(descriptor);
     if (dbFile == null) {
       throw new GridFSFileNotFoundException("Could not find file.", sourceFile);
     }
 
     String sourceRepo = (String) dbFile.getMetaData().get(REPO_KEY);
-    String destinationPath = move(dbFile, destinationRepo);
+    GridFsFileDescriptor fileDescriptor = move(dbFile, destinationRepo);
     repoService.createOrUpdate(sourceRepo);
     repoService.createOrUpdate(destinationRepo);
-    return destinationPath;
+    return fileDescriptor;
   }
 
-  private GridFSDBFile findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(String sourceFile) {
-    GridFSDBFile dbFile = findFileByPath(sourceFile);
+  private GridFSDBFile findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(GridFsFileDescriptor descriptor) {
+    GridFSDBFile dbFile = findFileByDescriptor(descriptor);
     if (dbFile != null) {
-      if (!sourceFile.endsWith(".rpm")) {
+      if (!dbFile.getFilename().endsWith(".rpm")) {
         throw new BadRequestException("Source rpm must end with .rpm!");
       }
       return dbFile;
     }
 
-    return findNewestRpmByPath(sourceFile);
+    return findNewestRpmByPath(descriptor);
   }
 
-  private GridFSDBFile findNewestRpmByPath(String path) {
-    String[] parts = path.split("/");
-    if (parts.length != 3) {
-      throw new IllegalArgumentException("This is not a valid path to an rpm file in a repository: " + path);
-    }
-
-    String repo = parts[0];
-    String arch = parts[1];
-    String name = parts[2];
-    return findNewestRpmInRepoByNameAndArch(repo, arch, name);
+  private GridFSDBFile findNewestRpmByPath(GridFsFileDescriptor descriptor) {
+    return findNewestRpmInRepoByNameAndArch(descriptor.getRepo(), descriptor.getArch(), descriptor.getFilename());
   }
 
   private GridFSDBFile findNewestRpmInRepoByNameAndArch(String repo, String arch, String name) {
@@ -188,14 +182,16 @@ public class GridFsService {
     return gridFs.find(lastEntry.getId());
   }
 
-  private String move(GridFSDBFile dbFile, String destinationRepo) {
+  private GridFsFileDescriptor move(GridFSDBFile dbFile, String destinationRepo) {
     YumEntry yumEntry = yumEntriesRepository.findOne((ObjectId) dbFile.getId());
     yumEntry.setRepo(null);
     yumEntriesRepository.save(yumEntry);
 
-    String destinationPath = destinationRepo + dbFile.getFilename().substring(dbFile.getFilename().indexOf("/"));
-    GridFSDBFile dbToOverrideFile = findFileByPath(destinationPath);
-    dbFile.put(FILENAME_KEY, destinationPath);
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(dbFile);
+    descriptor.setRepo(destinationRepo);
+
+    GridFSDBFile dbToOverrideFile = findFileByDescriptor(descriptor);
+    dbFile.put(FILENAME_KEY, descriptor.getPath());
 
     dbFile.getMetaData().put(REPO_KEY, destinationRepo);
     dbFile.save();
@@ -207,11 +203,11 @@ public class GridFsService {
     yumEntry.setRepo(destinationRepo);
     yumEntriesRepository.save(yumEntry);
 
-    return destinationPath;
+    return descriptor;
   }
 
-  public GridFSDBFile findFileByPath(String path) {
-    return gridFsTemplate.findOne(query(whereFilename().is(path)));
+  public GridFSDBFile findFileByDescriptor(GridFsFileDescriptor descriptor) {
+    return gridFsTemplate.findOne(query(whereFilename().is(descriptor.getPath())));
   }
 
   @TimeMeasurement
@@ -221,7 +217,7 @@ public class GridFsService {
 
   @TimeMeasurement
   public GridFSDBFile getFileByDescriptor(GridFsFileDescriptor descriptor) {
-    GridFSDBFile dbFile = findFileByPath(descriptor.getPath());
+    GridFSDBFile dbFile = findFileByDescriptor(descriptor);
     if (dbFile == null) {
       throw new GridFSFileNotFoundException("Could not find file in gridfs.", descriptor.getPath());
     }
@@ -375,8 +371,8 @@ public class GridFsService {
     YumPackage yumPackage = convertHeader(bufferedInputStream);
     bufferedInputStream.reset();
 
-    final GridFSFile dbFile = storeFileWithMetaInfo(bufferedInputStream, reponame, yumPackage.getArch(),
-      yumPackage.getLocation().getHref());
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, yumPackage);
+    final GridFSFile dbFile = storeFileWithMetaInfo(bufferedInputStream, descriptor);
 
     yumEntriesRepository.save(createYumEntry(yumPackage, dbFile));
     repoService.createOrUpdate(reponame);
@@ -387,6 +383,7 @@ public class GridFsService {
   public Data storeRepodataDbBz2(String reponame, File dbFile, String name) throws IOException {
     validateRepoName(reponame);
 
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, ARCH_KEY_REPO_DATA, name);
     GridFSInputFile inputFile = gridFs.createFile();
     inputFile.setContentType(BZ2_CONTENT_TYPE);
 
@@ -412,7 +409,7 @@ public class GridFsService {
 
     gridFs.remove(finalFilename);
 
-    DBObject metaData = createBasicMetaDataObject(reponame, ARCH_KEY_REPO_DATA,
+    DBObject metaData = createBasicMetaDataObject(descriptor,
       data.getChecksum().getChecksum());
     metaData.put(OPEN_SHA256_KEY, data.getOpenChecksum().getChecksum());
     metaData.put(OPEN_SIZE_KEY, dbFile.length());
@@ -453,19 +450,19 @@ public class GridFsService {
 
   @VisibleForTesting
   GridFSFile storeFileWithMetaInfo(InputStream inputStream,
-                                   String reponame, String arch, String pathInRepo) throws IOException {
-    String rpmPath = reponame + "/" + pathInRepo;
-    GridFSDBFile existingDbFile = findFileByPath(rpmPath);
+                                   GridFsFileDescriptor descriptor) throws IOException {
+    GridFSDBFile existingDbFile = findFileByDescriptor(descriptor);
     if (existingDbFile != null) {
-      throw new GridFSFileAlreadyExistsException("Reupload of rpm is not possible.", rpmPath);
+      throw new GridFSFileAlreadyExistsException("Reupload of rpm is not possible.", descriptor.getPath());
     }
 
     DigestInputStream digestInputStream = new DigestInputStream(inputStream, getSha256Digest());
-    GridFSFile inputFile = gridFsTemplate.store(digestInputStream, rpmPath, CONTENT_TYPE_APPLICATION_X_RPM);
+    GridFSFile inputFile = gridFsTemplate.store(digestInputStream, descriptor.getPath(),
+      CONTENT_TYPE_APPLICATION_X_RPM);
     closeQuietly(digestInputStream);
 
     String sha256Hash = encodeHexString(digestInputStream.getMessageDigest().digest());
-    DBObject metaData = createBasicMetaDataObject(reponame, arch, sha256Hash);
+    DBObject metaData = createBasicMetaDataObject(descriptor, sha256Hash);
     mergeMetaData(inputFile, metaData);
 
     inputFile.save();
@@ -487,10 +484,10 @@ public class GridFsService {
     remove(dbFile);
   }
 
-  private DBObject createBasicMetaDataObject(String reponame, String arch, String sha256Hash) {
+  private DBObject createBasicMetaDataObject(GridFsFileDescriptor descriptor, String sha256Hash) {
     DBObject metaData = new BasicDBObject();
-    metaData.put(REPO_KEY, reponame);
-    metaData.put(ARCH_KEY, arch);
+    metaData.put(REPO_KEY, descriptor.getRepo());
+    metaData.put(ARCH_KEY, descriptor.getArch());
     metaData.put(SHA256_KEY, sha256Hash);
     return metaData;
   }

@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
 import de.is24.util.monitoring.InApplicationMonitor;
@@ -35,10 +36,10 @@ public class PropagationController {
   @ResponseStatus(CREATED)
   public void propgateRpm(@RequestParam("source") String sourcePath,
                           @RequestParam("destination") String destinationRepo, HttpServletResponse response) {
-    String destinationPath = gridFs.propagateRpm(sourcePath, destinationRepo);
+    GridFsFileDescriptor destination = gridFs.propagateRpm(sourcePath, destinationRepo);
 
     LOG.info("Moved {} to repository {}", sourcePath, destinationRepo);
-    response.addHeader("Location", FileController.PREFIX + "/" + destinationPath);
+    response.addHeader("Location", FileController.PREFIX + "/" + destination.getPath());
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".propagate.rpm");
   }
 

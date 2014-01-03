@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import java.io.IOException;
 import java.util.Date;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import org.bson.types.ObjectId;
 import org.junit.Before;
@@ -111,7 +112,9 @@ public class MetadataServiceIT {
   }
 
   private void assertRepoMdXml() {
-    GridFSDBFile dbFile = context.gridFsService().findFileByPath(reponame + "/repodata/repomd.xml");
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml");
+
+    GridFSDBFile dbFile = context.gridFsService().findFileByDescriptor(descriptor);
     assertThat(dbFile, notNullValue());
   }
 

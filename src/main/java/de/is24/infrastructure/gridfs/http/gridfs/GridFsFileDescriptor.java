@@ -1,12 +1,33 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
+import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 
 
 public class GridFsFileDescriptor {
   private String repo;
   private String arch;
   private String filename;
+
+  /**
+   * create a GridFsFileDescriptor from a String path
+   *
+   * @param path following the pattern repo/arch/filename or more detailed contains two slashes
+   * @throws IllegalArgumentException if path does not follow pattern repo/arch/filename
+   */
+  GridFsFileDescriptor(String path) {
+    String[] split = path.split("/");
+    if (split.length == 3) {
+      this.repo = split[0];
+      this.arch = split[1];
+      this.filename = split[2];
+    } else {
+      throw new IllegalArgumentException("path " + path +
+        " does not follow pattern repo/arch/filename");
+    }
+
+  }
 
   public GridFsFileDescriptor(String repo, String arch, String filename) {
     this.repo = repo;
@@ -15,9 +36,17 @@ public class GridFsFileDescriptor {
   }
 
   public GridFsFileDescriptor(YumEntry entry) {
-    this.repo = entry.getRepo();
+    this(entry.getRepo(), entry.getYumPackage());
+  }
 
-    String href = entry.getYumPackage().getLocation().getHref();
+  public GridFsFileDescriptor(GridFSDBFile gridFSDBFile) {
+    this(gridFSDBFile.getFilename());
+  }
+
+  public GridFsFileDescriptor(String repo, YumPackage yumPackage) {
+    this.repo = repo;
+
+    String href = yumPackage.getLocation().getHref();
     String[] split = href.split("/");
     if (split.length == 2) {
       this.arch = split[0];
@@ -43,5 +72,9 @@ public class GridFsFileDescriptor {
 
   public String getFilename() {
     return filename;
+  }
+
+  public void setRepo(String repo) {
+    this.repo = repo;
   }
 }
