@@ -16,7 +16,7 @@ import static org.fest.assertions.api.Assertions.assertThat;
 
 
 public class LocalMongoFactoryTest {
-  private static final Version VERSION = Version.V2_4_1;
+  private static final Version VERSION = Version.V2_4_3;
 
   @Test
   public void shouldHaveCorrectPath() {
