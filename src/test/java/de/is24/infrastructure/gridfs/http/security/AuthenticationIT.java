@@ -4,10 +4,9 @@ package de.is24.infrastructure.gridfs.http.security;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.arquillian.junit.LocalOnly;
 import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
@@ -19,8 +18,6 @@ import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpCl
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
-import static org.apache.http.auth.AuthScope.ANY_HOST;
-import static org.apache.http.auth.AuthScope.ANY_PORT;
 import static org.apache.http.client.params.ClientPNames.VIRTUAL_HOST;
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,7 +36,7 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   @LocalOnly
   @Test
   public void denyAccessForNotWhiteListedHost() throws Exception {
-    final DefaultHttpClient httpClientWithoutCredentials = new DefaultHttpClient();
+    final CloseableHttpClient httpClientWithoutCredentials = HttpClientBuilder.create().build();
     HttpDelete get = new HttpDelete(deleteUrl);
     HttpResponse response = httpClientWithoutCredentials.execute(get);
     consume(response.getEntity());

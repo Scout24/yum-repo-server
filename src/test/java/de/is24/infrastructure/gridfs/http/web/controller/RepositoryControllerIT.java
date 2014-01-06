@@ -12,8 +12,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.Matcher;
 import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
@@ -35,6 +34,7 @@ import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
+import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
 import static org.apache.http.entity.mime.HttpMultipartMode.BROWSER_COMPATIBLE;
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -67,8 +67,8 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
 
   @Test
   public void hasStatusCreatedAfterUploadRpmWithMultipartFormData() throws Exception {
-    MultipartEntity entity = new MultipartEntity(BROWSER_COMPATIBLE);
-    entity.addPart("rpmFile", new FileBody(RPM_FILE));
+    HttpEntity entity = MultipartEntityBuilder.create().setMode(BROWSER_COMPATIBLE).
+        addBinaryBody("rpmFile", RPM_FILE, MULTIPART_FORM_DATA, RPM_FILE.getName()).build();
     thenStatusCreatedForEntity(entity);
     thenMaxKeepRpmsHasDefaultValue(reponame);
   }
