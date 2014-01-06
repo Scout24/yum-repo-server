@@ -19,13 +19,10 @@ public class HostNamePatternFilter {
     String remoteHostName = (String) requestAttributes.getAttribute(WhiteListAuthenticationFilter.REMOTE_HOST_KEY,
       SCOPE_REQUEST);
 
-    if (protectedRepos.contains(gridFsFileDescriptor.getRepo())) {
-      if (gridFsFileDescriptor.getFilename().contains(remoteHostName) ||
-          gridFsFileDescriptor.getArch().equals("repodata")) {
-        return true;
-      } else {
-        return false;
-      }
+    if (protectedRepos.contains(gridFsFileDescriptor.getRepo()) &&
+        !gridFsFileDescriptor.getFilename().contains(remoteHostName) &&
+        !gridFsFileDescriptor.getArch().equals("repodata")) {
+      return false;
     }
 
     return true;
