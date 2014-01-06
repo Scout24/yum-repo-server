@@ -8,10 +8,7 @@ import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.Paths;
-import de.flapdoodle.embed.mongo.config.ArtifactStoreBuilder;
-import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
-import de.flapdoodle.embed.mongo.config.MongodConfig;
-import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
+import de.flapdoodle.embed.mongo.config.*;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.io.directories.FixedPath;
@@ -36,15 +33,12 @@ public class LocalMongoFactory {
 
   @VisibleForTesting
   static MongodStarter createMongoStarter() {
-    Paths path = new Paths(MongoD);
-
     de.flapdoodle.embed.process.config.store.DownloadConfigBuilder downloadConfigBuilder =
       new DownloadConfigBuilder() //
       .defaultsForCommand(MongoD) //
       .progressListener(new LoggingProgressListener(LOGGER, Level.INFO)) //
       .downloadPath("http://fastdl.mongodb.org/") //
-      .artifactStorePath(MONGO_DOWNLOAD_FOLDER) //
-      .packageResolver(path);
+      .artifactStorePath(MONGO_DOWNLOAD_FOLDER); //
     de.flapdoodle.embed.process.store.ArtifactStoreBuilder download =
       new ArtifactStoreBuilder() //
       .defaults(MongoD) //
@@ -63,7 +57,7 @@ public class LocalMongoFactory {
     return execute().maxTries(3).wait(3).command(new RetryUtils.Retryable<MongoProcessHolder>() {
         @Override
         public MongoProcessHolder run() throws Throwable {
-          MongodConfig config = new MongodConfig(getVersion());
+          IMongodConfig config = new MongodConfigBuilder().version(getVersion()).build();
           MongodExecutable mongodExecutable = runtime.prepare(config);
           MongodProcess mongoProcess = mongodExecutable.start();
           prepareDatabase(config.net().getPort());

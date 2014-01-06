@@ -1,7 +1,7 @@
 package de.is24.infrastructure.gridfs.http.mongo.util;
 
 import de.flapdoodle.embed.mongo.Paths;
-import de.flapdoodle.embed.mongo.config.MongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.distribution.BitSize;
 import de.flapdoodle.embed.process.distribution.Distribution;
@@ -30,7 +30,7 @@ public class LocalMongoFactoryTest {
   @Test
   public void shouldDownloadMongoIntoTempDir() throws IOException {
     // download happens here
-    LocalMongoFactory.createMongoStarter().prepare(new MongodConfig(VERSION));
+    LocalMongoFactory.createMongoStarter().prepare(new MongodConfigBuilder().version(VERSION).build());
 
     String pathInTempDirectory = new Paths(MongoD).getPath(Distribution.detectFor(VERSION));
     String pathToDownload = LocalMongoFactory.MONGO_DOWNLOAD_FOLDER.asFile().getAbsolutePath() + File.separator +
