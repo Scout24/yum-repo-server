@@ -16,7 +16,9 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 
 public final class RepositoryUtils {
@@ -44,17 +46,21 @@ public final class RepositoryUtils {
     post.setEntity(new StringEntity("name=" + newVirtualReponame + "&destination=" + destination,
         APPLICATION_FORM_URLENCODED));
 
-    HttpResponse response = RepositoryUtils.newDefaultHttpClientWithCredentials().execute(post);
+    HttpResponse response = getHttpClient().execute(post);
     consume(response.getEntity());
 
     assertThat(response.getStatusLine().getStatusCode(), is(SC_CREATED));
     return newVirtualReponame;
   }
 
-  public static DefaultHttpClient newDefaultHttpClientWithCredentials() {
-    DefaultHttpClient httpClient = new DefaultHttpClient();
-    httpClient.getCredentialsProvider()
-    .setCredentials(new AuthScope(ANY_HOST, ANY_PORT), new UsernamePasswordCredentials("anyuser", "anyuser"));
-    return httpClient;
+  public static CloseableHttpClient getHttpClient(String user, String password) {
+    BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+    credentialsProvider.setCredentials(new AuthScope(ANY_HOST, ANY_PORT), new UsernamePasswordCredentials(user, password));
+
+    return HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
+  }
+
+  public static CloseableHttpClient getHttpClient() {
+    return getHttpClient("anyuser", "anyuser");
   }
 }

@@ -17,6 +17,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.IOException;
+
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClient;
 import static org.apache.http.auth.AuthScope.ANY_HOST;
 import static org.apache.http.auth.AuthScope.ANY_PORT;
 import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
@@ -29,7 +31,7 @@ public final class RepoTestUtils {
   }
 
   public static HttpResponse uploadRpm(String repoUrl, String pathToRpm) throws IOException {
-    CloseableHttpClient httpClient = getHttpClient();
+    CloseableHttpClient httpClient = getDefaultHttpClient();
 
     HttpPost post = new HttpPost(repoUrl);
     File rpmFile = new File(pathToRpm);
@@ -49,15 +51,8 @@ public final class RepoTestUtils {
     return response;
   }
 
-  private static CloseableHttpClient getHttpClient() {
-    BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-    credentialsProvider.setCredentials(new AuthScope(ANY_HOST, ANY_PORT), new UsernamePasswordCredentials("user", "user"));
-
-    return HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
-  }
-
   public static void addTagToRepo(String repoUrl, String tagName) throws IOException {
-    CloseableHttpClient httpClient = getHttpClient();
+    CloseableHttpClient httpClient = getDefaultHttpClient();
 
     String postUrl = repoUrl + "/tags/";
     HttpPost post = new HttpPost(postUrl);
@@ -67,11 +62,15 @@ public final class RepoTestUtils {
     consume(response.getEntity());
   }
 
+  private static CloseableHttpClient getDefaultHttpClient() {
+    return getHttpClient("user", "user");
+  }
+
   public static HttpResponse createRepository(String repositoryUrl, String repositoryName) throws IOException {
     String postUrl = repositoryUrl + "/repo";
 
     HttpPost post = new HttpPost(postUrl);
     post.setEntity(new StringEntity("name=" + repositoryName, (ContentType) null));
-    return getHttpClient().execute(post);
+    return getDefaultHttpClient().execute(post);
   }
 }

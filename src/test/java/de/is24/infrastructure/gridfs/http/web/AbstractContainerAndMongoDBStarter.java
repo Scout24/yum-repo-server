@@ -5,7 +5,7 @@ import de.is24.infrastructure.gridfs.http.Profiles;
 import de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory;
 import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
 import de.is24.infrastructure.gridfs.http.utils.StatsdMockServer;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.OverProtocol;
 import org.jboss.arquillian.mongo.MongoCredentials;
@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.net.URL;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.RPM_DB;
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.newDefaultHttpClientWithCredentials;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClient;
 import static org.springframework.core.env.AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME;
 
 
@@ -38,11 +38,11 @@ public abstract class AbstractContainerAndMongoDBStarter {
 
   public static StatsdMockServer statsdMockServer;
 
-  protected DefaultHttpClient httpClient;
+  protected CloseableHttpClient httpClient;
 
   @Before
   public void setUpHttpClient() throws Exception {
-    httpClient = newDefaultHttpClientWithCredentials();
+    httpClient = getHttpClient();
   }
 
   @Deployment(testable = false, managed = true)
