@@ -1,6 +1,6 @@
 package org.springframework.data.mongodb.tx;
 
-public class MongoTxConfigHolder {
+public final class MongoTxConfigHolder {
   private static final ThreadLocal<MongoTxConfig> CONFIGS = new ThreadLocal<MongoTxConfig>();
 
   private MongoTxConfigHolder() {
