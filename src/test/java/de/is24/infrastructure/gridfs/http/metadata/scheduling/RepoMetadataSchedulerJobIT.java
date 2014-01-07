@@ -38,7 +38,7 @@ public class RepoMetadataSchedulerJobIT {
     RepoMdGenerator repoMdGenerator = new RepoMdGenerator(context.gridFs());
     MetadataService metadataService = context.metadataService();
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
-    ScheduledFuture<Void> scheduledFuture = mock(ScheduledFuture.class);
+    ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
     TaskScheduler taskScheduler = mock(TaskScheduler.class);
     when(taskScheduler.scheduleWithFixedDelay(any(Runnable.class), anyLong())).thenReturn(scheduledFuture);
     metadataScheduler = new RepoMetadataScheduler(context.repoEntriesRepository(), metadataService, primaryDetector,

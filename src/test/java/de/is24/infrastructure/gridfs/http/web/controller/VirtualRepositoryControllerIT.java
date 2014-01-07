@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepo;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepoLinkedToStatic;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
@@ -22,6 +23,7 @@ import static org.hamcrest.Matchers.nullValue;
 
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.HttpClientParams;
@@ -86,7 +88,8 @@ public class VirtualRepositoryControllerIT extends AbstractContainerAndMongoDBSt
   public void redirectToExternalRepo() throws Exception {
     virtualReponame = givenVirtualRepo(deploymentURL, DESTINATION_DOMAIN);
     HttpGet get = new HttpGet(deploymentURL + "/repo/virtual/" + virtualReponame + "/" + RPM_FILE_LOCATION);
-    setRedirecting(httpClient.getParams(), false);
+    RequestConfig requestConfig = RequestConfig.custom().setRedirectsEnabled(false).build();
+    httpClient = getHttpClientBuilder().setDefaultRequestConfig(requestConfig).build();
     HttpResponse response = httpClient.execute(get);
     consume(response.getEntity());
 

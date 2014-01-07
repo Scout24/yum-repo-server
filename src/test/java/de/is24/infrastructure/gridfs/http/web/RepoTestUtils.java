@@ -11,7 +11,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.io.IOException;
 
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClient;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static org.apache.http.entity.ContentType.MULTIPART_FORM_DATA;
 import static org.apache.http.entity.mime.HttpMultipartMode.BROWSER_COMPATIBLE;
 import static org.apache.http.util.EntityUtils.consume;
@@ -54,7 +54,7 @@ public final class RepoTestUtils {
   }
 
   private static CloseableHttpClient getDefaultHttpClient() {
-    return getHttpClient("user", "user");
+    return getHttpClientBuilder("user", "user").build();
   }
 
   public static HttpResponse createRepository(String repositoryUrl, String repositoryName) throws IOException {

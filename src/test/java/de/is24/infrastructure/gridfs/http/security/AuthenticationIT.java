@@ -14,7 +14,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClient;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
@@ -82,6 +82,6 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   }
 
   private void givenCredentials(String user, String password) {
-    httpClient = getHttpClient(user, password);
+    httpClient = getHttpClientBuilder(user, password).build();
   }
 }

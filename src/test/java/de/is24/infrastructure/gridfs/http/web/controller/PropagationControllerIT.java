@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClient;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.apache.http.util.EntityUtils.consume;
@@ -52,6 +52,6 @@ public class PropagationControllerIT extends AbstractContainerAndMongoDBStarter 
   }
 
   private void givenCredentials(String user, String password) {
-    httpClient = getHttpClient(user, password);
+    httpClient = getHttpClientBuilder(user, password).build();
   }
 }

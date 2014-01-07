@@ -24,7 +24,7 @@ public class RepoMetadataGeneratorJobTest {
   private MongoPrimaryDetector detector;
   private RepoMetadataGeneratorJob job;
   private TaskScheduler taskScheduler;
-  private ScheduledFuture<Void> scheduledFuture;
+  private ScheduledFuture<?> scheduledFuture;
 
 
   @Before

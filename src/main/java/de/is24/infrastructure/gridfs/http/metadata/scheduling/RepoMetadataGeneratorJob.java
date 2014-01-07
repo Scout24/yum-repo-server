@@ -20,7 +20,7 @@ public class RepoMetadataGeneratorJob implements Runnable {
   private final String name;
   private final MetadataService metadataService;
   private final MongoPrimaryDetector primaryDetector;
-  private final ScheduledFuture<Void> scheduledFuture;
+  private final ScheduledFuture<?> scheduledFuture;
   private boolean active = true;
 
   @SuppressWarnings("unchecked")
