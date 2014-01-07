@@ -163,6 +163,12 @@
             </exclusion>
         </exclusions>
     </dependency>
+    <!-- add dependency jna explicitely to avoid conflict with test-dependency -->
+    <dependency>
+      <artifactId>jna</artifactId>
+      <groupId>net.java.dev.jna</groupId>
+      <version>4.0.0</version>
+    </dependency>
     <dependency>
       <groupId>de.is24.common</groupId>
       <artifactId>appmon4j</artifactId>
