@@ -176,6 +176,10 @@
                 <artifactId>guava</artifactId>
                 <groupId>com.google.guava</groupId>
             </exclusion>
+            <exclusion>
+                <artifactId>joda-time</artifactId>
+                <groupId>joda-time</groupId>
+            </exclusion>
         </exclusions>
     </dependency>
     <dependency>
