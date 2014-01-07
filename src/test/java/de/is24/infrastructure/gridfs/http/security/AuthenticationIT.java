@@ -14,6 +14,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.URL;
+
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -72,10 +74,12 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   @LocalOnly
   @Test
   public void allowAccessForWhiteListedHost() throws Exception {
-    HttpDelete get = new HttpDelete(deleteUrl);
-    get.getParams().setParameter(VIRTUAL_HOST, new HttpHost("localhost"));
+    URL url = new URL(deleteUrl);
+    HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
+    String newDeleteUrl = deleteUrl.replace("://" + url.getHost(), "://localhost");
 
-    HttpResponse response = httpClient.execute(get);
+    HttpDelete get = new HttpDelete(newDeleteUrl);
+    HttpResponse response = httpClient.execute(httpHost, get);
     consume(response.getEntity());
 
     assertThat(response.getStatusLine().getStatusCode(), is(SC_NOT_FOUND));
