@@ -40,6 +40,7 @@ public class AppInitializer implements WebApplicationInitializer {
     WebApplicationContext rootContext = createRootContext(servletContext);
     createSpringRootServlet(servletContext, rootContext);
     registerUrlRewirteFilter(servletContext);
+    registerHostnameFilter(servletContext);
     registerSecurityFilter(servletContext);
     registerContentTypeFilter(servletContext);
     registerMDCFilter(servletContext);
@@ -90,6 +91,12 @@ public class AppInitializer implements WebApplicationInitializer {
     servletContext.addFilter("formEncodedContentTypeFilter", new DelegatingFilterProxy())
     .addMappingForUrlPatterns(null, false, ALL_URLS);
   }
+
+  private void registerHostnameFilter(ServletContext servletContext) {
+    servletContext.addFilter("hostNameFilter", new DelegatingFilterProxy())
+    .addMappingForUrlPatterns(of(REQUEST), false, ALL_URLS);
+  }
+
 
   private void registerMDCFilter(ServletContext servletContext) {
     servletContext.addFilter("mdcFilter", new MDCFilter()).addMappingForUrlPatterns(null, false, ALL_URLS);

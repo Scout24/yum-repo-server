@@ -3,6 +3,8 @@ package de.is24.infrastructure.gridfs.http.gridfs;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
 
 
 public class GridFsFileDescriptor {
@@ -77,4 +79,13 @@ public class GridFsFileDescriptor {
   public void setRepo(String repo) {
     this.repo = repo;
   }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).append(repo)
+      .append(arch)
+      .append(filename)
+      .toString();
+  }
+
 }
