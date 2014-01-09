@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
+import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +34,11 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
 
   @Override
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-    String remoteHost = hostnameResolver.remoteHost(request);
-    request.setAttribute(REMOTE_HOST_KEY, remoteHost);
+    HostName hostName = hostnameResolver.remoteHost(request);
+    request.setAttribute(REMOTE_HOST_KEY, hostName);
 
-    if (whiteListedHosts.contains(remoteHost)) {
-      return remoteHost;
+    if (whiteListedHosts.contains(hostName.getName())) {
+      return hostName.getName();
     }
 
     return null;

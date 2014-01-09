@@ -1,20 +1,28 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 public class HostnameResolverTest {
   private static final String LOADBALANCER_IP = "10.99.10.12";
   private static final String ARBITRARY_IP = "192.168.5.5";
-  private static final String ANOTHER_IP = "192.168.6.6";
 
+  private HostnameResolver hostnameResolver;
+
+  @Before
+  public void setup() {
+    hostnameResolver = new HostnameResolver(LOADBALANCER_IP);
+  }
 
   @Test
   public void resolveHostnameFromIP() {
     MockHttpServletRequest request = request(ARBITRARY_IP);
-
+    assertThat(hostnameResolver.remoteHost(request).getName(), is(ARBITRARY_IP));
   }
 
   private HttpServletRequest proxiedRequest(String ip) {

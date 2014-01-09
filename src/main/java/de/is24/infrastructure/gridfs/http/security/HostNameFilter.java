@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
+import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,8 +32,8 @@ public class HostNameFilter implements Filter {
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
                                                                                                    ServletException {
     if (request instanceof HttpServletRequest) {
-      String host = hostnameResolver.remoteHost((HttpServletRequest) request);
-      request.setAttribute(REMOTE_HOST_NAME, host);
+      HostName hostName = hostnameResolver.remoteHost((HttpServletRequest) request);
+      request.setAttribute(REMOTE_HOST_NAME, hostName);
     }
     chain.doFilter(request, response);
   }

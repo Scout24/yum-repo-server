@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
+import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,7 +78,9 @@ public class WhiteListAuthenticationFilterTest {
     WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(localHostname(), null, hostnameResolver);
     MockHttpServletRequest request = request(LOCAL_IP);
     filter.getPreAuthenticatedPrincipal(request);
-    assertThat(request.getAttribute(REMOTE_HOST_KEY), is((Object) localHostname()));
+
+    HostName hostName = (HostName) request.getAttribute(REMOTE_HOST_KEY);
+    assertThat(hostName.getName(), is((Object) localHostname()));
   }
 
   @Test
@@ -85,7 +88,10 @@ public class WhiteListAuthenticationFilterTest {
     WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(ARBITRARY_IP, null, hostnameResolver);
     HttpServletRequest request = request(LOADBALANCER_IP, ARBITRARY_IP);
     filter.getPreAuthenticatedPrincipal(request);
-    assertThat(request.getAttribute(REMOTE_HOST_KEY), is((Object) ARBITRARY_IP));
+
+    HostName hostName = (HostName) request.getAttribute(REMOTE_HOST_KEY);
+
+    assertThat(hostName.getName(), is((Object) ARBITRARY_IP));
   }
 
   private String localHostname() throws UnknownHostException {

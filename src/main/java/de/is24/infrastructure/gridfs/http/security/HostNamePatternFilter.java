@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.security;
 
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.utils.HostName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,18 +34,19 @@ public class HostNamePatternFilter {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
     boolean isWebCall = false;
-    String remoteHostName = null;
+    HostName remoteHostName = null;
     if (requestAttributes != null) {
       isWebCall = true;
 
-      remoteHostName = (String) requestAttributes.getAttribute(HostNameFilter.REMOTE_HOST_NAME,
+      remoteHostName = (HostName) requestAttributes.getAttribute(HostNameFilter.REMOTE_HOST_NAME,
         SCOPE_REQUEST);
     }
 
     if (isWebCall && protectedRepos.contains(gridFsFileDescriptor.getRepo())) {
       LOGGER.info("check access permission for {} to {}", remoteHostName, gridFsFileDescriptor.getPath());
-      if (!gridFsFileDescriptor.getFilename().contains(remoteHostName) &&
-          !gridFsFileDescriptor.getArch().equals("repodata")) {
+      if (remoteHostName.isIp() ||
+          (!gridFsFileDescriptor.getFilename().contains(remoteHostName.getShortName()) &&
+            !gridFsFileDescriptor.getArch().equals("repodata"))) {
         return false;
       }
     }

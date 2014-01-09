@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.util.Set;
+import static de.is24.infrastructure.gridfs.http.utils.HostName.isIPAddress;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
 import static org.apache.commons.lang.StringUtils.trim;
@@ -30,7 +31,7 @@ public class HostnameResolver {
     this.loadBalancerIPs = commaDelimitedListToSet(trimAllWhitespace(loadBalancerIPs));
   }
 
-  public String remoteHost(HttpServletRequest request) {
+  public HostName remoteHost(HttpServletRequest request) {
     if (loadBalancerIPs.contains(request.getRemoteAddr()) && isNotBlank(request.getHeader(X_FORWARDED_FOR))) {
       return hostname(lastAddress(request.getHeader(X_FORWARDED_FOR)));
     }
@@ -46,7 +47,7 @@ public class HostnameResolver {
     return header;
   }
 
-  private String hostname(String hostnameOrIP) {
+  private HostName hostname(String hostnameOrIP) {
     String result = hostnameOrIP;
     if (isIPAddress(hostnameOrIP)) {
       try {
@@ -56,11 +57,8 @@ public class HostnameResolver {
       }
     }
     LOGGER.debug("resolved hostname for {} is {}", hostnameOrIP, result);
-    return result;
+    return new HostName(result);
   }
 
-  private boolean isIPAddress(String hostnameOrIP) {
-    return (hostnameOrIP != null) && hostnameOrIP.matches("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$");
-  }
 
 }

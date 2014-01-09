@@ -1,6 +1,8 @@
 package de.is24.infrastructure.gridfs.http.security;
 
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.utils.HostName;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -18,6 +20,11 @@ public class HostNamePatternFilterTest {
   @Before
   public void setup() {
     patternFilter = new HostNamePatternFilter(PROTECTED_REPO);
+  }
+
+  @After
+  public void cleanup() {
+    RequestContextHolder.resetRequestAttributes();
   }
 
   @Test
@@ -57,6 +64,18 @@ public class HostNamePatternFilterTest {
   }
 
   @Test
+  public void allowAccessToFilesContainingHostnameWithoutDomainPartInProtectedRepos() throws Exception {
+    givenRequestForHost("devxyz01.rz.is");
+
+    GridFsFileDescriptor gridFsFileDescriptor = new GridFsFileDescriptor(PROTECTED_REPO, "noarch",
+      "lala-devxyz01.noarch.rpm");
+
+    boolean allowed = patternFilter.isAllowed(gridFsFileDescriptor);
+
+    assertThat(allowed, is(true));
+  }
+
+  @Test
   public void denyAccessToFilesNotContainingHostnameInProtectedRepos() throws Exception {
     givenRequestForHost("devabc01");
 
@@ -67,6 +86,19 @@ public class HostNamePatternFilterTest {
 
     assertThat(allowed, is(false));
   }
+
+  @Test
+  public void denyAccessToFilesForIPOnlyHostnamesInProtectedRepos() throws Exception {
+    givenRequestForHost("1.2.3.4");
+
+    GridFsFileDescriptor gridFsFileDescriptor = new GridFsFileDescriptor(PROTECTED_REPO, "noarch",
+      "lala-devxyz01.noarch.rpm");
+
+    boolean allowed = patternFilter.isAllowed(gridFsFileDescriptor);
+
+    assertThat(allowed, is(false));
+  }
+
 
   @Test
   public void allowAccessToFilesForInternalCallsInProtectedRepos() throws Exception {
@@ -82,7 +114,7 @@ public class HostNamePatternFilterTest {
 
   private void givenRequestForHost(String hostname) {
     MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setAttribute(HostNameFilter.REMOTE_HOST_NAME, hostname);
+    request.setAttribute(HostNameFilter.REMOTE_HOST_NAME, new HostName(hostname));
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
   }
 }

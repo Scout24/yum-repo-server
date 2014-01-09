@@ -38,4 +38,9 @@ public class HostName {
   public boolean isIp() {
     return isIp;
   }
+
+  @Override
+  public String toString() {
+    return name;
+  }
 }
