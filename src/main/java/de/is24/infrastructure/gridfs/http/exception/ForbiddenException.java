@@ -12,11 +12,9 @@ public class ForbiddenException extends RuntimeException {
 
   public ForbiddenException(String message, Throwable cause) {
     super(message, cause);
-    LOG.warn("Got bad request: ", this);
   }
 
   public ForbiddenException(String message) {
     super(message);
-    LOG.warn("Got bad request: ", this);
   }
 }
