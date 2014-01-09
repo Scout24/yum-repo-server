@@ -6,7 +6,7 @@ import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.jaxb.RepoMd;
-import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
+import de.is24.infrastructure.gridfs.http.security.PGPSigner;
 import org.apache.commons.io.output.NullOutputStream;
 import org.bson.types.ObjectId;
 import org.hamcrest.Matchers;
@@ -31,24 +31,27 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KE
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.anything;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RepoMdGeneratorTest {
   private GridFS gridFs;
   private GridFSInputFile gridFsinputFile;
+  private PGPSigner pgpSigner;
   private RepoMdGenerator repoMdGenerator;
 
   @Before
   public void setup() {
     gridFs = mock(GridFS.class);
     gridFsinputFile = mock(GridFSInputFile.class);
-    repoMdGenerator = new RepoMdGenerator(gridFs);
+    pgpSigner = mock(PGPSigner.class);
+    when(pgpSigner.isActive()).thenReturn(true);
+    repoMdGenerator = new RepoMdGenerator(gridFs, pgpSigner);
   }
 
   @Test
@@ -61,7 +64,7 @@ public class RepoMdGeneratorTest {
 
     repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
 
-    verify(gridFsinputFile).setMetaData(metaData);
+    verify(gridFsinputFile, times(2)).setMetaData(metaData);
   }
 
   @Test
@@ -95,7 +98,7 @@ public class RepoMdGeneratorTest {
 
     repoMdGenerator.generateRepoMdXml("any-reponame", new ArrayList<Data>());
 
-    verify(outputStream).close();
+    verify(outputStream, times(2)).close();
   }
 
   @Test

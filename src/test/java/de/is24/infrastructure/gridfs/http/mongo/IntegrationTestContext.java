@@ -11,7 +11,9 @@ import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.security.HostNamePatternFilter;
+import de.is24.infrastructure.gridfs.http.security.PGPSigner;
 import de.is24.util.monitoring.InApplicationMonitor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
@@ -99,6 +101,10 @@ public class IntegrationTestContext extends MongoTestContext {
     return hostNamePatternFilter;
   }
 
+  public PGPSigner pgpSigner() {
+    return new PGPSigner(new ClassPathResource("/gpg/secring.gpg"), "yum-repo-server");
+  }
+
   public RepoCleaner repoCleaner() {
     if (repoCleaner == null) {
       repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), gridFsService(), repoService());
@@ -109,7 +115,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public RepoMdGenerator repoMdGenerator() {
     if (repoMdGenerator == null) {
-      repoMdGenerator = new RepoMdGenerator(gridFs());
+      repoMdGenerator = new RepoMdGenerator(gridFs(), pgpSigner());
     }
     return repoMdGenerator;
   }

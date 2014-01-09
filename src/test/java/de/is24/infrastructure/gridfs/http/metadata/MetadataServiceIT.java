@@ -54,6 +54,7 @@ public class MetadataServiceIT {
     assertDbFile("other");
     assertDbFile("filelists");
     assertRepoMdXml();
+    assertRepoMdXmlSignature();
 
     final RepoEntry repoEntry = context.repoEntriesRepository().findFirstByName(reponame);
     assertThat(repoEntry.getLastMetadataGeneration().getTime(),
@@ -113,6 +114,13 @@ public class MetadataServiceIT {
 
   private void assertRepoMdXml() {
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml");
+
+    GridFSDBFile dbFile = context.gridFsService().findFileByDescriptor(descriptor);
+    assertThat(dbFile, notNullValue());
+  }
+
+  private void assertRepoMdXmlSignature() {
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml.asc");
 
     GridFSDBFile dbFile = context.gridFsService().findFileByDescriptor(descriptor);
     assertThat(dbFile, notNullValue());

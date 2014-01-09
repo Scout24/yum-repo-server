@@ -2,7 +2,6 @@ package de.is24.infrastructure.gridfs.http.metadata.scheduling;
 
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
-import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.junit.Before;
@@ -35,7 +34,6 @@ public class RepoMetadataSchedulerJobIT {
   @Before
   @SuppressWarnings("unchecked")
   public void setUp() throws UnknownHostException {
-    RepoMdGenerator repoMdGenerator = new RepoMdGenerator(context.gridFs());
     MetadataService metadataService = context.metadataService();
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
     ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
