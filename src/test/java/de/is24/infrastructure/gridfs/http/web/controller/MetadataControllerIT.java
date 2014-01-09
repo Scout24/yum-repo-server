@@ -39,6 +39,7 @@ public class MetadataControllerIT extends AbstractContainerAndMongoDBStarter {
 
     assertThat(response.getStatusLine().getStatusCode(), is(SC_CREATED));
     downloadFile("repomd.xml");
+    downloadFile("repomd.xml.asc");
   }
 
   private void downloadFile(String filename) throws Exception {
