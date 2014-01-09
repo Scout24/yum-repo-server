@@ -43,9 +43,10 @@ public class MetadataControllerIT extends AbstractContainerAndMongoDBStarter {
   }
 
   private void downloadFile(String filename) throws Exception {
-    HttpGet get = new HttpGet(repoUrl + "/repodata/" + filename);
+    String uri = repoUrl + "/repodata/" + filename;
+    HttpGet get = new HttpGet(uri);
     HttpResponse response = httpClient.execute(get);
     consume(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
+    assertThat("URL: " + uri + " returned wrong status.", response.getStatusLine().getStatusCode(), is(SC_OK));
   }
 }
