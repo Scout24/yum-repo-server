@@ -15,6 +15,7 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
+import de.is24.infrastructure.gridfs.http.exception.ForbiddenException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
@@ -26,6 +27,8 @@ import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderToYumPackageConverter;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderWrapper;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
+import de.is24.infrastructure.gridfs.http.security.HostNamePatternFilter;
+import de.is24.util.monitoring.InApplicationMonitor;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.bson.types.ObjectId;
 import org.freecompany.redline.ReadableChannelWrapper;
@@ -45,9 +48,9 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.util.ArrayList;
@@ -100,6 +103,8 @@ public class GridFsService {
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
+  private static final String APPMON_BASE_KEY = "GridFsService.";
+  private static final String APPMON_ACCESS_PREVENTION = APPMON_BASE_KEY + "preventAccess";
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
@@ -107,6 +112,7 @@ public class GridFsService {
   private final YumEntriesRepository yumEntriesRepository;
   private final RepoService repoService;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
+  private final HostNamePatternFilter accessFilter;
 
   //needed for cglib proxy
   public GridFsService() {
@@ -115,16 +121,20 @@ public class GridFsService {
     this.yumEntriesRepository = null;
     this.gridFs = null;
     this.repoService = null;
+    this.accessFilter = null;
   }
 
   @Autowired
   public GridFsService(GridFS gridFs, GridFsOperations gridFsTemplate, MongoTemplate mongoTemplate,
-                       YumEntriesRepository yumEntriesRepository, RepoService repoService) {
+                       YumEntriesRepository yumEntriesRepository, RepoService repoService,
+                       HostNamePatternFilter accessFilter) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
     this.mongoTemplate = mongoTemplate;
     this.yumEntriesRepository = yumEntriesRepository;
     this.repoService = repoService;
+    this.accessFilter = accessFilter;
+
     setupIndices();
   }
 
@@ -136,16 +146,20 @@ public class GridFsService {
     filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
   }
 
+  @TimeMeasurement
   public GridFsFileDescriptor propagateRpm(String sourceFile, String destinationRepo) {
     validatePathToRpm(sourceFile);
 
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceFile);
+    validateAccess(descriptor);
     validateRepoName(destinationRepo);
 
     GridFSDBFile dbFile = findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(descriptor);
     if (dbFile == null) {
       throw new GridFSFileNotFoundException("Could not find file.", sourceFile);
     }
+
+    validateAccess(dbFile);
 
     String sourceRepo = (String) dbFile.getMetaData().get(REPO_KEY);
     GridFsFileDescriptor fileDescriptor = move(dbFile, destinationRepo);
@@ -154,66 +168,18 @@ public class GridFsService {
     return fileDescriptor;
   }
 
-  private GridFSDBFile findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(GridFsFileDescriptor descriptor) {
-    GridFSDBFile dbFile = findFileByDescriptor(descriptor);
-    if (dbFile != null) {
-      if (!dbFile.getFilename().endsWith(".rpm")) {
-        throw new BadRequestException("Source rpm must end with .rpm!");
-      }
-      return dbFile;
-    }
 
-    return findNewestRpmByPath(descriptor);
-  }
-
-  private GridFSDBFile findNewestRpmByPath(GridFsFileDescriptor descriptor) {
-    return findNewestRpmInRepoByNameAndArch(descriptor.getRepo(), descriptor.getArch(), descriptor.getFilename());
-  }
-
-  private GridFSDBFile findNewestRpmInRepoByNameAndArch(String repo, String arch, String name) {
-    List<YumEntry> entries = yumEntriesRepository.findByRepoAndYumPackageArchAndYumPackageName(repo, arch, name);
-    if (entries.isEmpty()) {
-      return null;
-    }
-
-    sort(entries, new ArgumentComparator<>(on(YumEntry.class).getYumPackage().getVersion(), comparator));
-
-    YumEntry lastEntry = entries.get(entries.size() - 1);
-    return gridFs.find(lastEntry.getId());
-  }
-
-  private GridFsFileDescriptor move(GridFSDBFile dbFile, String destinationRepo) {
-    YumEntry yumEntry = yumEntriesRepository.findOne((ObjectId) dbFile.getId());
-    yumEntry.setRepo(null);
-    yumEntriesRepository.save(yumEntry);
-
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(dbFile);
-    descriptor.setRepo(destinationRepo);
-
-    GridFSDBFile dbToOverrideFile = findFileByDescriptor(descriptor);
-    dbFile.put(FILENAME_KEY, descriptor.getPath());
-
-    dbFile.getMetaData().put(REPO_KEY, destinationRepo);
-    dbFile.save();
-
-    if (dbToOverrideFile != null) {
-      delete(dbToOverrideFile);
-    }
-
-    yumEntry.setRepo(destinationRepo);
-    yumEntriesRepository.save(yumEntry);
-
-    return descriptor;
-  }
-
+  @TimeMeasurement
   public GridFSDBFile findFileByDescriptor(GridFsFileDescriptor descriptor) {
-    return gridFsTemplate.findOne(query(whereFilename().is(descriptor.getPath())));
+    validateAccess(descriptor);
+    return internalUnsecuredFindFileByDescriptor(descriptor);
   }
 
   @TimeMeasurement
-  public List<GridFSDBFile> findByFilenamePattern(String regex) {
-    return gridFsTemplate.find(query(whereFilename().regex(regex)));
+  public GridFSDBFile internalUnsecuredFindFileByDescriptor(GridFsFileDescriptor descriptor) {
+    return gridFsTemplate.findOne(query(whereFilename().is(descriptor.getPath())));
   }
+
 
   @TimeMeasurement
   public GridFSDBFile getFileByDescriptor(GridFsFileDescriptor descriptor) {
@@ -306,6 +272,58 @@ public class GridFsService {
     LOGGER.info("finished removing files marked as deleted before {}", before);
   }
 
+  private GridFSDBFile findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(GridFsFileDescriptor descriptor) {
+    GridFSDBFile dbFile = findFileByDescriptor(descriptor);
+    if (dbFile != null) {
+      if (!dbFile.getFilename().endsWith(".rpm")) {
+        throw new BadRequestException("Source rpm must end with .rpm!");
+      }
+      return dbFile;
+    }
+
+    return findNewestRpmByPath(descriptor);
+  }
+
+  private GridFSDBFile findNewestRpmByPath(GridFsFileDescriptor descriptor) {
+    return findNewestRpmInRepoByNameAndArch(descriptor.getRepo(), descriptor.getArch(), descriptor.getFilename());
+  }
+
+  private GridFSDBFile findNewestRpmInRepoByNameAndArch(String repo, String arch, String name) {
+    List<YumEntry> entries = yumEntriesRepository.findByRepoAndYumPackageArchAndYumPackageName(repo, arch, name);
+    if (entries.isEmpty()) {
+      return null;
+    }
+
+    sort(entries, new ArgumentComparator<>(on(YumEntry.class).getYumPackage().getVersion(), comparator));
+
+    YumEntry lastEntry = entries.get(entries.size() - 1);
+    return gridFs.find(lastEntry.getId());
+  }
+
+  private GridFsFileDescriptor move(GridFSDBFile dbFile, String destinationRepo) {
+    YumEntry yumEntry = yumEntriesRepository.findOne((ObjectId) dbFile.getId());
+    yumEntry.setRepo(null);
+    yumEntriesRepository.save(yumEntry);
+
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(dbFile);
+    descriptor.setRepo(destinationRepo);
+
+    GridFSDBFile dbToOverrideFile = findFileByDescriptor(descriptor);
+    dbFile.put(FILENAME_KEY, descriptor.getPath());
+
+    dbFile.getMetaData().put(REPO_KEY, destinationRepo);
+    dbFile.save();
+
+    if (dbToOverrideFile != null) {
+      delete(dbToOverrideFile);
+    }
+
+    yumEntry.setRepo(destinationRepo);
+    yumEntriesRepository.save(yumEntry);
+
+    return descriptor;
+  }
+
   private void waitAfterDeleteOfLargeFile(long lengthInBytes, String filename) {
     //24MB 1600ms
     //600MB 40sec
@@ -353,6 +371,9 @@ public class GridFsService {
       .and(METADATA_MARKED_AS_DELETED_KEY)
       .is(null)
       .andOperator(whereFilename().regex(".*\\.rpm$"))));
+    for (GridFSDBFile dbFile : sourceRpms) {
+      validateAccess(dbFile);
+    }
     for (GridFSDBFile dbFile : sourceRpms) {
       move(dbFile, destinationRepo);
     }
@@ -451,7 +472,7 @@ public class GridFsService {
   @VisibleForTesting
   GridFSFile storeFileWithMetaInfo(InputStream inputStream,
                                    GridFsFileDescriptor descriptor) throws IOException {
-    GridFSDBFile existingDbFile = findFileByDescriptor(descriptor);
+    GridFSDBFile existingDbFile = internalUnsecuredFindFileByDescriptor(descriptor);
     if (existingDbFile != null) {
       throw new GridFSFileAlreadyExistsException("Reupload of rpm is not possible.", descriptor.getPath());
     }
@@ -478,6 +499,21 @@ public class GridFsService {
       throw new BadRequestException("Rpm file has invalid depth!");
     }
   }
+
+  private void validateAccess(GridFSDBFile dbFile) {
+    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(dbFile.getFilename());
+    validateAccess(descriptor);
+
+  }
+
+  private void validateAccess(GridFsFileDescriptor descriptor) {
+    if (!accessFilter.isAllowed(descriptor)) {
+      InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
+      LOGGER.warn("preventing access to {}", descriptor.getPath());
+      throw new ForbiddenException("access to " + descriptor.getPath() + " not permitted");
+    }
+  }
+
 
   private void delete(GridFSDBFile dbFile) {
     yumEntriesRepository.delete((ObjectId) dbFile.getId());
