@@ -28,6 +28,7 @@ import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderToYumPackageConverter;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderWrapper;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
 import de.is24.infrastructure.gridfs.http.security.HostNamePatternFilter;
+import de.is24.util.monitoring.InApplicationMonitor;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.bson.types.ObjectId;
 import org.freecompany.redline.ReadableChannelWrapper;
@@ -102,6 +103,8 @@ public class GridFsService {
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
+  private static final String APPMON_BASE_KEY = "GridFsService.";
+  private static final String APPMON_ACCESS_PREVENTION = APPMON_BASE_KEY + "preventAccess";
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
@@ -505,7 +508,8 @@ public class GridFsService {
 
   private void validateAccess(GridFsFileDescriptor descriptor) {
     if (!accessFilter.isAllowed(descriptor)) {
-      LOGGER.error("preventing access to {}", descriptor.getPath());
+      InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
+      LOGGER.warn("preventing access to {}", descriptor.getPath());
       throw new ForbiddenException("access to " + descriptor.getPath() + " not permitted");
     }
   }
