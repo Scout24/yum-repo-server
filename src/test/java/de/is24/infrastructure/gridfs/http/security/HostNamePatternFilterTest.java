@@ -50,6 +50,17 @@ public class HostNamePatternFilterTest {
     assertThat(allowed, is(true));
   }
 
+  @Test
+  public void allowAccessToMetadataFilesForHostGivenByIPInProtectedRepos() throws Exception {
+    givenRequestForHost("1.2.3.4");
+
+    GridFsFileDescriptor gridFsFileDescriptor = new GridFsFileDescriptor(PROTECTED_REPO, "repodata", "repomd.xml");
+
+    boolean allowed = patternFilter.isAllowed(gridFsFileDescriptor);
+
+    assertThat(allowed, is(true));
+  }
+
 
   @Test
   public void allowAccessToFilesContainingHostnameInProtectedRepos() throws Exception {

@@ -42,11 +42,11 @@ public class HostNamePatternFilter {
         SCOPE_REQUEST);
     }
 
-    if (isWebCall && protectedRepos.contains(gridFsFileDescriptor.getRepo())) {
+    if (isWebCall && !gridFsFileDescriptor.getArch().equals("repodata") &&
+        protectedRepos.contains(gridFsFileDescriptor.getRepo())) {
       LOGGER.info("check access permission for {} to {}", remoteHostName, gridFsFileDescriptor.getPath());
       if (remoteHostName.isIp() ||
-          (!gridFsFileDescriptor.getFilename().contains(remoteHostName.getShortName()) &&
-            !gridFsFileDescriptor.getArch().equals("repodata"))) {
+          !gridFsFileDescriptor.getFilename().contains(remoteHostName.getShortName())) {
         return false;
       }
     }
