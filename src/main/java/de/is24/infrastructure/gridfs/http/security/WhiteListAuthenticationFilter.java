@@ -19,7 +19,6 @@ import static org.springframework.util.StringUtils.trimAllWhitespace;
 public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(WhiteListAuthenticationFilter.class);
 
-  public static final String REMOTE_HOST_KEY = "security.remote.host";
   private final Set<String> whiteListedHosts;
   private final HostnameResolver hostnameResolver;
 
@@ -35,7 +34,6 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
   @Override
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
     HostName hostName = hostnameResolver.remoteHost(request);
-    request.setAttribute(REMOTE_HOST_KEY, hostName);
 
     if (whiteListedHosts.contains(hostName.getName())) {
       return hostName.getName();

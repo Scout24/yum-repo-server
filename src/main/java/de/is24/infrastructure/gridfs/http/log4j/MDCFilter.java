@@ -9,9 +9,8 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
-import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.REMOTE_HOST_KEY;
+import static de.is24.infrastructure.gridfs.http.security.HostNameFilter.REMOTE_HOST_NAME;
 import static org.apache.commons.lang.StringUtils.defaultIfBlank;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 
 /**
@@ -49,7 +48,7 @@ public class MDCFilter implements Filter {
   }
 
   private String remoteHost(ServletRequest req) {
-    Object remoteHostAttr = req.getAttribute(REMOTE_HOST_KEY);
+    Object remoteHostAttr = req.getAttribute(REMOTE_HOST_NAME);
     if (remoteHostAttr != null) {
       return remoteHostAttr.toString();
     }
