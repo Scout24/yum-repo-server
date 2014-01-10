@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.security;
 
-import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,9 +7,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
-import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.REMOTE_HOST_KEY;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -71,27 +68,6 @@ public class WhiteListAuthenticationFilterTest {
   public void denyLoadBalancerRequestsWithoutXForwardedFor() throws Exception {
     WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter("", null, hostnameResolver);
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP)), nullValue());
-  }
-
-  @Test
-  public void setRemoteHostAsRequestAttributeForDirectRequests() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(localHostname(), null, hostnameResolver);
-    MockHttpServletRequest request = request(LOCAL_IP);
-    filter.getPreAuthenticatedPrincipal(request);
-
-    HostName hostName = (HostName) request.getAttribute(REMOTE_HOST_KEY);
-    assertThat(hostName.getName(), is((Object) localHostname()));
-  }
-
-  @Test
-  public void setRemoteHostAsRequestAttributeForXForwardFor() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(ARBITRARY_IP, null, hostnameResolver);
-    HttpServletRequest request = request(LOADBALANCER_IP, ARBITRARY_IP);
-    filter.getPreAuthenticatedPrincipal(request);
-
-    HostName hostName = (HostName) request.getAttribute(REMOTE_HOST_KEY);
-
-    assertThat(hostName.getName(), is((Object) ARBITRARY_IP));
   }
 
   private String localHostname() throws UnknownHostException {
