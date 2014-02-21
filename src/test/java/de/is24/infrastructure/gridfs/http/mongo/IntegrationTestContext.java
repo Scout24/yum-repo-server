@@ -96,7 +96,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public HostNamePatternFilter hostNamePatternFilter() {
     if (hostNamePatternFilter == null) {
-      hostNamePatternFilter = new HostNamePatternFilter("");
+      hostNamePatternFilter = new HostNamePatternFilter("", "");
     }
     return hostNamePatternFilter;
   }
