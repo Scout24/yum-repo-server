@@ -38,7 +38,6 @@ public class HostNamePatternFilter {
       ipWhitelistIsSet = true;
       ipWhitelistPattern = Pattern.compile(protectedRepoIpWhiteListRegex);
     }
-
   }
 
   public boolean isAllowed(GridFsFileDescriptor gridFsFileDescriptor) {

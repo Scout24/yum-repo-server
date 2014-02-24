@@ -15,6 +15,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class HostNamePatternFilterTest {
   public static final String PROTECTED_REPO = "protected";
   public static final String NOT_PROTECTED_REPO = "notProtected";
+
   public static final String WHITELISTED_IP = "11.11.11.11";
   public static final String NOT_WHITELISTED_IP = "1.2.3.4";
   private HostNamePatternFilter patternFilter;
@@ -142,6 +143,6 @@ public class HostNamePatternFilterTest {
   }
 
   private void givenPatternFilterWithWhitelist() {
-    patternFilter = new HostNamePatternFilter(PROTECTED_REPO, "^11\\.11\\.11\\.11$");
+    patternFilter = new HostNamePatternFilter(PROTECTED_REPO, "^11\\.11\\.11\\.\\d{1,3}$");
   }
 }
