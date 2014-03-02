@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
@@ -28,46 +29,67 @@ public class WhiteListAuthenticationFilterTest {
 
   @Test
   public void detectHostnameFromIP() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(localHostname(), null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter(localHostname());
     assertThat(filter.getPreAuthenticatedPrincipal(request(LOCAL_IP)), notNullValue());
   }
 
   @Test
   public void allowLoadBalancerRequestsWithXForwardedFor() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(ARBITRARY_IP, null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP, ARBITRARY_IP)), notNullValue());
   }
 
   @Test
   public void allowLoadBalancerRequestsWithXForwardedForChain() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(ARBITRARY_IP, null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP, ANOTHER_IP + ", " + ARBITRARY_IP)),
       notNullValue());
   }
 
   @Test
   public void allowLoadBalancerRequestsWithXForwardedForResolvableHostname() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(localHostname(), null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter(localHostname());
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP, LOCAL_IP)), notNullValue());
   }
 
   @Test
   public void denyLoadBalancerRequestsWithUnauthorizedXForwardedFor() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(ARBITRARY_IP, null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP, ANOTHER_IP)), nullValue());
   }
 
   @Test
   public void denyLoadBalancerRequestsWithUnauthorizedXForwardedForChain() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter(ARBITRARY_IP, null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP, ARBITRARY_IP + ", " + ANOTHER_IP)),
       nullValue());
   }
 
   @Test
   public void denyLoadBalancerRequestsWithoutXForwardedFor() throws Exception {
-    WhiteListAuthenticationFilter filter = new WhiteListAuthenticationFilter("", null, hostnameResolver);
+    WhiteListAuthenticationFilter filter = createFilter("");
     assertThat(filter.getPreAuthenticatedCredentials(request(LOADBALANCER_IP)), nullValue());
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void denySettingWhiteListWithoutFeatureEnabled() throws Exception {
+    WhiteListAuthenticationFilter filter = createFilter("");
+    filter.setWhiteListedHosts("foo.bar");
+  }
+
+  @Test
+  public void setWhiteListViaProperty() throws Exception {
+    WhiteListAuthenticationFilter filter = createFilter("", true);
+    filter.setWhiteListedHosts(ARBITRARY_IP);
+    assertThat(filter.getWhiteListedHosts(), is(ARBITRARY_IP));
+  }
+
+  private WhiteListAuthenticationFilter createFilter(String whiteListedHosts) {
+    return createFilter(whiteListedHosts, false);
+  }
+
+  private WhiteListAuthenticationFilter createFilter(String whiteListedHosts, boolean enableModification) {
+    return new WhiteListAuthenticationFilter(whiteListedHosts, enableModification, null, hostnameResolver);
   }
 
   private String localHostname() throws UnknownHostException {
