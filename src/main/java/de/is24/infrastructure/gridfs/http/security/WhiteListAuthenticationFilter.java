@@ -2,7 +2,7 @@ package de.is24.infrastructure.gridfs.http.security;
 
 import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
-import org.apache.commons.lang.StringUtils;
+import de.is24.infrastructure.gridfs.http.utils.WildcardToRegexConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +13,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-import static org.apache.commons.lang.StringUtils.join;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
@@ -26,9 +27,11 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
   private static final Logger LOGGER = LoggerFactory.getLogger(WhiteListAuthenticationFilter.class);
   private static final String WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY = "security.whitelist.modification.enabled";
 
-  private Set<String> whiteListedHosts;
+  private String whiteListedHosts;
+  private Set<Pattern> whiteListedHostPatterns;
   private final HostnameResolver hostnameResolver;
   private final boolean whiteListModificationEnabled;
+  private final WildcardToRegexConverter wildcardToRegexConverter = new WildcardToRegexConverter();
 
   @Autowired
   public WhiteListAuthenticationFilter(@Value("${security.whitelist.hosts:}") String whiteListedHosts,
@@ -36,17 +39,18 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
                                        AuthenticationManager authenticationManager,
                                        HostnameResolver hostnameResolver) {
     this.hostnameResolver = hostnameResolver;
-    this.whiteListedHosts = parseWhiteListedHosts(whiteListedHosts);
     this.whiteListModificationEnabled = whiteListModificationEnabled;
+    setWhiteListedHostsInternal(whiteListedHosts);
     setAuthenticationManager(authenticationManager);
   }
 
   @Override
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
     HostName hostName = hostnameResolver.remoteHost(request);
-
-    if (whiteListedHosts.contains(hostName.getName())) {
-      return hostName.getName();
+    for (Pattern whiteListedHostPattern : whiteListedHostPatterns) {
+      if (whiteListedHostPattern.matcher(hostName.getName()).matches()) {
+        return hostName.getName();
+      }
     }
 
     return null;
@@ -59,7 +63,7 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
 
   @ManagedAttribute
   public String getWhiteListedHosts() {
-    return join(whiteListedHosts, ",");
+    return whiteListedHosts;
   }
 
   @ManagedAttribute
@@ -70,10 +74,14 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
           " in your configuration.");
     }
 
-    this.whiteListedHosts = parseWhiteListedHosts(whiteListedHosts);
+    setWhiteListedHostsInternal(whiteListedHosts);
   }
 
-  protected Set<String> parseWhiteListedHosts(String whiteListedHosts) {
-    return commaDelimitedListToSet(trimAllWhitespace(whiteListedHosts));
+  protected void setWhiteListedHostsInternal(String whiteListedHosts) {
+    this.whiteListedHosts = whiteListedHosts;
+    this.whiteListedHostPatterns = new HashSet<Pattern>();
+    for (String pattern : commaDelimitedListToSet(trimAllWhitespace(whiteListedHosts))) {
+      this.whiteListedHostPatterns.add(wildcardToRegexConverter.convert(pattern));
+    }
   }
 }
