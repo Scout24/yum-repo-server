@@ -4,7 +4,7 @@ import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.springframework.beans.factory.annotation.Autowired;

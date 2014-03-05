@@ -10,7 +10,7 @@ import de.is24.infrastructure.gridfs.http.domain.SortField;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryNotFoundException;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;

@@ -10,7 +10,7 @@ import de.is24.infrastructure.gridfs.http.metadata.generation.FileListsGenerator
 import de.is24.infrastructure.gridfs.http.metadata.generation.OtherDbGenerator;
 import de.is24.infrastructure.gridfs.http.metadata.generation.PrimaryDbGenerator;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.util.monitoring.InApplicationMonitor;

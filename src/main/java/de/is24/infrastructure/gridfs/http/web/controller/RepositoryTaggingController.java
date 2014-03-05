@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoTaggingService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

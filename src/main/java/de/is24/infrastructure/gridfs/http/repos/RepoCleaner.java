@@ -7,7 +7,7 @@ import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.rpm.version.CachingVersionDBObjectComparator;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;

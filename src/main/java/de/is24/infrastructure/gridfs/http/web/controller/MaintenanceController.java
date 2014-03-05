@@ -3,7 +3,7 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.maintenance.MaintenanceService;
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;

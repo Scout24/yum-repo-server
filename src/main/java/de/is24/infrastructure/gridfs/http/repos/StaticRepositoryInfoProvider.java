@@ -15,7 +15,7 @@ import de.is24.infrastructure.gridfs.http.domain.SortOrder;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryNotFoundException;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
-import de.is24.infrastructure.gridfs.http.monitoring.TimeMeasurement;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.apache.commons.collections.ComparatorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
