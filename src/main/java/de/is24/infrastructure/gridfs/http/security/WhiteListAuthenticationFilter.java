@@ -21,11 +21,10 @@ import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
 
-@Component
 @ManagedResource
 public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(WhiteListAuthenticationFilter.class);
-  private static final String WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY = "security.whitelist.modification.enabled";
+  public static final String WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY = "security.whitelist.modification.enabled";
 
   private String whiteListedHosts;
   private Set<Pattern> whiteListedHostPatterns;
@@ -33,9 +32,8 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
   private final boolean whiteListModificationEnabled;
   private final WildcardToRegexConverter wildcardToRegexConverter = new WildcardToRegexConverter();
 
-  @Autowired
-  public WhiteListAuthenticationFilter(@Value("${security.whitelist.hosts:}") String whiteListedHosts,
-                                       @Value("${" + WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY + ":false}") boolean whiteListModificationEnabled,
+  public WhiteListAuthenticationFilter(String whiteListedHosts,
+                                       boolean whiteListModificationEnabled,
                                        AuthenticationManager authenticationManager,
                                        HostnameResolver hostnameResolver) {
     this.hostnameResolver = hostnameResolver;
