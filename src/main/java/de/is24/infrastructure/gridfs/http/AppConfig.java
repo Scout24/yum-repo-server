@@ -7,6 +7,7 @@ import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
+import de.is24.infrastructure.gridfs.http.security.SecurityConfig;
 import de.is24.util.monitoring.CorePlugin;
 import de.is24.util.monitoring.InApplicationMonitor;
 import de.is24.util.monitoring.jmx.SimpleJmxAppmon4jNamingStrategy;
@@ -24,7 +25,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.EnableMBeanExport;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
 import org.springframework.data.authentication.UserCredentials;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
@@ -50,8 +50,7 @@ import static com.mongodb.WriteConcern.REPLICAS_SAFE;
 @EnableMBeanExport
 @EnableMongoRepositories
 @EnableScheduling
-@Import(PropertyConfig.class)
-@ImportResource("classpath:/security-context.xml")
+@Import({PropertyConfig.class, SecurityConfig.class})
 public class AppConfig extends AbstractMongoConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(AppConfig.class);
 
