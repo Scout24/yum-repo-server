@@ -15,7 +15,6 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
-import de.is24.infrastructure.gridfs.http.exception.ForbiddenException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
@@ -106,8 +105,6 @@ public class GridFsService {
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
-  private static final String APPMON_BASE_KEY = "GridFsService.";
-  private static final String APPMON_ACCESS_PREVENTION = APPMON_BASE_KEY + "preventAccess";
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
@@ -115,7 +112,6 @@ public class GridFsService {
   private final YumEntriesRepository yumEntriesRepository;
   private final RepoService repoService;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
-  private final HostNamePatternFilter accessFilter;
 
   //needed for cglib proxy
   public GridFsService() {
@@ -124,19 +120,16 @@ public class GridFsService {
     this.yumEntriesRepository = null;
     this.gridFs = null;
     this.repoService = null;
-    this.accessFilter = null;
   }
 
   @Autowired
   public GridFsService(GridFS gridFs, GridFsOperations gridFsTemplate, MongoTemplate mongoTemplate,
-                       YumEntriesRepository yumEntriesRepository, RepoService repoService,
-                       HostNamePatternFilter accessFilter) {
+                       YumEntriesRepository yumEntriesRepository, RepoService repoService) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
     this.mongoTemplate = mongoTemplate;
     this.yumEntriesRepository = yumEntriesRepository;
     this.repoService = repoService;
-    this.accessFilter = accessFilter;
 
     setupIndices();
   }
@@ -285,7 +278,6 @@ public class GridFsService {
     return findNewestRpmByPath(descriptor);
   }
 
-  @PreAuthorize("hasPermission(#descriptor, '" + READ_FILE + "')")
   private GridFSDBFile findNewestRpmByPath(GridFsFileDescriptor descriptor) {
     return findNewestRpmInRepoByNameAndArch(descriptor.getRepo(), descriptor.getArch(), descriptor.getFilename());
   }

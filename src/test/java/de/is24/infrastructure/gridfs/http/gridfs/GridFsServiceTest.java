@@ -19,7 +19,6 @@ import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryIsUndeletableException;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
-import de.is24.infrastructure.gridfs.http.security.HostNamePatternFilter;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +40,6 @@ public class GridFsServiceTest {
   private YumEntriesRepository yumEntriesRepository;
   private DBCollection filesCollection;
   private RepoService repoService;
-  private HostNamePatternFilter hostNamePatternFilter;
 
   @Before
   public void setUp() {
@@ -53,11 +51,8 @@ public class GridFsServiceTest {
     yumEntriesRepository = mock(YumEntriesRepository.class);
     when(yumEntriesRepository.findOne(any(ObjectId.class))).thenReturn(new YumEntry(null, null, null));
     repoService = mock(RepoService.class);
-    hostNamePatternFilter = mock(HostNamePatternFilter.class);
-    when(hostNamePatternFilter.isAllowed(any(GridFsFileDescriptor.class))).thenReturn(true);
 
-    service = new GridFsService(gridFs, gridFsTemplate, mongoTemplate, yumEntriesRepository, repoService,
-      hostNamePatternFilter);
+    service = new GridFsService(gridFs, gridFsTemplate, mongoTemplate, yumEntriesRepository, repoService);
   }
 
   @Test(expected = BadRequestException.class)

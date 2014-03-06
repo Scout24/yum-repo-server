@@ -38,6 +38,6 @@ public class SecurityTestConfig {
     DBCollection collection = mock(DBCollection.class);
     when(mongoTemplate.getCollection(anyString())).thenReturn(collection);
     GridFsTemplate gridFsTemplate = mock(GridFsTemplate.class);
-    return new GridFsService(null, gridFsTemplate, mongoTemplate, null, null, null);
+    return new GridFsService(null, gridFsTemplate, mongoTemplate, null, null);
   }
 }
