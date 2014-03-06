@@ -13,31 +13,36 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-  public SecurityConfig() {
-    super(true);
-  }
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   public static final String ROLE_USER = "USER";
-  @Autowired
-  WhiteListAuthenticationFilter whiteListAuthenticationFilter;
 
   @Autowired
   WhiteListAuthenticationProvider whiteListAuthenticationProvider;
 
   @Autowired
-  HostnameResolver hostnameResolver;
-
-  @Autowired
   @Qualifier("pamAuthenticationProvider")
   AuthenticationProvider pamAuthenticationProvider;
+
+  @Value("${security.whitelist.hosts:}")
+  String whiteListedHosts;
+
+  @Value("${" + WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY + ":false}")
+  boolean whiteListModificationEnabled;
+
+  @Autowired
+  HostnameResolver hostnameResolver;
+
+  public WebSecurityConfig() {
+    super(true);
+  }
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -48,7 +53,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.exceptionHandling()
-        .and().httpBasic()
+        .and().httpBasic().realmName("Yum Repo Server")
         .and().headers()
         .and().securityContext()
         .and().anonymous()
@@ -58,7 +63,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(POST, "/**").hasRole(ROLE_USER)
         .antMatchers(PUT, "/**").hasRole(ROLE_USER)
         .antMatchers(DELETE, "/**").hasRole(ROLE_USER)
-        .and().addFilter(whiteListAuthenticationFilter);
+        .and().addFilter(whiteListAuthenticationFilter());
   }
 
   @Bean(name="authenticationManager")
@@ -67,5 +72,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     return super.authenticationManagerBean();
   }
 
-
+  @Bean
+  public WhiteListAuthenticationFilter whiteListAuthenticationFilter() throws Exception {
+    return new WhiteListAuthenticationFilter(whiteListedHosts, whiteListModificationEnabled, authenticationManagerBean(), hostnameResolver);
+  }
 }
