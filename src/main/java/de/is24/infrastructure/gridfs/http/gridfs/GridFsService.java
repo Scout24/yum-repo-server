@@ -105,6 +105,7 @@ public class GridFsService {
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
+  public static final String HAS_DESCRIPTOR_READ_PERMISSION = "hasPermission(#descriptor, '" + READ_FILE + "')";
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
@@ -164,7 +165,7 @@ public class GridFsService {
 
 
   @TimeMeasurement
-  @PreAuthorize("hasPermission(#descriptor, '" + READ_FILE + "')")
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public GridFSDBFile findFileByDescriptor(GridFsFileDescriptor descriptor) {
     return internalUnsecuredFindFileByDescriptor(descriptor);
   }
@@ -176,6 +177,7 @@ public class GridFsService {
 
 
   @TimeMeasurement
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public GridFSDBFile getFileByDescriptor(GridFsFileDescriptor descriptor) {
     GridFSDBFile dbFile = findFileByDescriptor(descriptor);
     if (dbFile == null) {
@@ -331,14 +333,17 @@ public class GridFsService {
     }
   }
 
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor) throws IOException {
     return getResource(descriptor, 0);
   }
 
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos) throws IOException {
     return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(descriptor, startPos), startPos);
   }
 
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos, long size)
                                     throws IOException {
     return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(descriptor, startPos), startPos, size);
