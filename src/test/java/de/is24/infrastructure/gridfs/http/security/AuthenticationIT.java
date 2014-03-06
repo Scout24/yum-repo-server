@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http.security;
 
 
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -24,6 +25,7 @@ import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
@@ -90,12 +92,16 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   public void sendAuthenticateHeader() throws Exception {
     givenCredentials("user", "pass");
 
-    HttpDelete get = new HttpDelete(deleteUrl);
-    HttpResponse response = httpClient.execute(get);
+    HttpDelete delete = new HttpDelete(deleteUrl);
+    delete.addHeader("X-Requested-With", "XMLHttpRequest");
+
+    HttpResponse response = httpClient.execute(delete);
     consume(response.getEntity());
 
     assertThat(response.getStatusLine().getStatusCode(), is(SC_UNAUTHORIZED));
-    assertThat(response.getFirstHeader("WWW-Authenticate").getValue(), containsString("Basic"));
+    Header authHeader = response.getFirstHeader("WWW-Authenticate");
+    assertThat(authHeader, notNullValue());
+    assertThat(authHeader.getValue(), containsString("Basic"));
   }
 
   private void givenCredentials(String user, String password) {

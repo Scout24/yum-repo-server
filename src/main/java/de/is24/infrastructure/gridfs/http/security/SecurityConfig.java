@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
 import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY;
 import static org.springframework.http.HttpMethod.DELETE;
@@ -54,7 +55,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.exceptionHandling()
-        .and().httpBasic().realmName("Yum Repo Server")
+        .and().httpBasic().authenticationEntryPoint(createBasicAuthenticationEntryPoint())
         .and().headers()
         .and().securityContext()
         .and().anonymous()
@@ -76,5 +77,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Bean
   public WhiteListAuthenticationFilter whiteListAuthenticationFilter() throws Exception {
     return new WhiteListAuthenticationFilter(whiteListedHosts, whiteListModificationEnabled, authenticationManagerBean(), hostnameResolver);
+  }
+
+  private BasicAuthenticationEntryPoint createBasicAuthenticationEntryPoint() {
+    BasicAuthenticationEntryPoint authenticationEntryPoint = new BasicAuthenticationEntryPoint();
+    authenticationEntryPoint.setRealmName("Yum Repo Server");
+    return authenticationEntryPoint;
   }
 }
