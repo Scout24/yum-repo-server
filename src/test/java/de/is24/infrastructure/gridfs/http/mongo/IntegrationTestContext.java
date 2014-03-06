@@ -10,7 +10,6 @@ import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
-import de.is24.infrastructure.gridfs.http.security.HostNamePatternFilter;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.springframework.core.io.ClassPathResource;
@@ -42,7 +41,6 @@ public class IntegrationTestContext extends MongoTestContext {
 
   private MetadataService metadataService;
   private YumEntriesHashCalculator entriesHashCalculator;
-  private HostNamePatternFilter hostNamePatternFilter;
 
   public GridFS gridFs() {
     if (gridFs == null) {
@@ -54,7 +52,7 @@ public class IntegrationTestContext extends MongoTestContext {
   public GridFsService gridFsService() {
     if (gridFsService == null) {
       gridFsService = new GridFsService(gridFs(), gridFsTemplate(), mongoTemplate(), yumEntriesRepository(),
-        repoService(), hostNamePatternFilter());
+        repoService());
     }
     return gridFsService;
   }
@@ -92,13 +90,6 @@ public class IntegrationTestContext extends MongoTestContext {
       repoService = new RepoService(repoEntriesRepository());
     }
     return repoService;
-  }
-
-  public HostNamePatternFilter hostNamePatternFilter() {
-    if (hostNamePatternFilter == null) {
-      hostNamePatternFilter = new HostNamePatternFilter("", "");
-    }
-    return hostNamePatternFilter;
   }
 
   public PGPSigner pgpSigner() {

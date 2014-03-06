@@ -22,7 +22,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   public static final String ROLE_USER = "USER";
 
@@ -42,7 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   HostnameResolver hostnameResolver;
 
-  public SecurityConfig() {
+  public WebSecurityConfig() {
     super(true);
   }
 

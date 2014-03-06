@@ -5,13 +5,11 @@ import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import de.is24.infrastructure.gridfs.http.utils.WildcardToRegexConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
-import org.springframework.stereotype.Component;
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashSet;
 import java.util.Set;

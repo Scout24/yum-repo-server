@@ -15,7 +15,6 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
-import de.is24.infrastructure.gridfs.http.exception.ForbiddenException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
@@ -28,7 +27,6 @@ import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderToYumPackageConverter;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderWrapper;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
 import de.is24.infrastructure.gridfs.http.security.HostNamePatternFilter;
-import de.is24.util.monitoring.InApplicationMonitor;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.bson.types.ObjectId;
 import org.freecompany.redline.ReadableChannelWrapper;
@@ -44,6 +42,7 @@ import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -74,6 +73,9 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADAT
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.ObjectIdCriteria.whereObjectIdIs;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
+import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_FILE;
+import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_REPO;
+import static de.is24.infrastructure.gridfs.http.security.Permission.READ_FILE;
 import static java.lang.String.format;
 import static java.nio.channels.Channels.newChannel;
 import static java.util.Collections.sort;
@@ -103,8 +105,7 @@ public class GridFsService {
   private static final String OPEN_SHA256_KEY = "open_sha256";
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
-  private static final String APPMON_BASE_KEY = "GridFsService.";
-  private static final String APPMON_ACCESS_PREVENTION = APPMON_BASE_KEY + "preventAccess";
+  public static final String HAS_DESCRIPTOR_READ_PERMISSION = "hasPermission(#descriptor, '" + READ_FILE + "')";
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
@@ -112,7 +113,6 @@ public class GridFsService {
   private final YumEntriesRepository yumEntriesRepository;
   private final RepoService repoService;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
-  private final HostNamePatternFilter accessFilter;
 
   //needed for cglib proxy
   public GridFsService() {
@@ -121,19 +121,16 @@ public class GridFsService {
     this.yumEntriesRepository = null;
     this.gridFs = null;
     this.repoService = null;
-    this.accessFilter = null;
   }
 
   @Autowired
   public GridFsService(GridFS gridFs, GridFsOperations gridFsTemplate, MongoTemplate mongoTemplate,
-                       YumEntriesRepository yumEntriesRepository, RepoService repoService,
-                       HostNamePatternFilter accessFilter) {
+                       YumEntriesRepository yumEntriesRepository, RepoService repoService) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
     this.mongoTemplate = mongoTemplate;
     this.yumEntriesRepository = yumEntriesRepository;
     this.repoService = repoService;
-    this.accessFilter = accessFilter;
 
     setupIndices();
   }
@@ -147,19 +144,17 @@ public class GridFsService {
   }
 
   @TimeMeasurement
+  @PreAuthorize("hasPermission(#sourceFile, '" + PROPAGATE_FILE + "')")
   public GridFsFileDescriptor propagateRpm(String sourceFile, String destinationRepo) {
     validatePathToRpm(sourceFile);
 
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceFile);
-    validateAccess(descriptor);
     validateRepoName(destinationRepo);
 
     GridFSDBFile dbFile = findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(descriptor);
     if (dbFile == null) {
       throw new GridFSFileNotFoundException("Could not find file.", sourceFile);
     }
-
-    validateAccess(dbFile);
 
     String sourceRepo = (String) dbFile.getMetaData().get(REPO_KEY);
     GridFsFileDescriptor fileDescriptor = move(dbFile, destinationRepo);
@@ -170,8 +165,8 @@ public class GridFsService {
 
 
   @TimeMeasurement
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public GridFSDBFile findFileByDescriptor(GridFsFileDescriptor descriptor) {
-    validateAccess(descriptor);
     return internalUnsecuredFindFileByDescriptor(descriptor);
   }
 
@@ -182,6 +177,7 @@ public class GridFsService {
 
 
   @TimeMeasurement
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public GridFSDBFile getFileByDescriptor(GridFsFileDescriptor descriptor) {
     GridFSDBFile dbFile = findFileByDescriptor(descriptor);
     if (dbFile == null) {
@@ -337,14 +333,17 @@ public class GridFsService {
     }
   }
 
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor) throws IOException {
     return getResource(descriptor, 0);
   }
 
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos) throws IOException {
     return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(descriptor, startPos), startPos);
   }
 
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos, long size)
                                     throws IOException {
     return new BoundedGridFsResource(getGridFSDBFileCheckedStartPosIsValid(descriptor, startPos), startPos, size);
@@ -362,6 +361,7 @@ public class GridFsService {
     return gridFSDBFile;
   }
 
+  @PreAuthorize("hasPermission(#sourceRepo, '" + PROPAGATE_REPO + "')")
   public void propagateRepository(String sourceRepo, String destinationRepo) {
     validateRepoName(sourceRepo);
     validateRepoName(destinationRepo);
@@ -371,9 +371,6 @@ public class GridFsService {
       .and(METADATA_MARKED_AS_DELETED_KEY)
       .is(null)
       .andOperator(whereFilename().regex(".*\\.rpm$"))));
-    for (GridFSDBFile dbFile : sourceRpms) {
-      validateAccess(dbFile);
-    }
     for (GridFSDBFile dbFile : sourceRpms) {
       move(dbFile, destinationRepo);
     }
@@ -499,21 +496,6 @@ public class GridFsService {
       throw new BadRequestException("Rpm file has invalid depth!");
     }
   }
-
-  private void validateAccess(GridFSDBFile dbFile) {
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(dbFile.getFilename());
-    validateAccess(descriptor);
-
-  }
-
-  private void validateAccess(GridFsFileDescriptor descriptor) {
-    if (!accessFilter.isAllowed(descriptor)) {
-      InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
-      LOGGER.warn("preventing access to {}", descriptor.getPath());
-      throw new ForbiddenException("access to " + descriptor.getPath() + " not permitted");
-    }
-  }
-
 
   private void delete(GridFSDBFile dbFile) {
     yumEntriesRepository.delete((ObjectId) dbFile.getId());

@@ -27,7 +27,7 @@ import static org.hamcrest.core.Is.is;
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class SecurityIT extends AbstractContainerAndMongoDBStarter {
-  public static final String SCHNULLI = "schnulli";
+  public static final String RANDOM_STRING = "foobar";
   private String repoUrl;
   private String myProtectedRPM;
   private String anotherHostsProtectedRPM;
@@ -97,10 +97,10 @@ public class SecurityIT extends AbstractContainerAndMongoDBStarter {
     builder.setSummary("packaged to test protected Repo access during integration test");
     builder.setBuildHost(myHostName);
     builder.setDescription("packaged to test protected Repo access during integration test");
-    builder.setLicense(SCHNULLI);
+    builder.setLicense(RANDOM_STRING);
     builder.setGroup("integration Testing");
-    builder.setDistribution(SCHNULLI);
-    builder.setVendor(SCHNULLI);
+    builder.setDistribution(RANDOM_STRING);
+    builder.setVendor(RANDOM_STRING);
     builder.setPackager(this.getClass().getName());
     builder.setUrl("https://github.com/ImmobilienScout24/yum-repo-server");
     builder.setSourceRpm("none");
