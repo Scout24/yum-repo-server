@@ -40,6 +40,10 @@ public class HostNamePatternFilter {
     }
   }
 
+  public boolean isAllowedPropagationRepo(String repo) {
+    return !protectedRepos.contains(repo);
+  }
+
   public boolean isAllowed(GridFsFileDescriptor gridFsFileDescriptor) {
     RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
 
