@@ -18,17 +18,16 @@ public class GridFsFileDescriptor {
    * @param path following the pattern repo/arch/filename or more detailed contains two slashes
    * @throws IllegalArgumentException if path does not follow pattern repo/arch/filename
    */
-  GridFsFileDescriptor(String path) {
+  public GridFsFileDescriptor(String path) {
     String[] split = path.split("/");
-    if (split.length == 3) {
-      this.repo = split[0];
-      this.arch = split[1];
-      this.filename = split[2];
-    } else {
+    if (split.length != 3) {
       throw new IllegalArgumentException("path " + path +
         " does not follow pattern repo/arch/filename");
     }
 
+    this.repo = split[0];
+    this.arch = split[1];
+    this.filename = split[2];
   }
 
   public GridFsFileDescriptor(String repo, String arch, String filename) {
