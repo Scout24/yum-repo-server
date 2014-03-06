@@ -17,6 +17,7 @@ import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticatio
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
@@ -53,12 +54,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.exceptionHandling()
-        .and().httpBasic()
+        .and().httpBasic().realmName("Yum Repo Server")
         .and().headers()
         .and().securityContext()
         .and().anonymous()
         .and().servletApi()
-        .and().sessionManagement()
+        .and().sessionManagement().sessionCreationPolicy(STATELESS)
         .and().authorizeRequests()
         .antMatchers(POST, "/**").hasRole(ROLE_USER)
         .antMatchers(PUT, "/**").hasRole(ROLE_USER)

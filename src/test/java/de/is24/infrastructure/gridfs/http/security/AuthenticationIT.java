@@ -20,9 +20,9 @@ import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpCl
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
-import static org.apache.http.client.params.ClientPNames.VIRTUAL_HOST;
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 
@@ -83,6 +83,19 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     consume(response.getEntity());
 
     assertThat(response.getStatusLine().getStatusCode(), is(SC_NOT_FOUND));
+  }
+
+  @LocalOnly
+  @Test
+  public void sendAuthenticateHeader() throws Exception {
+    givenCredentials("user", "pass");
+
+    HttpDelete get = new HttpDelete(deleteUrl);
+    HttpResponse response = httpClient.execute(get);
+    consume(response.getEntity());
+
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_UNAUTHORIZED));
+    assertThat(response.getFirstHeader("WWW-Authenticate").getValue(), containsString("Basic"));
   }
 
   private void givenCredentials(String user, String password) {
