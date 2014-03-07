@@ -12,9 +12,14 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 import static org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST;
@@ -26,17 +31,17 @@ public class HostNamePatternFilter {
   private static final Logger LOGGER = LoggerFactory.getLogger(HostNamePatternFilter.class);
 
   private final Set<String> protectedRepos;
-  private boolean ipWhitelistIsSet = false;
-  private Pattern ipWhitelistPattern;
+  private List<IpRange> whiteListedIpRanges = new ArrayList<>();
 
   @Autowired
   public HostNamePatternFilter(
     @Value("${security.protectedRepos:}") String protectedRepos,
-    @Value("${security.protectedRepoIpWhiteListRegex:}") String protectedRepoIpWhiteListRegex) {
+    @Value("${security.protectedRepoWhiteListedIpRanges:}") String protectedRepoWhiteListedIpRanges) {
     this.protectedRepos = Collections.synchronizedSet(commaDelimitedListToSet(trimAllWhitespace(protectedRepos)));
-    if (StringUtils.isNotBlank(protectedRepoIpWhiteListRegex)) {
-      ipWhitelistIsSet = true;
-      ipWhitelistPattern = Pattern.compile(protectedRepoIpWhiteListRegex);
+    if (isNotBlank(protectedRepoWhiteListedIpRanges)) {
+      for (String ipRange : commaDelimitedListToSet(trimAllWhitespace(protectedRepoWhiteListedIpRanges))) {
+        whiteListedIpRanges.add(new IpRange(ipRange));
+      }
     }
   }
 
@@ -61,7 +66,7 @@ public class HostNamePatternFilter {
       LOGGER.info("check access permission for {} to {}", remoteHostName, gridFsFileDescriptor.getPath());
       if (remoteHostName.isIp()) {
         LOGGER.debug("..is IP...");
-        if (!ipWhitelistIsSet || !ipWhitelistPattern.matcher(remoteHostName.getName()).matches()) {
+        if (!isAllowedIp(remoteHostName.getName())) {
           LOGGER.info("... ip not in whitelist: deny");
           return false;
         }
@@ -73,6 +78,16 @@ public class HostNamePatternFilter {
     LOGGER.debug("...allowed.");
 
     return true;
+  }
+
+  private boolean isAllowedIp(String ip) {
+    for (IpRange ipRange : whiteListedIpRanges) {
+      if (ipRange.isIn(ip)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @ManagedOperation

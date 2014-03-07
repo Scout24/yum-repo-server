@@ -143,6 +143,6 @@ public class HostNamePatternFilterTest {
   }
 
   private void givenPatternFilterWithWhitelist() {
-    patternFilter = new HostNamePatternFilter(PROTECTED_REPO, "^11\\.11\\.11\\.\\d{1,3}$");
+    patternFilter = new HostNamePatternFilter(PROTECTED_REPO, "11.11.11.1-254");
   }
 }
