@@ -1,15 +1,5 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
-import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
-import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
-import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT;
-import static javax.servlet.http.HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.core.Is.is;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -18,6 +8,15 @@ import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
+import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static javax.servlet.http.HttpServletResponse.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.core.Is.is;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
@@ -99,4 +98,17 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
   }
 
+  @Test
+  public void downloadFileWithRewriteRule() throws Exception {
+    String repoPrefix = deploymentURL + "/repo/" + uniqueRepoName();
+    uploadRpm(repoPrefix + "-rhel-6X-test", RPM_FILE.getPath());
+
+    HttpGet get = new HttpGet(repoPrefix + "-rhel-6.5-test/noarch/test-artifact-1.2-1.noarch.rpm");
+
+    HttpResponse response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
+    assertThat(response.getEntity().getContentLength(), is((long) RPM_FILE_SIZE));
+    assertThat(response.getFirstHeader("Content-Length").getValue(), is(Integer.toString(RPM_FILE_SIZE)));
+    assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
+  }
 }
