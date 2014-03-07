@@ -12,10 +12,9 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
+
+import javax.servlet.*;
+
 import static de.is24.infrastructure.gridfs.http.Profiles.PROD;
 import static java.lang.Integer.parseInt;
 import static java.util.EnumSet.of;
@@ -78,32 +77,32 @@ public class AppInitializer implements WebApplicationInitializer {
   }
 
   private void registerUrlRewirteFilter(ServletContext servletContext) {
-    servletContext.addFilter("urlRewriteFilter", new UrlRewriteFilter())
-    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
+    FilterRegistration.Dynamic urlRewriteFilterConfig = servletContext.addFilter("urlRewriteFilter", new UrlRewriteFilter());
+    urlRewriteFilterConfig.addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
   private void registerSecurityFilter(ServletContext servletContext) {
     servletContext.addFilter("springSecurityFilterChain", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(null, false, ALL_URLS);
+    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
   private void registerContentTypeFilter(ServletContext servletContext) {
     servletContext.addFilter("formEncodedContentTypeFilter", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(null, false, ALL_URLS);
+    .addMappingForUrlPatterns(of(REQUEST), false, ALL_URLS);
   }
 
   private void registerHostnameFilter(ServletContext servletContext) {
     servletContext.addFilter("hostNameFilter", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(of(REQUEST), false, ALL_URLS);
+    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
 
   private void registerMDCFilter(ServletContext servletContext) {
-    servletContext.addFilter("mdcFilter", new MDCFilter()).addMappingForUrlPatterns(null, false, ALL_URLS);
+    servletContext.addFilter("mdcFilter", new MDCFilter()).addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
   private void registerAccessLogFilter(ServletContext servletContext) {
-    servletContext.addFilter("accessLogFilter", new AccessLogFilter()).addMappingForUrlPatterns(null, false, ALL_URLS);
+    servletContext.addFilter("accessLogFilter", new AccessLogFilter()).addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
 }
