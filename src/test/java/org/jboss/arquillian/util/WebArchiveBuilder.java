@@ -8,6 +8,8 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.jboss.shrinkwrap.resolver.api.maven.PomEquippedResolveStage;
 
+import java.io.File;
+
 import static org.jboss.shrinkwrap.api.Filters.include;
 
 
@@ -111,6 +113,11 @@ public class WebArchiveBuilder {
       webArchive.delete(archivePath);
     }
     webArchive.addAsResource(ClassLoader.getSystemResource(fileName), fileName);
+    return this;
+  }
+
+  public WebArchiveBuilder withWebInfResource(String path) {
+    webArchive.addAsWebInfResource(new File("src/main/webapp", "WEB-INF/" + path));
     return this;
   }
 }

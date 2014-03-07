@@ -13,6 +13,7 @@ public class WebApplicationTestFactory {
       .withClassesToTest(FastestPingTimeReadPreference.class)
       .withAllResources()
       .withTestResouce("log4j.xml")
+      .withWebInfResource("urlrewrite.xml")
       .build();
   }
 }
