@@ -4,7 +4,12 @@ import de.is24.infrastructure.gridfs.http.security.AuthenticationDetails;
 import org.slf4j.MDC;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import java.io.IOException;
 
 import static org.apache.commons.lang.StringUtils.defaultIfBlank;

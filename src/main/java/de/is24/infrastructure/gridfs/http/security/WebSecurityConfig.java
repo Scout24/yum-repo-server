@@ -17,7 +17,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationEn
 
 import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY;
 import static java.util.UUID.randomUUID;
-import static org.springframework.http.HttpMethod.*;
+import static org.springframework.http.HttpMethod.DELETE;
+import static org.springframework.http.HttpMethod.POST;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration

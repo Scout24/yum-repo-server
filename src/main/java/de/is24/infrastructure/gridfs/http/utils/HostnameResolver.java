@@ -14,7 +14,9 @@ import java.net.UnknownHostException;
 import java.util.Set;
 
 import static de.is24.infrastructure.gridfs.http.utils.HostName.isIPAddress;
-import static org.apache.commons.lang.StringUtils.*;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang.StringUtils.substringAfterLast;
+import static org.apache.commons.lang.StringUtils.trim;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
