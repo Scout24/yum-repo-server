@@ -17,10 +17,12 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Set;
+
 import static com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES;
 import static com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
@@ -118,9 +120,9 @@ public class StatusController {
     detailedInfo.append("\"");
   }
 
-  private String createJSONContent(final boolean OK, final StringBuilder detailedInfo) {
+  private String createJSONContent(final boolean ok, final StringBuilder detailedInfo) {
     return new StringBuilder("{mainInfo:{mongoDBStatus: \"") //
-      .append(OK ? OK_STATUS : NOT_RESPONDING_STATUS)
+      .append(ok ? OK_STATUS : NOT_RESPONDING_STATUS)
       .append("\"},detailedInfo: {")
       .append(detailedInfo)
       .append("}}")
