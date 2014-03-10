@@ -2,27 +2,23 @@ package de.is24.infrastructure.gridfs.http.security;
 
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
-import static org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST;
 
 
 @Component
@@ -49,16 +45,12 @@ public class HostNamePatternFilter {
     return !protectedRepos.contains(repo);
   }
 
-  public boolean isAllowed(GridFsFileDescriptor gridFsFileDescriptor) {
-    RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-
+  public boolean isAllowed(GridFsFileDescriptor gridFsFileDescriptor, Authentication authentication) {
     boolean isWebCall = false;
     HostName remoteHostName = null;
-    if (requestAttributes != null) {
+    if (authentication != null) {
       isWebCall = true;
-
-      remoteHostName = (HostName) requestAttributes.getAttribute(HostNameFilter.REMOTE_HOST_NAME,
-        SCOPE_REQUEST);
+      remoteHostName = ((AuthenticationDetails) authentication.getDetails()).getRemoteHost();
     }
 
     if (isWebCall && !gridFsFileDescriptor.getArch().equals("repodata") &&

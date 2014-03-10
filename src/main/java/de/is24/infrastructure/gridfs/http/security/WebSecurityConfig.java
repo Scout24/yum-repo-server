@@ -12,12 +12,12 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 
 import static de.is24.infrastructure.gridfs.http.security.WhiteListAuthenticationFilter.WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
+import static java.util.UUID.randomUUID;
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
@@ -42,6 +42,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   HostnameResolver hostnameResolver;
 
+  private String anonymousKey = randomUUID().toString();
+
   public WebSecurityConfig() {
     super(true);
   }
@@ -55,10 +57,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.exceptionHandling()
-        .and().httpBasic().authenticationEntryPoint(createBasicAuthenticationEntryPoint())
+        .and().httpBasic()
+            .authenticationDetailsSource(hostnameResolver)
+            .authenticationEntryPoint(createBasicAuthenticationEntryPoint())
         .and().headers()
         .and().securityContext()
-        .and().anonymous()
+        .and().anonymous().key(anonymousKey).authenticationFilter(createAnonymousAuthenticationFilter())
         .and().servletApi()
         .and().sessionManagement().sessionCreationPolicy(STATELESS)
         .and().authorizeRequests()
@@ -76,7 +80,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Bean
   public WhiteListAuthenticationFilter whiteListAuthenticationFilter() throws Exception {
-    return new WhiteListAuthenticationFilter(whiteListedHosts, whiteListModificationEnabled, authenticationManagerBean(), hostnameResolver);
+    WhiteListAuthenticationFilter whiteListAuthenticationFilter = new WhiteListAuthenticationFilter(
+        whiteListedHosts, whiteListModificationEnabled, authenticationManagerBean(), hostnameResolver);
+    whiteListAuthenticationFilter.setAuthenticationDetailsSource(hostnameResolver);
+    return whiteListAuthenticationFilter;
+  }
+
+  private AnonymousAuthenticationFilter createAnonymousAuthenticationFilter() {
+    AnonymousAuthenticationFilter anonymousAuthenticationFilter = new AnonymousAuthenticationFilter(anonymousKey);
+    anonymousAuthenticationFilter.setAuthenticationDetailsSource(hostnameResolver);
+    return anonymousAuthenticationFilter;
   }
 
   private BasicAuthenticationEntryPoint createBasicAuthenticationEntryPoint() {

@@ -13,7 +13,10 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
-import javax.servlet.*;
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
 
 import static de.is24.infrastructure.gridfs.http.Profiles.PROD;
 import static java.lang.Integer.parseInt;
@@ -39,7 +42,6 @@ public class AppInitializer implements WebApplicationInitializer {
     WebApplicationContext rootContext = createRootContext(servletContext);
     createSpringRootServlet(servletContext, rootContext);
     registerUrlRewirteFilter(servletContext);
-    registerHostnameFilter(servletContext);
     registerSecurityFilter(servletContext);
     registerContentTypeFilter(servletContext);
     registerMDCFilter(servletContext);
@@ -77,8 +79,8 @@ public class AppInitializer implements WebApplicationInitializer {
   }
 
   private void registerUrlRewirteFilter(ServletContext servletContext) {
-    FilterRegistration.Dynamic urlRewriteFilterConfig = servletContext.addFilter("urlRewriteFilter", new UrlRewriteFilter());
-    urlRewriteFilterConfig.addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
+    servletContext.addFilter("urlRewriteFilter", new UrlRewriteFilter())
+    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
   private void registerSecurityFilter(ServletContext servletContext) {
@@ -90,12 +92,6 @@ public class AppInitializer implements WebApplicationInitializer {
     servletContext.addFilter("formEncodedContentTypeFilter", new DelegatingFilterProxy())
     .addMappingForUrlPatterns(of(REQUEST), false, ALL_URLS);
   }
-
-  private void registerHostnameFilter(ServletContext servletContext) {
-    servletContext.addFilter("hostNameFilter", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
-  }
-
 
   private void registerMDCFilter(ServletContext servletContext) {
     servletContext.addFilter("mdcFilter", new MDCFilter()).addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);

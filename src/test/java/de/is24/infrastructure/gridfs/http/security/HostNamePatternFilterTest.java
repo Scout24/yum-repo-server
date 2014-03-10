@@ -5,11 +5,13 @@ import de.is24.infrastructure.gridfs.http.utils.HostName;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.springframework.security.core.authority.AuthorityUtils.createAuthorityList;
 
 
 public class HostNamePatternFilterTest {
@@ -39,107 +41,85 @@ public class HostNamePatternFilterTest {
 
   @Test
   public void allowAccessToAnyFileForAnyHostToReposNotProtected() throws Exception {
-    givenRequestForHost("devabc01");
-
     GridFsFileDescriptor gridFsFileDescriptor = new GridFsFileDescriptor(NOT_PROTECTED_REPO, "noarch",
       "lala-devxyz01.noarch.rpm");
 
-    boolean allowed = patternFilter.isAllowed(gridFsFileDescriptor);
+    boolean allowed = patternFilter.isAllowed(gridFsFileDescriptor, currentAuthentication("devabc01"));
 
     assertThat(allowed, is(true));
   }
 
   @Test
   public void allowAccessToMetadataFilesForAnyHostInProtectedRepos() throws Exception {
-    givenRequestForHost("devabc01");
-
-    boolean allowed = patternFilter.isAllowed(METADATA_IN_PROTECTED_REPO_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(METADATA_IN_PROTECTED_REPO_DESCRIPTOR, currentAuthentication("devabc01"));
 
     assertThat(allowed, is(true));
   }
 
   @Test
   public void allowAccessToMetadataFilesForHostGivenByIPInProtectedRepos() throws Exception {
-    givenRequestForHost(NOT_WHITELISTED_IP);
-
-    boolean allowed = patternFilter.isAllowed(METADATA_IN_PROTECTED_REPO_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(METADATA_IN_PROTECTED_REPO_DESCRIPTOR, currentAuthentication(NOT_WHITELISTED_IP));
 
     assertThat(allowed, is(true));
   }
-
 
   @Test
   public void allowAccessToFilesContainingHostnameInProtectedRepos() throws Exception {
-    givenRequestForHost("devxyz01");
-
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, currentAuthentication("devxyz01"));
 
     assertThat(allowed, is(true));
   }
 
+
   @Test
   public void allowAccessToFilesContainingHostnameWithoutDomainPartInProtectedRepos() throws Exception {
-    givenRequestForHost("devxyz01.rz.is");
-
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, currentAuthentication("devxyz01.rz.is"));
 
     assertThat(allowed, is(true));
   }
 
   @Test
   public void denyAccessToFilesNotContainingHostnameInProtectedRepos() throws Exception {
-    givenRequestForHost("devabc01");
-
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, currentAuthentication("devabc01"));
 
     assertThat(allowed, is(false));
   }
 
   @Test
   public void denyAccessToFilesForIPOnlyHostnamesIfNoWhiteListIsGiven() throws Exception {
-    givenRequestForHost(WHITELISTED_IP);
-
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, currentAuthentication(WHITELISTED_IP));
 
     assertThat(allowed, is(false));
   }
-
 
   @Test
   public void denyAccessToFilesForIPOnlyHostnamesNotInWhiteListInProtectedRepos() throws Exception {
     givenPatternFilterWithWhitelist();
-    givenRequestForHost(NOT_WHITELISTED_IP);
 
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, currentAuthentication(NOT_WHITELISTED_IP));
 
     assertThat(allowed, is(false));
   }
 
+
   @Test
   public void allowAccessToFilesForWhiteListedIPOnlyHostnamesInProtectedRepos() throws Exception {
     givenPatternFilterWithWhitelist();
-    givenRequestForHost(WHITELISTED_IP);
-
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
-
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, currentAuthentication(WHITELISTED_IP));
     assertThat(allowed, is(true));
   }
-
 
   @Test
   public void allowAccessToFilesForInternalCallsInProtectedRepos() throws Exception {
-    // internal call = no Request Context in RequestContextHolder
-
-    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR);
-
+    boolean allowed = patternFilter.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, null);
     assertThat(allowed, is(true));
   }
 
 
-  private void givenRequestForHost(String hostname) {
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setAttribute(HostNameFilter.REMOTE_HOST_NAME, new HostName(hostname));
-    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+  private Authentication currentAuthentication(String hostname) {
+    AnonymousAuthenticationToken authentication = new AnonymousAuthenticationToken("key", "anonymousUser", createAuthorityList("ROLE_ANONYMOUS"));
+    authentication.setDetails(new AuthenticationDetails(new HostName(hostname)));
+    return authentication;
   }
 
   private void givenPatternFilterWithWhitelist() {

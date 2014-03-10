@@ -1,15 +1,12 @@
 package de.is24.infrastructure.gridfs.http.log4j;
 
+import de.is24.infrastructure.gridfs.http.security.AuthenticationDetails;
 import org.slf4j.MDC;
 import org.springframework.security.core.context.SecurityContextHolder;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+
+import javax.servlet.*;
 import java.io.IOException;
-import static de.is24.infrastructure.gridfs.http.security.HostNameFilter.REMOTE_HOST_NAME;
+
 import static org.apache.commons.lang.StringUtils.defaultIfBlank;
 
 
@@ -48,9 +45,9 @@ public class MDCFilter implements Filter {
   }
 
   private String remoteHost(ServletRequest req) {
-    Object remoteHostAttr = req.getAttribute(REMOTE_HOST_NAME);
-    if (remoteHostAttr != null) {
-      return remoteHostAttr.toString();
+    AuthenticationDetails details = (AuthenticationDetails) SecurityContextHolder.getContext().getAuthentication().getDetails();
+    if (details.getRemoteHost() != null) {
+      return details.getRemoteHost().toString();
     }
 
     return req.getRemoteAddr();

@@ -12,9 +12,7 @@ import org.springframework.util.Assert;
 
 import java.io.Serializable;
 
-import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_FILE;
-import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_REPO;
-import static de.is24.infrastructure.gridfs.http.security.Permission.READ_FILE;
+import static de.is24.infrastructure.gridfs.http.security.Permission.*;
 
 @Component
 public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator {
@@ -35,13 +33,13 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
     if (READ_FILE.equals(permission)) {
       Assert.notNull(targetDomainObject);
       Assert.isInstanceOf(GridFsFileDescriptor.class, targetDomainObject, "GridFsFileDescriptor expected for read file permission");
-      return hasReadFilePermission((GridFsFileDescriptor) targetDomainObject);
+      return hasReadFilePermission((GridFsFileDescriptor) targetDomainObject, authentication);
     }
 
     if (PROPAGATE_FILE.equals(permission)) {
       Assert.notNull(targetDomainObject);
       Assert.isInstanceOf(String.class, targetDomainObject, "String exepected for propagate file permission");
-      return hasReadFilePermission(new GridFsFileDescriptor(targetDomainObject.toString()));
+      return hasReadFilePermission(new GridFsFileDescriptor(targetDomainObject.toString()), authentication);
     }
 
     if (PROPAGATE_REPO.equals(permission)) {
@@ -53,8 +51,8 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
     throw new IllegalArgumentException("Unknown permission: " + permission.toString());
   }
 
-  private boolean hasReadFilePermission(GridFsFileDescriptor descriptor) {
-    if (!accessFilter.isAllowed(descriptor)) {
+  private boolean hasReadFilePermission(GridFsFileDescriptor descriptor, Authentication authentication) {
+    if (!accessFilter.isAllowed(descriptor, authentication)) {
       InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
       LOGGER.warn("preventing access to {}", descriptor.getPath());
       return false;

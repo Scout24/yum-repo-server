@@ -1,24 +1,26 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
+import de.is24.infrastructure.gridfs.http.security.AuthenticationDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+
 import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.util.Set;
+
 import static de.is24.infrastructure.gridfs.http.utils.HostName.isIPAddress;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang.StringUtils.substringAfterLast;
-import static org.apache.commons.lang.StringUtils.trim;
+import static org.apache.commons.lang.StringUtils.*;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
 
 @Component
-public class HostnameResolver {
+public class HostnameResolver implements AuthenticationDetailsSource<HttpServletRequest, AuthenticationDetails> {
   private static final Logger LOGGER = LoggerFactory.getLogger(HostnameResolver.class);
 
   protected static final String X_FORWARDED_FOR = "X-Forwarded-For";
@@ -61,4 +63,8 @@ public class HostnameResolver {
   }
 
 
+  @Override
+  public AuthenticationDetails buildDetails(HttpServletRequest request) {
+    return new AuthenticationDetails(remoteHost(request));
+  }
 }

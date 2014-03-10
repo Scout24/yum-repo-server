@@ -7,19 +7,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletWebRequest;
 
-import static de.is24.infrastructure.gridfs.http.security.HostNameFilter.REMOTE_HOST_NAME;
 import static org.springframework.security.core.authority.AuthorityUtils.createAuthorityList;
-import static org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {SecurityTestConfig.class})
@@ -37,11 +32,8 @@ public class MethodSecurityConfigTest {
   @Before
   public void setUp() throws Exception {
     AnonymousAuthenticationToken authentication = new AnonymousAuthenticationToken("key", "anonymousUser", createAuthorityList("ROLE_ANONYMOUS"));
+    authentication.setDetails(new AuthenticationDetails(new HostName("foobar")));
     SecurityContextHolder.getContext().setAuthentication(authentication);
-    MockHttpServletRequest servletRequest = new MockHttpServletRequest();
-    ServletWebRequest attributes = new ServletWebRequest(servletRequest);
-    attributes.setAttribute(REMOTE_HOST_NAME, new HostName("foobar"), SCOPE_REQUEST);
-    RequestContextHolder.setRequestAttributes(attributes);
   }
 
   @Test(expected=AccessDeniedException.class)
