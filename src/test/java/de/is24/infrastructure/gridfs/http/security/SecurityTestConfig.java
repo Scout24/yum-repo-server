@@ -23,8 +23,8 @@ public class SecurityTestConfig {
 
   @Bean
   public ProtectedRepoFilePermissionEvaluator protectedRepoFilePermissionEvaluator() {
-    HostNamePatternFilter accessFilter = new HostNamePatternFilter("protected-repo", "");
-    return new ProtectedRepoFilePermissionEvaluator(accessFilter);
+    ProtectedRepoAccessEvaluator accaccessEvaluator = new ProtectedRepoAccessEvaluator("protected-repo", "");
+    return new ProtectedRepoFilePermissionEvaluator(accaccessEvaluator);
   }
 
   @Bean

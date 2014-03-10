@@ -12,7 +12,9 @@ import org.springframework.util.Assert;
 
 import java.io.Serializable;
 
-import static de.is24.infrastructure.gridfs.http.security.Permission.*;
+import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_FILE;
+import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_REPO;
+import static de.is24.infrastructure.gridfs.http.security.Permission.READ_FILE;
 
 @Component
 public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator {
@@ -21,11 +23,11 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
   private static final String APPMON_BASE_KEY = "GridFsService.";
   private static final String APPMON_ACCESS_PREVENTION = APPMON_BASE_KEY + "preventAccess";
 
-  private final HostNamePatternFilter accessFilter;
+  private final ProtectedRepoAccessEvaluator accessEvaluator;
 
   @Autowired
-  public ProtectedRepoFilePermissionEvaluator(HostNamePatternFilter accessFilter) {
-    this.accessFilter = accessFilter;
+  public ProtectedRepoFilePermissionEvaluator(ProtectedRepoAccessEvaluator accessEvaluator) {
+    this.accessEvaluator = accessEvaluator;
   }
 
   @Override
@@ -52,7 +54,7 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
   }
 
   private boolean hasReadFilePermission(GridFsFileDescriptor descriptor, Authentication authentication) {
-    if (!accessFilter.isAllowed(descriptor, authentication)) {
+    if (!accessEvaluator.isAllowed(descriptor, authentication)) {
       InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
       LOGGER.warn("preventing access to {}", descriptor.getPath());
       return false;
@@ -62,7 +64,7 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
   }
 
   private boolean hasPropagateRepoPermission(String repo) {
-    if (!accessFilter.isAllowedPropagationRepo(repo)) {
+    if (!accessEvaluator.isAllowedPropagationRepo(repo)) {
       InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
       LOGGER.warn("preventing access to {}", repo);
       return false;

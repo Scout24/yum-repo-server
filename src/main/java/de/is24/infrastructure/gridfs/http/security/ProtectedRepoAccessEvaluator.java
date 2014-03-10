@@ -23,16 +23,16 @@ import static org.springframework.util.StringUtils.trimAllWhitespace;
 
 @Component
 @ManagedResource
-public class HostNamePatternFilter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(HostNamePatternFilter.class);
+public class ProtectedRepoAccessEvaluator {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ProtectedRepoAccessEvaluator.class);
 
   private final Set<String> protectedRepos;
   private List<IpRange> whiteListedIpRanges = new ArrayList<>();
 
   @Autowired
-  public HostNamePatternFilter(
-    @Value("${security.protectedRepos:}") String protectedRepos,
-    @Value("${security.protectedRepoWhiteListedIpRanges:}") String protectedRepoWhiteListedIpRanges) {
+  public ProtectedRepoAccessEvaluator(
+      @Value("${security.protectedRepos:}") String protectedRepos,
+      @Value("${security.protectedRepoWhiteListedIpRanges:}") String protectedRepoWhiteListedIpRanges) {
     this.protectedRepos = Collections.synchronizedSet(commaDelimitedListToSet(trimAllWhitespace(protectedRepos)));
     if (isNotBlank(protectedRepoWhiteListedIpRanges)) {
       for (String ipRange : commaDelimitedListToSet(trimAllWhitespace(protectedRepoWhiteListedIpRanges))) {
