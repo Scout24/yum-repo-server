@@ -1,5 +1,26 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
+import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.domain.YumEntry;
+import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
+import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
+import de.is24.infrastructure.gridfs.http.exception.RepositoryIsUndeletableException;
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
+import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import org.bson.types.ObjectId;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.gridfs.GridFsTemplate;
+
+import java.util.Arrays;
+import java.util.Date;
+
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,25 +32,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFS;
-import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.domain.YumEntry;
-import de.is24.infrastructure.gridfs.http.exception.RepositoryIsUndeletableException;
-import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
-import de.is24.infrastructure.gridfs.http.repos.RepoService;
-import org.bson.types.ObjectId;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
-import com.mongodb.gridfs.GridFSDBFile;
-import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
-import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
-import java.util.Arrays;
-import java.util.Date;
 
 
 public class GridFsServiceTest {
@@ -127,5 +129,15 @@ public class GridFsServiceTest {
     repoEntry.setUndeletable(true);
     when(repoService.ensureEntry("repo", STATIC, SCHEDULED)).thenReturn(repoEntry);
     service.deleteRepository("repo");
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void failOnPropagationOfRpmToSameRepo() throws Exception {
+    service.propagateRpm("repo/arch/file.rpm", "repo");
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void failOnPropagationOfRepositoryToSameRepo() throws Exception {
+    service.propagateRepository("repo", "repo");
   }
 }

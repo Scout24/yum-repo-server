@@ -21,11 +21,11 @@ import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryIsUndeletableException;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
-import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderToYumPackageConverter;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderWrapper;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.bson.types.ObjectId;
 import org.freecompany.redline.ReadableChannelWrapper;
@@ -43,17 +43,19 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import static ch.lambdaj.Lambda.on;
 import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
 import static com.mongodb.gridfs.GridFSUtil.remove;
@@ -148,7 +150,7 @@ public class GridFsService {
     validatePathToRpm(sourceFile);
 
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceFile);
-    validateRepoName(destinationRepo);
+    validateDestinationRepo(descriptor.getRepo(), destinationRepo);
 
     GridFSDBFile dbFile = findDbFileByPathDirectlyOrFindNewestRpmMatchingNameAndArch(descriptor);
     if (dbFile == null) {
@@ -363,7 +365,7 @@ public class GridFsService {
   @PreAuthorize("hasPermission(#sourceRepo, '" + PROPAGATE_REPO + "')")
   public void propagateRepository(String sourceRepo, String destinationRepo) {
     validateRepoName(sourceRepo);
-    validateRepoName(destinationRepo);
+    validateDestinationRepo(sourceRepo, destinationRepo);
 
     List<GridFSDBFile> sourceRpms = gridFsTemplate.find(query(
       whereMetaData(REPO_KEY).is(sourceRepo)
@@ -493,6 +495,13 @@ public class GridFsService {
     }
     if (countMatches(path, "/") != 2) {
       throw new BadRequestException("Rpm file has invalid depth!");
+    }
+  }
+
+  private void validateDestinationRepo(String sourceRepo, String destinationRepo) {
+    validateRepoName(destinationRepo);
+    if (destinationRepo.equals(sourceRepo)) {
+      throw new BadRequestException("Destination repo have not to be equals to source repo: " + sourceRepo);
     }
   }
 
