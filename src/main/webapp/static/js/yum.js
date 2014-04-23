@@ -48,13 +48,20 @@ $(function() {
       var targetRepos = $('#targetRepos');
       var targetSelect = targetRepos.get(0);
       var currentTarget = $('#currentTarget').val();
+      var currentIsInList = false;
       for (var i = 0; i < yum.repos.length; i++) {
         var entry = yum.repos[i];
         var option = new Option(entry.name, 'static/' + entry.name);
         if (entry.name == currentTarget) {
           option.selected = true;
+          currentIsInList = true;
         }
         targetSelect.options[i] = option;
+      }
+      if (!currentIsInList) {
+        var option = new Option(currentTarget + ' (not existing)', 'static/' + currentTarget);
+        option.selected = true;
+        targetSelect.options[targetSelect.options.length] = option;  
       }
     }
   });
