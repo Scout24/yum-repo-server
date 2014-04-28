@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+
 import static java.util.Arrays.asList;
 
 
@@ -50,7 +52,11 @@ public class MongoPrimaryDetector {
     if (masterServer == null) {
       return null;
     }
-    return masterServer.getSocketAddress().getAddress();
+    try {
+      return masterServer.getSocketAddress().getAddress();
+    } catch (UnknownHostException e) {
+      return null;
+    }
   }
 
   @ManagedOperation
