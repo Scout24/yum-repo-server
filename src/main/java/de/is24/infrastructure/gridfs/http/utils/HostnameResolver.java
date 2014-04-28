@@ -1,19 +1,18 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
 import de.is24.infrastructure.gridfs.http.security.AuthenticationDetails;
+import org.bouncycastle.util.IPAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-
 import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.UnknownHostException;
 import java.util.Set;
-
-import static de.is24.infrastructure.gridfs.http.utils.HostName.isIPAddress;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
 import static org.apache.commons.lang.StringUtils.trim;
@@ -53,12 +52,15 @@ public class HostnameResolver implements AuthenticationDetailsSource<HttpServlet
 
   private HostName hostname(String hostnameOrIP) {
     String result = hostnameOrIP;
-    if (isIPAddress(hostnameOrIP)) {
-      try {
+
+    try {
+      if (IPAddress.isValidIPv4(hostnameOrIP)) {
         result = Inet4Address.getByName(hostnameOrIP).getHostName();
-      } catch (UnknownHostException e) {
-        LOGGER.info("could not resolve hostname for {}", hostnameOrIP);
+      } else if (IPAddress.isValidIPv6(hostnameOrIP)) {
+        result = Inet6Address.getByName(hostnameOrIP).getHostName();
       }
+    } catch (UnknownHostException e) {
+      LOGGER.info("could not resolve hostname for {}", hostnameOrIP);
     }
     LOGGER.debug("resolved hostname for {} is {}", hostnameOrIP, result);
     return new HostName(result);

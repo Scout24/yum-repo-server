@@ -1,5 +1,8 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
+import org.bouncycastle.util.IPAddress;
+
+
 public class HostName {
   private final String name;
   private final String shortName;
@@ -9,7 +12,7 @@ public class HostName {
     if (name == null) {
       throw new IllegalArgumentException("host name must not be null");
     }
-    isIp = isIPAddress(name);
+    isIp = IPAddress.isValidIPv4(name) || IPAddress.isValidIPv6(name);
     this.name = name;
     if (!isIp) {
       this.shortName = name.split("\\.")[0];
@@ -18,9 +21,6 @@ public class HostName {
     }
   }
 
-  public static boolean isIPAddress(String hostnameOrIP) {
-    return hostnameOrIP.matches("^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$");
-  }
 
   public String getName() {
     return name;
