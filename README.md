@@ -173,6 +173,7 @@ that have already downloaded an old *repomd.xml* with references to old database
 *   *security.whitelist.hosts*
 
     Comma separated host list of hosts that are allowed to perform write operations via REST API without authentication.
+    Wildcards are possible like : devxyz*.bla.blu.
     
 *   *security.loadbalancer.ips*
 
