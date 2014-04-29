@@ -9,6 +9,7 @@ import com.mongodb.Mongo;
 import com.mongodb.ReplicaSetStatus;
 import com.mongodb.util.JSON;
 import de.is24.infrastructure.gridfs.http.AppVersion;
+import de.is24.infrastructure.gridfs.http.mongo.MongoStringToJsonConverter;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ public class StatusController {
   private final MongoTemplate mongoTemplate;
   private final Mongo mongo;
   private final AppVersion appVersion;
+  private final MongoStringToJsonConverter jsonConverter = new MongoStringToJsonConverter();
 
   private static final Set<String> EXPECTED_COLLECTION_NAMES = ImmutableSet.of(
     "fs.chunks",
@@ -54,23 +56,16 @@ public class StatusController {
     this.appVersion = appVersion;
   }
 
-  /**
-   * TODO text/plain is for tests, as httpclient does not accept application/json, this could be fixed
-   */
-  @RequestMapping(value = "/status", method = GET, produces = { "application/json", "text/plain" })
+  @RequestMapping(value = "/status", method = GET, produces = {"application/json"})
   @ResponseBody
   public String getStatus(HttpServletResponse response) {
     return getStatusJson(response, false);
   }
 
 
-  /**
-   * TODO text/plain is for tests, as httpclient does not accept application/json, this could be fixed
-   */
-  @RequestMapping(value = "/status-full", method = GET, produces = { "application/json", "text/plain" })
+  @RequestMapping(value = "/status-full", method = GET, produces = {"application/json"})
   @ResponseBody
   public String getStatus2(HttpServletResponse response) {
-    // TODO json is not pretty
     return prettyJson(getStatusJson(response, true));
   }
 
@@ -175,7 +170,7 @@ public class StatusController {
     if (replicaSetStatus == null) {
       content.append("\"unavailable\"");
     } else {
-      content.append(replicaSetStatus.toString());
+      content.append(jsonConverter.convert(replicaSetStatus.toString()));
     }
   }
 }

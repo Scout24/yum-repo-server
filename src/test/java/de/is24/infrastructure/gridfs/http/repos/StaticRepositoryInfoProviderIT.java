@@ -15,8 +15,11 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.springframework.data.mongodb.core.query.Query;
+
 import java.util.Date;
 import java.util.List;
+
 import static ch.lambdaj.Lambda.on;
 import static ch.lambdaj.function.matcher.HasArgumentWithValue.havingValue;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
@@ -56,7 +59,7 @@ public class StaticRepositoryInfoProviderIT {
     for (RepoEntry entry : repoEntries) {
       gridFsService.deleteRepository(entry.getName());
     }
-    context.gridFsTemplate().delete(null);
+    context.gridFsTemplate().delete(new Query());
   }
 
   @Test

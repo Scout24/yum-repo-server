@@ -2,14 +2,22 @@ package com.mongodb;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import java.net.UnknownHostException;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Random;
-import static com.mongodb.ReplicaSetStatus.ReplicaSet;
-import static com.mongodb.ReplicaSetStatus.ReplicaSetNode;
+
+import static com.mongodb.ClusterConnectionMode.Multiple;
+import static com.mongodb.ClusterConnectionMode.Single;
+import static com.mongodb.ClusterType.ReplicaSet;
+import static com.mongodb.ClusterType.StandAlone;
+import static com.mongodb.ServerConnectionState.Connected;
+import static com.mongodb.ServerDescription.builder;
+import static com.mongodb.ServerType.ReplicaSetOther;
+import static com.mongodb.ServerType.ReplicaSetSecondary;
+import static java.lang.Math.round;
 import static java.util.Arrays.asList;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
@@ -27,99 +35,62 @@ public class FastestPingTimeReadPreferenceTest {
 
   @Test
   public void getNullWhenNoReplicaSetsAvailable() {
-    ReplicaSet replicaSet = new ReplicaSet(Collections.<ReplicaSetNode>emptyList(), new Random(), 12);
-
-    assertThat(testedObject.getNode(replicaSet), is(nullValue()));
+    ClusterDescription clusterDescription = new ClusterDescription(Single, StandAlone, Collections.<ServerDescription>emptyList());
+    assertThat(testedObject.choose(clusterDescription), is(nullValue()));
   }
 
   @Test
   public void getNodeWithLowestPingTime() throws UnknownHostException {
-    ReplicaSetNode node1 = createReplicaSetNodeWithPingtime(10.0f);
-    ReplicaSetNode node2 = createReplicaSetNodeWithPingtime(9.99f);
-    ReplicaSetNode node3 = createReplicaSetNodeWithPingtime(11.0f);
+    ServerDescription node1 = createServerDescriptionWithPingtime(10.0f);
+    ServerDescription node2 = createServerDescriptionWithPingtime(9.99f);
+    ServerDescription node3 = createServerDescriptionWithPingtime(11.0f);
 
-    ReplicaSet replicaSet = new ReplicaSet(asList(node1, node2, node3), new Random(), 12);
+    ClusterDescription clusterDescription = new ClusterDescription(Multiple, ReplicaSet, asList(node1, node2, node3));
 
-    assertThat(testedObject.getNode(replicaSet), is(node2));
+    assertThat(testedObject.choose(clusterDescription).get(0), is(node2));
 
   }
 
   @Test
   public void getOneNodeWhenThereAreNodesWithSamePingTime() throws UnknownHostException {
-    ReplicaSetNode node1 = createReplicaSetNodeWithPingtime(10.0f);
-    ReplicaSetNode node2 = createReplicaSetNodeWithPingtime(10.0f);
-    ReplicaSetNode node3 = createReplicaSetNodeWithPingtime(11.0f);
+    ServerDescription node1 = createServerDescriptionWithPingtime(10.0f);
+    ServerDescription node2 = createServerDescriptionWithPingtime(10.0f);
+    ServerDescription node3 = createServerDescriptionWithPingtime(11.0f);
 
-    ReplicaSet replicaSet = new ReplicaSet(asList(node1, node2, node3), new Random(), 12);
+    ClusterDescription clusterDescription = new ClusterDescription(Multiple, ReplicaSet, asList(node1, node2, node3));
 
-    assertThat(testedObject.getNode(replicaSet), isOneOf(node1, node2));
+    assertThat(testedObject.choose(clusterDescription).get(0), isOneOf(node1, node2));
   }
 
   @Test
   public void getNotTheNodeWhichIsInStartupMode() throws UnknownHostException {
-    ReplicaSetNode node1 = createReplicaSetNodeWithPingtime("127.0.0.1", 0.1f, STATE.STARTUP2);
-    ReplicaSetNode node2 = createReplicaSetNodeWithPingtime("127.0.0.1", 0.5f, STATE.SECONDARY);
-    ReplicaSetNode node3 = createReplicaSetNodeWithPingtime(11.0f);
+    ServerDescription node1 = createServerDescriptionWithPingtime("127.0.0.1", 0.1f, ReplicaSetOther);
+    ServerDescription node2 = createServerDescriptionWithPingtime("127.0.0.1", 0.5f);
+    ServerDescription node3 = createServerDescriptionWithPingtime(11.0f);
 
-    ReplicaSet replicaSet = new ReplicaSet(asList(node1, node2, node3), new Random(), 12);
+    ClusterDescription clusterDescription = new ClusterDescription(Multiple, ReplicaSet, asList(node1, node2, node3));
 
-    assertThat(testedObject.getNode(replicaSet), is(node2));
+    assertThat(testedObject.choose(clusterDescription).get(0), is(node2));
   }
 
-  private ReplicaSetNode createReplicaSetNodeWithPingtime(float pingTime) throws UnknownHostException {
-    return createReplicaSetNodeWithPingtime("127.0.0.1", pingTime);
+  private ServerDescription createServerDescriptionWithPingtime(float pingTime) throws UnknownHostException {
+    return createServerDescriptionWithPingtime("127.0.0.1", pingTime);
   }
 
-  private ReplicaSetNode createReplicaSetNodeWithPingtime(String hostname, float pingTime) throws UnknownHostException {
-    return createReplicaSetNodeWithPingtime(hostname, pingTime, STATE.SECONDARY);
+  private ServerDescription createServerDescriptionWithPingtime(String hostname, float pingTime) throws UnknownHostException {
+    return createServerDescriptionWithPingtime(hostname, pingTime, ReplicaSetSecondary);
   }
 
-  private ReplicaSetNode createReplicaSetNodeWithPingtime(String hostname, float pingTime, STATE state)
+  private ServerDescription createServerDescriptionWithPingtime(String hostname, float pingTime, ServerType type)
                                                    throws UnknownHostException {
-    Random random = new Random();
-
-    return new ReplicaSetNode(new ServerAddress(hostname, random.nextInt(5000) + 1024), new HashSet<String>(), "name",
-      pingTime,
-      true,
-      state.isMaster(),
-      state.isSecondary(),
-      new LinkedHashMap<String, String>(), 0);
-  }
-
-  /**
-   * @see http://docs.mongodb.org/manual/reference/command/replSetGetStatus/#dbcmd.replSetGetStatus
-   */
-  private static enum STATE {
-    STARTUP,
-    PRIMARY(true, false),
-    SECONDARY(false, true),
-    RECOVERING,
-    FATAL,
-    STARTUP2,
-    UNKNOWN,
-    ARBITER,
-    DOWN,
-    ROLLBACK,
-    SHUNNED;
-
-    private final boolean master;
-    private final boolean secondary;
-
-    STATE() {
-      this(false, false);
-    }
-
-    STATE(final boolean master, final boolean secondary) {
-      this.master = master;
-      this.secondary = secondary;
-    }
-
-    private boolean isMaster() {
-      return master;
-    }
-
-    private boolean isSecondary() {
-      return secondary;
-    }
+    ServerDescription.Builder builder = builder()
+        .address(new ServerAddress(hostname, new Random()
+        .nextInt(5000) + 1024))
+        .setName("name")
+        .averagePingTime(round(pingTime * 1000), NANOSECONDS)
+        .ok(true)
+        .state(Connected)
+        .type(type);
+    return builder.build();
   }
 }
