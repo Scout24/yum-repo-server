@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.repos;
 
 import ch.lambdaj.function.compare.ArgumentComparator;
+import com.google.common.collect.Lists;
 import com.mongodb.AggregationOutput;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -20,6 +21,7 @@ import org.apache.commons.collections.ComparatorUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,17 +29,19 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import static ch.lambdaj.Lambda.index;
 import static ch.lambdaj.Lambda.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Sets.newLinkedHashSet;
+import static de.is24.infrastructure.gridfs.http.domain.FolderInfo.fromRepoEntry;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
+import static de.is24.infrastructure.gridfs.http.domain.SortField.name;
+import static de.is24.infrastructure.gridfs.http.domain.SortOrder.asc;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.FILENAME_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_ARCH_KEY;
@@ -55,7 +59,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   private static final Pattern PATTERN = Pattern.compile("/+$");
   private final MongoTemplate mongoTemplate;
   private final RepoEntriesRepository entriesRepository;
-  private static final Set<RepoType> STATIC_TYPES = new HashSet<>(Arrays.asList(RepoType.STATIC, RepoType.SCHEDULED));
+  private static final Set<RepoType> STATIC_TYPES = new HashSet<>(Arrays.asList(STATIC, SCHEDULED));
 
   @Autowired
   public StaticRepositoryInfoProvider(MongoTemplate mongoTemplate, RepoEntriesRepository entriesRepository) {
@@ -67,29 +71,31 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   @TimeMeasurement
   public Container<FolderInfo> getRepos(SortField sortBy, SortOrder sortOrder) {
     final Iterable<DBObject> reposAggregation = getReposAggregation(sortBy, sortOrder);
-    Set<FolderInfo> folderInfos = adaptFolders(reposAggregation);
-
+    List<FolderInfo> folderInfos = adaptFolders(reposAggregation);
     return new Container<>("", addEmptyRepositories(folderInfos, sortBy, sortOrder));
   }
 
-  private Set<FolderInfo> addEmptyRepositories(Set<FolderInfo> folderInfos, SortField sortBy, SortOrder sortOrder) {
-    final List<RepoEntry> staticRepos = entriesRepository.findByTypeIn(RepoType.SCHEDULED, RepoType.STATIC);
+  private List<FolderInfo> addEmptyRepositories(List<FolderInfo> folderInfos, SortField sortBy, SortOrder sortOrder) {
+    final List<RepoEntry> staticRepos = entriesRepository.findByTypeIn(SCHEDULED, STATIC);
     for (RepoEntry staticRepo : staticRepos) {
-      folderInfos.add(FolderInfo.fromRepoEntry(staticRepo, 0));
+      FolderInfo folderInfo = fromRepoEntry(staticRepo, 0);
+      if (!folderInfos.contains(folderInfo)) {
+        folderInfos.add(folderInfo);
+      }
     }
 
     return sortFolderInfos(folderInfos, sortBy, sortOrder);
   }
 
-  private Set<FolderInfo> sortFolderInfos(Set<FolderInfo> folderInfos, SortField sortBy, SortOrder sortOrder) {
+  private List<FolderInfo> sortFolderInfos(List<FolderInfo> folderInfos, SortField sortBy, SortOrder sortOrder) {
     List<FolderInfo> list = new ArrayList<>(folderInfos);
     Comparator<FolderInfo> comparator = getComparator(sortBy);
-    if (sortOrder == SortOrder.asc) {
+    if (sortOrder == asc) {
       Collections.sort(list, comparator);
     } else {
       Collections.sort(list, getReversedComparator(comparator));
     }
-    return new LinkedHashSet<>(list);
+    return list;
   }
 
   @SuppressWarnings("unchecked")
@@ -178,7 +184,21 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
       .getQueryObject())
       .sort(sortBy.sortFile(sortOrder));
 
-    return new Container<>(removeTrailingSlashes(repo + "/" + arch), adaptFiles(cursor));
+    return new Container<>(removeTrailingSlashes(repo + "/" + arch), eventuallySortByFilename(adaptFiles(cursor), sortBy, sortOrder));
+  }
+
+  private List<FileInfo> eventuallySortByFilename(List<FileInfo> fileInfos, SortField sortBy, SortOrder sortOrder) {
+    if (name.equals(sortBy)) {
+      final int direction = asc.equals(sortOrder) ? 1 : -1;
+      Collections.sort(fileInfos, new Comparator<FileInfo>() {
+        @Override
+        public int compare(FileInfo f1, FileInfo f2) {
+          return f1.getFilename().compareTo(f2.getFilename()) * direction;
+        }
+      });
+    }
+
+    return fileInfos;
   }
 
   @Override
@@ -198,8 +218,8 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
     return isNullOrEmpty(s) ? ".*" : ('^' + s + '$');
   }
 
-  private Set<FolderInfo> adaptFolders(Iterable<DBObject> dbObjects) {
-    Set<FolderInfo> result = newLinkedHashSet();
+  private List<FolderInfo> adaptFolders(Iterable<DBObject> dbObjects) {
+    List<FolderInfo> result = Lists.newArrayList();
 
     Map<String, RepoEntry> repoEntries = getRepoEntriesByRepoName();
 
@@ -217,7 +237,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   }
 
   private Map<String, RepoEntry> getRepoEntriesByRepoName() {
-    final List<RepoEntry> repoEntries = entriesRepository.findByTypeIn(RepoType.STATIC, RepoType.SCHEDULED);
+    final List<RepoEntry> repoEntries = entriesRepository.findByTypeIn(STATIC, SCHEDULED);
 
     return index(repoEntries, on(RepoEntry.class).getName());
   }
@@ -237,8 +257,8 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
       .findByTypeInAndNameStartsWithAndLastModifiedIsBetween(STATIC_TYPES, repoNameRegex, newer, older);
   }
 
-  private Set<FileInfo> adaptFiles(Iterator<DBObject> itr) {
-    Set<FileInfo> fileInfos = newLinkedHashSet();
+  private List<FileInfo> adaptFiles(Iterator<DBObject> itr) {
+    List<FileInfo> fileInfos = new ArrayList<>();
     while (itr.hasNext()) {
       fileInfos.add(new FileInfo(itr.next()));
     }

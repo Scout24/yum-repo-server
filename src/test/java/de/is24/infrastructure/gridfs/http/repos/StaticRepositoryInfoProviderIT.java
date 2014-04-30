@@ -2,9 +2,9 @@ package de.is24.infrastructure.gridfs.http.repos;
 
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
 import de.is24.infrastructure.gridfs.http.domain.Container;
+import de.is24.infrastructure.gridfs.http.domain.FileInfo;
 import de.is24.infrastructure.gridfs.http.domain.FolderInfo;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.domain.SortField;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
@@ -22,14 +22,20 @@ import java.util.List;
 
 import static ch.lambdaj.Lambda.on;
 import static ch.lambdaj.function.matcher.HasArgumentWithValue.havingValue;
+import static de.is24.infrastructure.gridfs.http.domain.SortField.name;
+import static de.is24.infrastructure.gridfs.http.domain.SortOrder.asc;
+import static de.is24.infrastructure.gridfs.http.domain.SortOrder.desc;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoNameWithPrefix;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_FILE_NAME;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_FILE_NAME;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.joda.time.DateTime.now;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -89,7 +95,7 @@ public class StaticRepositoryInfoProviderIT {
     String givenRepoWithData = createRepoFromDaysAgoWithData(0);
     String givenEmptyRepo = createEmptyRepoWithPrefix("emptyRepo");
 
-    Container<FolderInfo> staticRepos = provider.getRepos(SortField.name, SortOrder.asc);
+    Container<FolderInfo> staticRepos = provider.getRepos(name, SortOrder.asc);
 
     Matcher<FolderInfo> folderInfoWithRepoWithData = havingValue(on(FolderInfo.class).getName(), is(givenRepoWithData));
     Matcher<FolderInfo> folderInfoWithEmptyRepo = havingValue(on(FolderInfo.class).getName(), is(givenEmptyRepo));
@@ -105,10 +111,10 @@ public class StaticRepositoryInfoProviderIT {
     String givenEmptyRepo2 = createEmptyRepoWithPrefix("B");
     String givenEmptyRepo3 = createEmptyRepoWithPrefix("C");
 
-    Container<FolderInfo> sortedStaticRepos = provider.getRepos(SortField.name, SortOrder.asc);
+    Container<FolderInfo> sortedStaticRepos = provider.getRepos(name, SortOrder.asc);
     thenReposAreSortedByName(sortedStaticRepos, givenEmptyRepo1, givenEmptyRepo2, givenEmptyRepo3);
 
-    sortedStaticRepos = provider.getRepos(SortField.name, SortOrder.desc);
+    sortedStaticRepos = provider.getRepos(name, desc);
     thenReposAreSortedByName(sortedStaticRepos, givenEmptyRepo3, givenEmptyRepo2, givenEmptyRepo1);
 
     cleanUpRepositories(givenEmptyRepo1, givenEmptyRepo2, givenEmptyRepo3);
@@ -116,11 +122,23 @@ public class StaticRepositoryInfoProviderIT {
 
   @Test
   public void shouldHaveNotRootAsRepoInList() throws Exception {
-    Container<FolderInfo> repos = provider.getRepos(SortField.name, SortOrder.asc);
+    Container<FolderInfo> repos = provider.getRepos(name, SortOrder.asc);
 
     for (FolderInfo info : repos.getItems()) {
       Assertions.assertThat(info.getName()).isNotNull();
     }
+  }
+
+  @Test
+  public void shouldSortByFilename() throws Exception {
+    String repoA = createEmptyRepoWithPrefix("A");
+    String repoB = createEmptyRepoWithPrefix("B");
+    String repoC = createEmptyRepoWithPrefix("C");
+    context.gridFsService().storeRpm(repoA, streamOf(SOURCE_RPM_FILE_NAME));
+    context.gridFsService().storeRpm(repoB, streamOf(COMPLEX_RPM_FILE_NAME));
+    context.gridFsService().storeRpm(repoC, streamOf(RPM_FILE.getName()));
+    Container<FileInfo> files = provider.find(".*", name, asc);
+    assertThat(files.getItems().get(0).getFilename(), startsWith("is24-"));
   }
 
   private String createEmptyRepoWithPrefix(String prefix) {

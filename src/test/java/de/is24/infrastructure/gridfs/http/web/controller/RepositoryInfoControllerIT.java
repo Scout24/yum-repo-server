@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_PERMANENTLY;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -83,7 +83,7 @@ public abstract class RepositoryInfoControllerIT extends AbstractContainerAndMon
     Container<FileInfo> fileInfoContainer = readJson(response, new TypeReference<Container<FileInfo>>() {
       });
 
-    Set<FileInfo> fileInfos = fileInfoContainer.getItems();
+    List<FileInfo> fileInfos = fileInfoContainer.getItems();
     final Matcher<FileInfo> hasGivenFilename = hasProperty("filename", is("test-artifact-1.2-1.noarch.rpm"));
     final Matcher<FileInfo> hasGivenReponame = hasProperty("repo", is(givenStaticReponame));
     final Matcher<FileInfo> hasNoarch = hasProperty("arch", is("noarch"));
