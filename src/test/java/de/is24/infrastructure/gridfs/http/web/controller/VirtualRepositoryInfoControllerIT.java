@@ -13,13 +13,16 @@ import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepo;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepoLinkedToStatic;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static de.is24.infrastructure.gridfs.http.web.UrlUtils.join;
 import static java.lang.String.format;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.hamcrest.CoreMatchers.not;
@@ -44,9 +47,9 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
     String virtualReponame = givenVirtualRepoLinkedToStatic(deploymentURL, givenStaticReponame);
     givenReponame = virtualReponame;
 
-    givenRepoListUrl = deploymentURL + "/repo/virtual/";
-    givenRepoUrl = deploymentURL + "/repo/virtual/" + virtualReponame;
-    givenRepoUrlWithNoarch = deploymentURL + "/repo/virtual/" + virtualReponame + "/noarch";
+    givenRepoListUrl = join(deploymentURL , "/repo/virtual/");
+    givenRepoUrl = givenRepoListUrl + virtualReponame;
+    givenRepoUrlWithNoarch = givenRepoUrl + "/noarch";
 
     givenUnknownRepoUrl = givenRepoListUrl + "/id_do_not_exist";
   }
