@@ -71,7 +71,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldFindReposForQueryVirtualByMatchingName() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "name=" + givenReponame);
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?name=" + givenReponame);
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
@@ -81,7 +81,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldNotFindReposForQueryVirtualByNotMatchingName() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "name=" + "notMatching");
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?name=notMatching");
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
@@ -91,7 +91,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldDisplayTargetForVirtualRepos() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "showDestination=" + "true");
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?showDestination=true");
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
@@ -102,7 +102,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldNotDisplayTargetForVirtualReposWhenParamIsEmpty() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "showDestination=");
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?showDestination=");
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
