@@ -51,17 +51,27 @@ public class MaintenanceController {
   @RequestMapping(method = GET, produces = TEXT_HTML_VALUE)
   @TimeMeasurement
   public ModelAndView showMaintenaceOptions() {
-    Map<String, Object> model = new HashMap<>();
-    setViewName(model);
+    Map<String, Object> model = prepareModel();
     return new ModelAndView("maintenanceOptions", model);
+  }
+
+  private Map<String, Object> prepareModel() {
+    Map<String, Object> model = new HashMap<>();
+    model.put("viewName", "maintenance");
+    model.put("error", Boolean.FALSE);
+
+    model.put("propagatableSourceRepoInvalid", Boolean.FALSE);
+    model.put("propagatableTargetRepoInvalid", Boolean.FALSE);
+    model.put("obsoleteSourceRepoInvalid", Boolean.FALSE);
+    model.put("obsoleteTargetRepoInvalid", Boolean.FALSE);
+    return model;
   }
 
   @RequestMapping(value = "/obsolete", method = GET, produces = TEXT_HTML_VALUE)
   @TimeMeasurement
   public ModelAndView getObsoleteRPMsAsHtml(@RequestParam(value = "targetRepo", required = true) String targetRepo,
                                             @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
-    Map<String, Object> model = new HashMap<>();
-    setViewName(model);
+    Map<String, Object> model = prepareModel();
 
     boolean reposAreVaid = validateRepos(model, "obsolete", sourceRepo, targetRepo);
     if (reposAreVaid) {
@@ -104,8 +114,7 @@ public class MaintenanceController {
   public ModelAndView getPropagatableRPMsAsHtml(
     @RequestParam(value = "targetRepo", required = true) String targetRepo,
     @RequestParam(value = "sourceRepo", required = true) String sourceRepo) {
-    Map<String, Object> model = new HashMap<>();
-    setViewName(model);
+    Map<String, Object> model = prepareModel();
 
     boolean reposAreVaid = validateRepos(model, "propagatable", sourceRepo, targetRepo);
     if (reposAreVaid) {
@@ -170,10 +179,6 @@ public class MaintenanceController {
 
 
   public void onError() {
-  }
-
-  private void setViewName(Map<String, Object> model) {
-    model.put("viewName", "maintenance");
   }
 
 
