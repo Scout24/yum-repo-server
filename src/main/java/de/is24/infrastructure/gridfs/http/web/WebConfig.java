@@ -21,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -68,6 +69,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new LoggingHandlerInterceptor());
+    registry.addInterceptor(new TrailingSlashRedirectHandlerInterceptor());
   }
 
   @Override

@@ -7,15 +7,28 @@ import de.is24.infrastructure.gridfs.http.domain.Container;
 import de.is24.infrastructure.gridfs.http.domain.FileInfo;
 import de.is24.infrastructure.gridfs.http.domain.FolderInfo;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.ProtocolException;
+import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.hamcrest.CustomMatcher;
 import org.hamcrest.Matcher;
 import org.junit.Test;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
+
+import static javax.servlet.http.HttpServletResponse.SC_MOVED_PERMANENTLY;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.apache.http.util.EntityUtils.consume;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
@@ -124,6 +137,39 @@ public abstract class RepositoryInfoControllerIT extends AbstractContainerAndMon
       assertThat(folderInfoContainer.getItems(), hasItem(hasGivenTagName));
     }
   }
+
+  @Test
+  public void shouldRedirectWithoutTrailingSlash() throws Exception {
+    checkRedirectWithTrailingSlash(givenRepoListUrl.substring(0, givenRepoListUrl.length() - 1));
+    checkRedirectWithTrailingSlash(givenRepoUrl);
+    checkRedirectWithTrailingSlash(givenRepoUrlWithNoarch);
+  }
+
+  private void checkRedirectWithTrailingSlash(String url) throws Exception {
+    CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(NO_REDIRECTS_STRATEGY).build();
+    HttpResponse response = client.execute(new HttpGet(url));
+    consume(response.getEntity());
+    assertRedirectWithTrailingSlash(url, response);
+  }
+
+  private void assertRedirectWithTrailingSlash(String url, HttpResponse response) {
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_MOVED_PERMANENTLY));
+    Header locationHeader = response.getFirstHeader("Location");
+    assertThat(locationHeader, notNullValue());
+    assertThat(locationHeader.getValue(), is(url + "/"));
+  }
+
+  private static final RedirectStrategy NO_REDIRECTS_STRATEGY = new RedirectStrategy() {
+    @Override
+    public boolean isRedirected(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
+      return false;
+    }
+
+    @Override
+    public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
+      return null;
+    }
+  };
 
   protected <T> T readJson(HttpResponse response, TypeReference<T> typeReference) throws IOException {
     return new ObjectMapper().readValue(response.getEntity().getContent(), typeReference);
