@@ -8,15 +8,8 @@ import de.is24.infrastructure.gridfs.http.domain.FileInfo;
 import de.is24.infrastructure.gridfs.http.domain.FolderInfo;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.Header;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.ProtocolException;
-import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HttpContext;
 import org.hamcrest.CustomMatcher;
 import org.hamcrest.Matcher;
 import org.junit.Test;
@@ -25,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilderWithoutRedirecting;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_PERMANENTLY;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.http.util.EntityUtils.consume;
@@ -146,8 +140,8 @@ public abstract class RepositoryInfoControllerIT extends AbstractContainerAndMon
   }
 
   private void checkRedirectWithTrailingSlash(String url) throws Exception {
-    CloseableHttpClient client = HttpClientBuilder.create().setRedirectStrategy(NO_REDIRECTS_STRATEGY).build();
-    HttpResponse response = client.execute(new HttpGet(url));
+    httpClient = getHttpClientBuilderWithoutRedirecting().build();
+    HttpResponse response = httpClient.execute(new HttpGet(url));
     consume(response.getEntity());
     assertRedirectWithTrailingSlash(url, response);
   }
@@ -158,18 +152,6 @@ public abstract class RepositoryInfoControllerIT extends AbstractContainerAndMon
     assertThat(locationHeader, notNullValue());
     assertThat(locationHeader.getValue(), is(url + "/"));
   }
-
-  private static final RedirectStrategy NO_REDIRECTS_STRATEGY = new RedirectStrategy() {
-    @Override
-    public boolean isRedirected(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
-      return false;
-    }
-
-    @Override
-    public HttpUriRequest getRedirect(HttpRequest request, HttpResponse response, HttpContext context) throws ProtocolException {
-      return null;
-    }
-  };
 
   protected <T> T readJson(HttpResponse response, TypeReference<T> typeReference) throws IOException {
     return new ObjectMapper().readValue(response.getEntity().getContent(), typeReference);

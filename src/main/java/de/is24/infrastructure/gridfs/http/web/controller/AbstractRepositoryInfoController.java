@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static ch.lambdaj.Lambda.joinFrom;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
@@ -54,7 +56,7 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
     Map<String, Object> model = new HashMap<>();
     model.putAll(sorting(sortBy, sortOrder));
-    setViewInModel(model);
+    setView(model);
     if (isNullOrEmpty(searchBy)) {
       Container<FolderInfo> repos = infoProvider.getRepos(sortBy, sortOrder);
       repos.setShowInfo(true);
@@ -67,7 +69,7 @@ public abstract class AbstractRepositoryInfoController {
     }
   }
 
-  private void setViewInModel(Map<String, Object> model) {
+  private void setView(Map<String, Object> model) {
     model.put("isStatic", isStatic);
     model.put("viewName", isStatic ? "static" : "virtual");
   }
@@ -94,7 +96,10 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
     Map<String, Object> model = new HashMap<String, Object>();
     model.putAll(sorting(sortBy, sortOrder));
-    setViewInModel(model);
+    setView(model);
+    if (infoProvider.isExternalRepo(repoName)) {
+      return new ModelAndView("redirect:" + infoProvider.getRedirectUrl(repoName));
+    }
     if (isNullOrEmpty(searchBy)) {
       model.put("model", infoProvider.getArchs(repoName, sortBy, sortOrder));
       return new ModelAndView("folderView", model);
@@ -137,7 +142,10 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
     Map<String, Object> model = new HashMap<>();
     model.putAll(sorting(sortBy, sortOrder));
-    setViewInModel(model);
+    setView(model);
+    if (infoProvider.isExternalRepo(repoName)) {
+      return new ModelAndView("redirect:" + infoProvider.getRedirectUrl(repoName, arch));
+    }
     if (isNullOrEmpty(searchBy)) {
       model.put("model", infoProvider.getFileInfo(repoName, arch, sortBy, sortOrder));
       return new ModelAndView("fileView", model);

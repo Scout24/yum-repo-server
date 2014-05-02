@@ -269,4 +269,19 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   public List<RepoEntry> find(String repoNameRegex) {
     return null;
   }
+
+  @Override
+  public boolean isExternalRepo(String repoName) {
+    return false;
+  }
+
+  @Override
+  public String getRedirectUrl(String repoName) {
+    throw new IllegalArgumentException(repoName + "is not an external repo");
+  }
+
+  @Override
+  public String getRedirectUrl(String repoName, String arch) {
+    throw new IllegalArgumentException(repoName + "is not an external repo");
+  }
 }

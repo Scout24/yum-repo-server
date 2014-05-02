@@ -17,14 +17,19 @@ import org.junit.runner.RunWith;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilderWithoutRedirecting;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepo;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepoLinkedToStatic;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.DESTINATION_DOMAIN;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_ARCH;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
 import static de.is24.infrastructure.gridfs.http.web.UrlUtils.join;
 import static java.lang.String.format;
+import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -109,6 +114,24 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
     assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.is(HttpServletResponse.SC_OK));
     assertThat(content, containsString(givenReponame));
     assertThat(content, not(containsString(givenStaticReponame)));
+  }
+
+  @Test
+  public void shouldRedirectToExternalRepo() throws Exception {
+    givenReponame = givenVirtualRepo(deploymentURL, DESTINATION_DOMAIN);
+    assertRedirect("/", DESTINATION_DOMAIN);
+    assertRedirect("/" + RPM_FILE_ARCH + "/", DESTINATION_DOMAIN + "/" + RPM_FILE_ARCH + "/");
+  }
+
+  private void assertRedirect(String path, String expectedRedirectUrl) throws IOException {
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual/" + givenReponame + path);
+    get.setHeader("Accept", "text/html");
+    httpClient = getHttpClientBuilderWithoutRedirecting().build();
+    HttpResponse response = httpClient.execute(get);
+    consume(response.getEntity());
+
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_MOVED_TEMPORARILY));
+    assertThat(response.getFirstHeader("Location").getValue(), is(expectedRedirectUrl));
   }
 
 

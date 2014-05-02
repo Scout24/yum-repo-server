@@ -144,4 +144,28 @@ public class VirtualRepositoryInfoProvider implements RepositoryInfoProvider {
   public List<RepoEntry> find(String repoNameRegex) {
     return entriesRepository.findByTypeAndNameStartsWith(VIRTUAL, repoNameRegex);
   }
+
+  @Override
+  public boolean isExternalRepo(String repoName) {
+    return getVirtualRepoOrThrowNotFoundException(repoName).isExternal();
+  }
+
+  @Override
+  public String getRedirectUrl(String repoName) {
+    RepoEntry repoEntry = getVirtualRepoOrThrowNotFoundException(repoName);
+    if (!repoEntry.isExternal()) {
+      throw new IllegalArgumentException(repoName + " is not an external repo");
+    }
+
+    return repoEntry.getTarget();
+  }
+
+  @Override
+  public String getRedirectUrl(String repoName, String arch) {
+    String url = getRedirectUrl(repoName);
+    if (!url.endsWith("/")) {
+      url += "/";
+    }
+    return url + arch + "/";
+  }
 }
