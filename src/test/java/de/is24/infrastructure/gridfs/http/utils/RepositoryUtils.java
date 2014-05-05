@@ -1,5 +1,18 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static java.lang.System.currentTimeMillis;
 import static javax.servlet.http.HttpServletResponse.SC_CREATED;
 import static org.apache.http.auth.AuthScope.ANY_HOST;
@@ -8,17 +21,6 @@ import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import java.io.IOException;
-import java.net.URL;
-import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 
 
 public final class RepositoryUtils {
@@ -62,5 +64,10 @@ public final class RepositoryUtils {
 
   public static HttpClientBuilder getHttpClientBuilder() {
     return getHttpClientBuilder("anyuser", "anyuser");
+  }
+
+  public static HttpClientBuilder getHttpClientBuilderWithoutRedirecting() {
+    RequestConfig requestConfig = RequestConfig.custom().setRedirectsEnabled(false).build();
+    return getHttpClientBuilder().setDefaultRequestConfig(requestConfig);
   }
 }

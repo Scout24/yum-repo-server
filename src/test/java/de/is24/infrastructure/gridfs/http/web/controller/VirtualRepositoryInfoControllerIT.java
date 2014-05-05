@@ -13,15 +13,23 @@ import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilderWithoutRedirecting;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepo;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepoLinkedToStatic;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.DESTINATION_DOMAIN;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_ARCH;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static de.is24.infrastructure.gridfs.http.web.UrlUtils.join;
 import static java.lang.String.format;
+import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
@@ -44,9 +52,9 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
     String virtualReponame = givenVirtualRepoLinkedToStatic(deploymentURL, givenStaticReponame);
     givenReponame = virtualReponame;
 
-    givenRepoListUrl = deploymentURL + "/repo/virtual/";
-    givenRepoUrl = deploymentURL + "/repo/virtual/" + virtualReponame;
-    givenRepoUrlWithNoarch = deploymentURL + "/repo/virtual/" + virtualReponame + "/noarch";
+    givenRepoListUrl = join(deploymentURL , "/repo/virtual/");
+    givenRepoUrl = givenRepoListUrl + virtualReponame;
+    givenRepoUrlWithNoarch = givenRepoUrl + "/noarch";
 
     givenUnknownRepoUrl = givenRepoListUrl + "/id_do_not_exist";
   }
@@ -68,7 +76,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldFindReposForQueryVirtualByMatchingName() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "name=" + givenReponame);
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?name=" + givenReponame);
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
@@ -78,7 +86,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldNotFindReposForQueryVirtualByNotMatchingName() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "name=" + "notMatching");
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?name=notMatching");
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
@@ -88,7 +96,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldDisplayTargetForVirtualRepos() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "showDestination=" + "true");
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?showDestination=true");
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
@@ -99,13 +107,31 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
 
   @Test
   public void shouldNotDisplayTargetForVirtualReposWhenParamIsEmpty() throws IOException {
-    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?" + "showDestination=");
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual.txt?showDestination=");
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
     assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.is(HttpServletResponse.SC_OK));
     assertThat(content, containsString(givenReponame));
     assertThat(content, not(containsString(givenStaticReponame)));
+  }
+
+  @Test
+  public void shouldRedirectToExternalRepo() throws Exception {
+    givenReponame = givenVirtualRepo(deploymentURL, DESTINATION_DOMAIN);
+    assertRedirect("/", DESTINATION_DOMAIN);
+    assertRedirect("/" + RPM_FILE_ARCH + "/", DESTINATION_DOMAIN + "/" + RPM_FILE_ARCH + "/");
+  }
+
+  private void assertRedirect(String path, String expectedRedirectUrl) throws IOException {
+    HttpGet get = new HttpGet(deploymentURL + "/repo/virtual/" + givenReponame + path);
+    get.setHeader("Accept", "text/html");
+    httpClient = getHttpClientBuilderWithoutRedirecting().build();
+    HttpResponse response = httpClient.execute(get);
+    consume(response.getEntity());
+
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_MOVED_TEMPORARILY));
+    assertThat(response.getFirstHeader("Location").getValue(), is(expectedRedirectUrl));
   }
 
 

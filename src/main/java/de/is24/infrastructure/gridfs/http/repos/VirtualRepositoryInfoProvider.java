@@ -15,12 +15,13 @@ import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 import static de.is24.infrastructure.gridfs.http.domain.FolderInfo.fromRepoEntry;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
 import static de.is24.infrastructure.gridfs.http.domain.SortField.name;
@@ -82,9 +83,9 @@ public class VirtualRepositoryInfoProvider implements RepositoryInfoProvider {
     return "virtual/" + suffix;
   }
 
-  private Set<FolderInfo> adaptVirtualRepos(List<RepoEntry> virtualRepos) {
+  private List<FolderInfo> adaptVirtualRepos(List<RepoEntry> virtualRepos) {
     Map<String, Long> sizeByName = getSizeByName();
-    Set<FolderInfo> result = newLinkedHashSet();
+    List<FolderInfo> result = new ArrayList<>(virtualRepos.size());
     for (RepoEntry virtualRepo : virtualRepos) {
       Long size = sizeByName.get(virtualRepo.getTarget());
       if (size == null) {
@@ -142,5 +143,29 @@ public class VirtualRepositoryInfoProvider implements RepositoryInfoProvider {
   @Override
   public List<RepoEntry> find(String repoNameRegex) {
     return entriesRepository.findByTypeAndNameStartsWith(VIRTUAL, repoNameRegex);
+  }
+
+  @Override
+  public boolean isExternalRepo(String repoName) {
+    return getVirtualRepoOrThrowNotFoundException(repoName).isExternal();
+  }
+
+  @Override
+  public String getRedirectUrl(String repoName) {
+    RepoEntry repoEntry = getVirtualRepoOrThrowNotFoundException(repoName);
+    if (!repoEntry.isExternal()) {
+      throw new IllegalArgumentException(repoName + " is not an external repo");
+    }
+
+    return repoEntry.getTarget();
+  }
+
+  @Override
+  public String getRedirectUrl(String repoName, String arch) {
+    String url = getRedirectUrl(repoName);
+    if (!url.endsWith("/")) {
+      url += "/";
+    }
+    return url + arch + "/";
   }
 }

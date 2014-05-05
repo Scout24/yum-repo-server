@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http;
 import de.is24.infrastructure.gridfs.http.log4j.MDCFilter;
 import de.is24.infrastructure.gridfs.http.web.WebConfig;
 import de.is24.infrastructure.gridfs.http.web.filter.AccessLogFilter;
+import de.is24.infrastructure.gridfs.http.web.filter.HttpHeadFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.WebApplicationInitializer;
@@ -41,6 +42,7 @@ public class AppInitializer implements WebApplicationInitializer {
   public void onStartup(ServletContext servletContext) throws ServletException {
     WebApplicationContext rootContext = createRootContext(servletContext);
     createSpringRootServlet(servletContext, rootContext);
+    registerHeadRequestFilter(servletContext);
     registerUrlRewirteFilter(servletContext);
     registerSecurityFilter(servletContext);
     registerContentTypeFilter(servletContext);
@@ -76,6 +78,11 @@ public class AppInitializer implements WebApplicationInitializer {
       }
     }
     return FILE_SIZE_THRESHOLD_IN_MB;
+  }
+
+  private void registerHeadRequestFilter(ServletContext servletContext) {
+    servletContext.addFilter("httpHeadFilter", new HttpHeadFilter())
+    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
   }
 
   private void registerUrlRewirteFilter(ServletContext servletContext) {

@@ -1,14 +1,16 @@
 package de.is24.infrastructure.gridfs.http.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import java.util.Set;
+
+import java.util.List;
+
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 
 
 public class Container<T extends SizeProvider> {
   private String path;
   private long totalSize;
-  private Set<T> items;
+  private List<T> items;
   private boolean showInfo = false;
 
   Container() {
@@ -19,7 +21,7 @@ public class Container<T extends SizeProvider> {
     this.setShowInfo(container.isShowInfo());
   }
 
-  public Container(String path, Set<T> items) {
+  public Container(String path, List<T> items) {
     this.path = path;
     this.totalSize = 0;
     for (SizeProvider sizeProvider : items) {
@@ -41,7 +43,7 @@ public class Container<T extends SizeProvider> {
     return byteCountToDisplaySize(getTotalSize());
   }
 
-  public Set<T> getItems() {
+  public List<T> getItems() {
     return items;
   }
 

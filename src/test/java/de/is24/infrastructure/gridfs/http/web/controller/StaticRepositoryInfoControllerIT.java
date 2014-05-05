@@ -9,17 +9,19 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.fest.assertions.api.Assertions;
-import org.hamcrest.Matchers;
 import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.addTagToRepo;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static de.is24.infrastructure.gridfs.http.web.UrlUtils.join;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -35,6 +37,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  */
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class StaticRepositoryInfoControllerIT extends RepositoryInfoControllerIT {
+
   @Before
   public void setUp() throws Exception {
     givenStaticReponame = uniqueRepoName();
@@ -42,7 +45,7 @@ public class StaticRepositoryInfoControllerIT extends RepositoryInfoControllerIT
     givenTagName = "test-tag-name";
 
 
-    givenRepoListUrl = deploymentURL + "/repo/";
+    givenRepoListUrl = join(deploymentURL , "/repo/");
     givenRepoUrl = givenRepoListUrl + givenReponame;
     givenRepoUrlWithNoarch = givenRepoUrl + "/noarch";
 
@@ -90,7 +93,6 @@ public class StaticRepositoryInfoControllerIT extends RepositoryInfoControllerIT
     assertThat(content, startsWith("{"));
 
   }
-
 
   @Test
   public void shouldFindReposForQueryStaticByMatchingName() throws IOException {
@@ -172,6 +174,6 @@ public class StaticRepositoryInfoControllerIT extends RepositoryInfoControllerIT
     Assertions.assertThat(returnedFolderInfoContainer.getTotalSize()).isEqualTo(0L);
 
     assertThat(repoUrl, endsWith(returnedFolderInfoContainer.getPath()));
-    assertThat(response.getStatusLine().getStatusCode(), Matchers.is(SC_OK));
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
   }
 }

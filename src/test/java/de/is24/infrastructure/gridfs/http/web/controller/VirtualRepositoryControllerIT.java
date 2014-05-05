@@ -1,11 +1,25 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
+import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
+
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepo;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.givenVirtualRepoLinkedToStatic;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.DESTINATION_DOMAIN;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_LOCATION;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
@@ -20,23 +34,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
-import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
-
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class VirtualRepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
-  public static final String DESTINATION_DOMAIN = "http://any.domain/repo";
   private String repoUrl;
   private String reponame;
   private RepoEntriesRepository repository;

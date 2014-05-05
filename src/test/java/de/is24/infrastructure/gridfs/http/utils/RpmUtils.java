@@ -1,22 +1,21 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFile;
-import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.*;
+import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.DIR;
+import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.FILE;
+import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.GHOST;
 import static java.util.Arrays.asList;
-import static org.apache.commons.io.IOUtils.toByteArray;
 import static org.apache.commons.lang.ArrayUtils.addAll;
 
 public final class RpmUtils {
+
+  public static final String DESTINATION_DOMAIN = "http://any.domain/repo";
 
   private RpmUtils() {
   }
@@ -47,7 +46,8 @@ public final class RpmUtils {
   public static final String COMPLEX_RPM_SOURCE_RPM = COMPLEX_RPM_NAME + "-" + COMPLEX_RPM_VERSION + "-" + COMPLEX_RPM_RELEASE + ".src.rpm";
 
   public static final File RPM_FILE = new File("src/test/resources/rpms/valid.noarch.rpm");
-  public static final String RPM_FILE_LOCATION = "noarch/test-artifact-1.2-1.noarch.rpm";
+  public static final String RPM_FILE_ARCH = "noarch";
+  public static final String RPM_FILE_LOCATION = RPM_FILE_ARCH + "/test-artifact-1.2-1.noarch.rpm";
   public static final int RPM_FILE_SIZE = 1364;
 
   public static final String[] COMPLEX_RPM_DIRS = {"/", "/etc", "/bin", "/data.is24"};

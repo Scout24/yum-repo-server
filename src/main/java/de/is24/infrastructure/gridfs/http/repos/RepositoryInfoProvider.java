@@ -8,6 +8,7 @@ import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.domain.SortField;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
+
 import java.util.Date;
 import java.util.List;
 
@@ -34,4 +35,10 @@ public interface RepositoryInfoProvider {
   List<RepoEntry> find(String repoNameRegex, Date newer, Date older);
 
   List<RepoEntry> find(String repoNameRegex);
+
+  boolean isExternalRepo(String repoName);
+
+  String getRedirectUrl(String repoName);
+
+  String getRedirectUrl(String repoName, String arch);
 }
