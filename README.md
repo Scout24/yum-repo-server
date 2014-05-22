@@ -11,7 +11,7 @@ The yum-repo-server is a server that allows you to host and manage YUM repositor
 * Link system to create virtual repositories that can dynamically point to other repositories
 * Easily extensible due to good test coverage
 * Propagation of RPMs from one staging repository to the next
-* Command line wrapper for more comfort, see below
+* [Command line wrapper for more comfort](https://github.com/ImmobilienScout24/yum-repo-client)
 * Simple scaling even across several data centers, by using mongodb as storage backend 
 
 ## Aim
