@@ -18,13 +18,13 @@
 		<ul class="tableList">
 			<li class="head">
 				<span class="icon">&nbsp;</span>
-				<span class="filename"><a href="?sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionName}.png"></a></span>
-				<span class="size"><a href="?sortBy=size&order=${sortOrderSize}">Size&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionSize}.png"></a></span>
-				<span class="mtime"><a href="?sortBy=uploadDate&order=${sortOrderUploadDate}">Modified&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionUploadDate}.png"></a></span> 
+				<span class="filename"><a href="?sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionName}.png"/>"></a></span>
+				<span class="size"><a href="?sortBy=size&order=${sortOrderSize}">Size&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionSize}.png"/>"></a></span>
+				<span class="mtime"><a href="?sortBy=uploadDate&order=${sortOrderUploadDate}">Modified&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionUploadDate}.png"/>"></a></span> 
 			</li>
       <li>
         <a href="../">
-          <span class="icon"><img src="/static/images/icons/up.gif"></span>
+          <span class="icon"><img src="<c:url value="/static/images/icons/up.gif"/>"></span>
           <span class="filename">../</span>
           <span class="size">&nbsp;</span>
           <span class="mtime">&nbsp;</span>
@@ -33,11 +33,11 @@
 			<c:forEach var="fileInfo" items="${model.items}">
         <li>
           <a href="${fileInfo.filename}">
-            <span class="icon"><img src="/static/images/icons/rpm.gif"></span>
+            <span class="icon"><img src="<c:url value="/static/images/icons/rpm.gif"/>"></span>
             <span class="filename">
                 ${fileInfo.filename}
                       <c:if test="${fn:endsWith(fileInfo.filename, '.rpm')}">
-                          <img src="/static/images/icons/info.png" rel="${fileInfo.filename}/info.html" onclick="return false;" title="RPM Info" class="rpmInfo">
+                          <img src="<c:url value="/static/images/icons/info.png" />" rel="${fileInfo.filename}/info.html" onclick="return false;" title="RPM Info" class="rpmInfo">
                       </c:if>
             </span>
             <span class="size">${fileInfo.formattedLength}</span>

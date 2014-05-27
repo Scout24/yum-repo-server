@@ -1,8 +1,10 @@
-<script type="text/javascript" src="/static/js/jquery-1.9.1.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.hoverIntent.minified.js"></script>
-<script type="text/javascript" src="/static/js/jquery.cluetip.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery-ui-1.10.2.min.js"></script>
-<script type="text/javascript" src="/static/js/jquery.tmpl.js"></script>
-<script type="text/javascript" src="/static/js/jquery.switchbutton.js"></script>
-<script type="text/javascript" src="/static/js/jquery.tokeninput.js"></script>
-<script type="text/javascript" src="/static/js/yum.js"></script>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<script type="text/javascript" src="<c:url value="/static/js/jquery-1.9.1.min.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/jquery.hoverIntent.minified.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/jquery.cluetip.min.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/jquery-ui-1.10.2.min.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/jquery.tmpl.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/jquery.switchbutton.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/jquery.tokeninput.js"/>"></script>
+<script type="text/javascript" src="<c:url value="/static/js/yum.js"/>"></script>
+<script type="text/javascript" >yum.setContextBase("<c:url value="/"/>")</script>

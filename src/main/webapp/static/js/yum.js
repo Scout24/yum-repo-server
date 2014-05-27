@@ -68,6 +68,11 @@ $(function() {
 });
 
 window.yum = {
+
+  setContextBase : function(contextBase) {
+    yum.contextBase = contextBase;
+  },
+  
   setStaticRepoType : function(reponame, type) {
     yum.setRepoProperty(reponame, 'type', type);
   },
@@ -92,7 +97,7 @@ window.yum = {
   },
 
   loadStaticRepos : function() {
-    $.ajax('/repo/', {
+    $.ajax('../', {
       dataType: 'json',
       async : false,
       success: function (data, status, xhr) {
@@ -180,12 +185,12 @@ window.yum = {
     });
   },
 
-  deleteRPM: function(target,repoName,rpmHref) {
+  deleteRPM: function(target,repoPath,rpmHref) {
       $.ajax({
           type : 'DELETE',
           async: false,
           cache : false,
-          url : '/repo/'+repoName+"/"+rpmHref,
+          url : repoPath+"/"+rpmHref,
           success: function () {
               $('#'+target).remove();
           },
@@ -199,7 +204,7 @@ window.yum = {
       type : 'DELETE',
       async: false,
       cache : false,
-      url : '/maintenance/obsolete?targetRepo='+targetRepo+'&sourceRepo='+sourceRepo,
+      url : '?targetRepo='+targetRepo+'&sourceRepo='+sourceRepo,
       success: function () {
         alert('Asynchronous deleting of obsolete RPMs successfully triggered. Deletion may take some time due to delete volume limits to prevent mongodb replica locks. Reload page to see progress.');
       },
@@ -214,7 +219,7 @@ window.yum = {
         type : 'POST',
         async: false,
         cache : false,
-        url : '/propagation',
+        url : yum.contextBase+'propagation',
         data : {source:sourcePath, destination:targetRepoName},
         success: function () {
             $('#'+target).remove();

@@ -6,11 +6,11 @@
   <c:forEach var="item" items="${model.items}">
     <li>
       <a href="${item.href}/">
-        <span class="icon"><img src="/static/images/icons/folder.gif"></span>
+        <span class="icon"><img src="<c:url value="/static/images/icons/folder.gif"/>"></span>
             <span class="filename folder">
               ${item.name}/
               <c:if test="${model.showInfo}">
-                <img src="/static/images/icons/info.png" rel="${item.name}/info.html" onclick="return false;"
+                <img src="<c:url value="/static/images/icons/info.png"/>" rel="${item.name}/info.html" onclick="return false;"
                      title="Repository Info" class="${isStatic ? 'repoInfo' : 'virtualRepoInfo'}">
                 <span class="tags"><c:forEach items="${item.tags}" var="tag">${tag} </c:forEach></span>
               </c:if>

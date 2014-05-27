@@ -16,14 +16,14 @@
 		<ul class="tablelist">
 			<li class="head">
 				<span class="icon">&nbsp;</span>
-				<span class="filename"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionName}.png"></a></span>
-				<span class="size"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=size&order=${sortOrderSize}">Size&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionSize}.png"></a></span>
-				<span class="mtime"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=uploadDate&order=${sortOrderUploadDate}">Modified&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionUploadDate}.png"></a></span>
-				<span class="repo"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=repo&order=${sortOrderRepo}">Repo&nbsp;<img class="sortIcon" src="/static/images/icons/sort-${sortOrderDirectionRepo}.png"></a></span>
+				<span class="filename"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionName}.png"/>"></a></span>
+				<span class="size"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=size&order=${sortOrderSize}">Size&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionSize}.png"/>"></a></span>
+				<span class="mtime"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=uploadDate&order=${sortOrderUploadDate}">Modified&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionUploadDate}.png"/>"></a></span>
+				<span class="repo"><a href="?search=${util:urlEncodeUTF8(searchBy)}&sortBy=repo&order=${sortOrderRepo}">Repo&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionRepo}.png"/>"></a></span>
 			</li>
       <li>
-        <a href="/repo/${model.path}">
-          <span class="icon"><img src="/static/images/icons/up.gif"></span>
+        <a href="<c:url value="/repo/${model.path}"/>">
+          <span class="icon"><img src="<c:url value="/static/images/icons/up.gif"/>"></span>
           <span class="filename">../</span>
           <span class="size">&nbsp;</span>
           <span class="mtime">&nbsp;</span>
@@ -32,12 +32,12 @@
       </li>
 			<c:forEach var="fileInfo" items="${model.items}">
         <li>
-          <a href="/repo/${fileInfo.repo}/${fileInfo.arch}/${fileInfo.filename}">
+          <a href="<c:url value="/repo/${fileInfo.repo}/${fileInfo.arch}/${fileInfo.filename}"/>">
             <span class="icon"><img src="/static/images/icons/rpm.gif"></span>
             <span class="filename">
                 ${fileInfo.filename}
                       <c:if test="${fn:endsWith(fileInfo.filename, '.rpm')}">
-                          <img src="/static/images/icons/info.png" rel="/repo/${fileInfo.repo}/${fileInfo.arch}/${fileInfo.filename}/info.html" onclick="return false;" title="RPM Info" class="rpmInfo">
+                          <img src="<c:url value="/static/images/icons/info.png"/>" rel="<c:url value="/repo/${fileInfo.repo}/${fileInfo.arch}/${fileInfo.filename}/info.html"/>" onclick="return false;" title="RPM Info" class="rpmInfo">
                       </c:if>
                   </span>
             <span class="size">${fileInfo.formattedLength}</span>

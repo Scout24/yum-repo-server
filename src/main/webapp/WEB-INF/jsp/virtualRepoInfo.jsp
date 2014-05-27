@@ -24,7 +24,7 @@
       <span class="label">Actions</span>
       <span class="value">
         <button id="saveButton" class="submit" onclick="return yum.saveVirtualRepo('${repo.name}');" style="display: none;">Save</button>
-        <img id="saveSpinner" src="/static/images/wait.gif" style="display: none;" />
+        <img id="saveSpinner" src="<c:url value="/static/images/wait.gif"/>" style="display: none;" />
       </span>
     </li>
   </ul>
