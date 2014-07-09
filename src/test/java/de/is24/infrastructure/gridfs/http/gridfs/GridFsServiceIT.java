@@ -8,6 +8,7 @@ import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
+import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
@@ -16,12 +17,14 @@ import org.bson.types.ObjectId;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
@@ -420,6 +423,17 @@ public class GridFsServiceIT {
     assertThat(dbFile.getMetaData().get(OPEN_SIZE).toString(), is("33"));
     assertThat(dbFile.getMetaData().get(OPEN_SHA256).toString(), is(TEST_FILE_OPEN_SHA256));
     assertThat(dbFile.get(UPLOAD_DATE), notNullValue());
+  }
+
+  @Test(expected = GridFSFileNotFoundException.class)
+  public void dontMoveFileMarkedForDeletion() throws Exception {
+    String sourceRepo = uniqueRepoName();
+    String destinationRepo = uniqueRepoName();
+    context.gridFsService().storeRpm(sourceRepo, streamOf(VALID_NOARCH_RPM));
+    GridFSDBFile file = findNoarchRpm(sourceRepo);
+    context.gridFsService().markForDeletionById((ObjectId) file.getId());
+
+    context.gridFsService().propagateRpm(file.getFilename(), destinationRepo);
   }
 
   private void assertRepoWasModifiedAfterStartTime(String reponame) {

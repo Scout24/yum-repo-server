@@ -157,7 +157,7 @@ public class GridFsService {
       throw new GridFSFileNotFoundException("Could not find file.", sourceFile);
     }
     if (isMarkedForDeletion(dbFile)) {
-      throw new GridFSFileNotFoundException("File is marked for deletion.", sourceFile);
+      throw new GridFSFileNotFoundException("Could not propagate file. File is marked for deletion.", sourceFile);
     }
 
     String sourceRepo = (String) dbFile.getMetaData().get(REPO_KEY);
@@ -306,6 +306,13 @@ public class GridFsService {
 
   private GridFsFileDescriptor move(GridFSDBFile dbFile, String destinationRepo) {
     YumEntry yumEntry = yumEntriesRepository.findOne((ObjectId) dbFile.getId());
+    if (yumEntry == null) {
+      try {
+        yumEntry = regenerateMetadataFor(dbFile);
+      } catch (InvalidRpmHeaderException e) {
+        throw new RuntimeException("Could not regenerate metadata for file " + dbFile.getFilename() + " because it is not a valid RPM. You should manually delete the file", e);
+      }
+    }
     yumEntry.setRepo(null);
     yumEntriesRepository.save(yumEntry);
 
@@ -465,8 +472,8 @@ public class GridFsService {
   }
 
   @ManagedOperation
-  public void regenerateMetadataFor(GridFsFileDescriptor descriptor) throws InvalidRpmHeaderException {
-    regenerateMetadataFor(getFileByDescriptor(descriptor));
+  public YumEntry regenerateMetadataFor(GridFsFileDescriptor descriptor) throws InvalidRpmHeaderException {
+    return regenerateMetadataFor(getFileByDescriptor(descriptor));
   }
 
   @ManagedOperation
@@ -570,12 +577,13 @@ public class GridFsService {
     }
   }
 
-  private void regenerateMetadataFor(GridFSDBFile dbFile) throws InvalidRpmHeaderException {
+  private YumEntry regenerateMetadataFor(GridFSDBFile dbFile) throws InvalidRpmHeaderException {
     LOGGER.info("regenerating metadata for {}", dbFile.getFilename());
     try {
       YumPackage yumPackage = convertHeader(dbFile.getInputStream());
       YumEntry yumEntry = createYumEntry(yumPackage, dbFile);
       yumEntriesRepository.save(yumEntry);
+      return yumEntry;
     } catch (InvalidRpmHeaderException e) {
       LOGGER.error("Generating metadata for " + dbFile.getFilename() + " failed.", e);
       throw e;
