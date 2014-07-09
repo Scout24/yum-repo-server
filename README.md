@@ -34,9 +34,13 @@ Our company is migrating towards a CLD-friendly deployment solution. Our solutio
 ## License  
 The yum-repo-server is licensed under the [GPLv3](http://www.gnu.org/licenses/quick-guide-gplv3.html)
 
-## Getting started
+## Getting started using Vagrant
 
-### Build and run with maven
+You can use Jan Collijs' [Vagrant Yum Repo Server recipe](https://github.com/visibilityspots/vagrant-yum-repo-server)
+to start a local server in a [Vagrant](http://www.vagrantup.com/) box.
+
+## Getting started locally
+
 * Checkout the Repository:
 ```
 git clone https://github.com/ImmobilienScout24/yum-repo-server
@@ -48,12 +52,6 @@ cd yum-repo-server
 mvn -Plocal-dev com.github.joelittlejohn.embedmongo:embedmongo-maven-plugin:start org.codehaus.cargo:cargo-maven2-plugin:run
 ```
 * Open [http://localhost:8080]
-
-### use a vagrant setup 
-
-Thanks to Jan Collijs: 
-
-* https://github.com/visibilityspots/vagrant-yum-repo-server
 
 ## Production usage
 
