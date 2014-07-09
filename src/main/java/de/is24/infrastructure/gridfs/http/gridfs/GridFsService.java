@@ -156,6 +156,9 @@ public class GridFsService {
     if (dbFile == null) {
       throw new GridFSFileNotFoundException("Could not find file.", sourceFile);
     }
+    if (isMarkedForDeletion(dbFile)) {
+      throw new GridFSFileNotFoundException("File is marked for deletion.", sourceFile);
+    }
 
     String sourceRepo = (String) dbFile.getMetaData().get(REPO_KEY);
     GridFsFileDescriptor fileDescriptor = move(dbFile, destinationRepo);
@@ -203,6 +206,10 @@ public class GridFsService {
     for (GridFSDBFile dbFile : dbFiles) {
       delete(dbFile);
     }
+  }
+
+  public boolean isMarkedForDeletion(GridFSDBFile dbFile) {
+    return dbFile.getMetaData().get(MARKED_AS_DELETED_KEY) != null;
   }
 
   public void markForDeletionById(ObjectId id) {
@@ -373,7 +380,9 @@ public class GridFsService {
       .is(null)
       .andOperator(whereFilename().regex(".*\\.rpm$"))));
     for (GridFSDBFile dbFile : sourceRpms) {
-      move(dbFile, destinationRepo);
+      if (!isMarkedForDeletion(dbFile)) {
+        move(dbFile, destinationRepo);
+      }
     }
 
     repoService.createOrUpdate(sourceRepo);
