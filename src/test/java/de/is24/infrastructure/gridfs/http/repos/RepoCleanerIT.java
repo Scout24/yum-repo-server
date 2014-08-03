@@ -62,7 +62,7 @@ public class RepoCleanerIT {
   public void setUp() throws Exception {
     reponame = uniqueRepoName();
     service = new RepoCleaner(mongoTemplate(context.getMongo()), context.yumEntriesRepository(),
-      context.gridFsService(),
+      context.fileStorageService(),
       context.repoService());
   }
 

@@ -5,6 +5,7 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 
@@ -25,12 +26,14 @@ public class GridFsFileStorageServiceTest {
   private GridFS gridFs;
   private GridFsTemplate gridFsTemplate;
   private GridFsFileStorageService service;
+  private MongoTemplate mongoTemplate;
 
   @Before
   public void setUp() throws Exception {
     gridFs = mock(GridFS.class);
     gridFsTemplate = mock(GridFsTemplate.class);
-    service = new GridFsFileStorageService(gridFs, gridFsTemplate);
+    mongoTemplate = mock(MongoTemplate.class);
+    service = new GridFsFileStorageService(gridFs, gridFsTemplate, mongoTemplate);
   }
 
   @Test

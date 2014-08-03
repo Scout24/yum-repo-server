@@ -17,6 +17,8 @@ import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
@@ -42,6 +44,7 @@ import static com.mongodb.gridfs.GridFSUtil.remove;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY_REPO_DATA;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.FILENAME_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
@@ -51,6 +54,7 @@ import static org.apache.commons.codec.digest.DigestUtils.getSha256Digest;
 import static org.apache.commons.io.IOUtils.closeQuietly;
 import static org.apache.commons.io.IOUtils.copy;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
@@ -72,11 +76,13 @@ public class GridFsFileStorageService implements FileStorageService {
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
+  private final MongoTemplate mongoTemplate;
 
   @Autowired
-  public GridFsFileStorageService(GridFS gridFs, GridFsOperations gridFsTemplate) {
+  public GridFsFileStorageService(GridFS gridFs, GridFsOperations gridFsTemplate, MongoTemplate mongoTemplate) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
+    this.mongoTemplate = mongoTemplate;
   }
 
   @Override
@@ -233,6 +239,25 @@ public class GridFsFileStorageService implements FileStorageService {
     }
 
     LOGGER.info("finished removing files marked as deleted before {}", before);
+  }
+
+  public void markForDeletionByPath(final String path) {
+    markForDeletion(whereFilename().is(path));
+  }
+
+  public void markForDeletionByFilenameRegex(final String regex) {
+    markForDeletion(whereFilename().regex(regex));
+  }
+
+  @Override
+  public void deleteRepo(String reponame) {
+    markForDeletion(whereMetaData(REPO_KEY).is(reponame));
+  }
+
+  private void markForDeletion(final Criteria criteria) {
+    mongoTemplate.updateMulti(query(criteria.and(METADATA_MARKED_AS_DELETED_KEY).is(null)),
+        update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
+        GRIDFS_FILES_COLLECTION);
   }
 
   private String createRepoMdLocation(String name, String checksum) {

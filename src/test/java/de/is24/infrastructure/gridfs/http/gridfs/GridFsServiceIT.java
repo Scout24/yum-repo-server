@@ -292,7 +292,7 @@ public class GridFsServiceIT {
     GridFsFileDescriptor noMatchDescriptor = new GridFsFileDescriptor(reponame, TESTING_ARCH, "no_match");
     givenFileWithDescriptor(noMatchDescriptor);
 
-    context.gridFsService().markForDeletionByFilenameRegex(".*-filename");
+    context.fileStorageService().markForDeletionByFilenameRegex(".*-filename");
 
     assertThatFileIsMarkedForDeletion(matchingDescriptor);
     FileStorageItem storageItem = context.gridFsService().findFileByDescriptor(noMatchDescriptor);
@@ -306,7 +306,7 @@ public class GridFsServiceIT {
     final String repoName = givenFullRepository();
     GridFsFileDescriptor descriptor = createValidNoarchRPMDescriptorInRepo(repoName);
 
-    context.gridFsService().markForDeletionByPath(descriptor.getPath());
+    context.fileStorageService().markForDeletionByPath(descriptor.getPath());
 
     assertThatFileIsMarkedForDeletion(descriptor);
   }
@@ -323,17 +323,6 @@ public class GridFsServiceIT {
   }
 
   @Test
-  public void metaDataForDeletionIsSetById() throws Exception {
-    final String repoName = givenFullRepository();
-    GridFsFileDescriptor descriptor = createValidNoarchRPMDescriptorInRepo(repoName);
-    final FileStorageItem fileToMarkAsDeleted = context.gridFsService().findFileByDescriptor(descriptor);
-
-    context.gridFsService().markForDeletionById((ObjectId) fileToMarkAsDeleted.getId());
-
-    assertThatFileIsMarkedForDeletion(descriptor);
-  }
-
-  @Test
   public void metaDataForDeletionIsSetOnlyOnce() throws Exception {
     final String repoName = givenFullRepository();
     final Date yesterday = DateUtils.addDays(new Date(), -1);
@@ -341,7 +330,7 @@ public class GridFsServiceIT {
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(repoName, TESTING_ARCH, file);
     givenFileToBeDeleted(descriptor, yesterday);
 
-    context.gridFsService().markForDeletionByPath(descriptor.getPath());
+    context.fileStorageService().markForDeletionByPath(descriptor.getPath());
 
     final FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
 
@@ -427,7 +416,7 @@ public class GridFsServiceIT {
     String destinationRepo = uniqueRepoName();
     context.gridFsService().storeRpm(sourceRepo, streamOf(VALID_NOARCH_RPM));
     GridFSDBFile file = findNoarchRpm(sourceRepo);
-    context.gridFsService().markForDeletionById((ObjectId) file.getId());
+    context.fileStorageService().markForDeletionByPath(file.getFilename());
 
     context.gridFsService().propagateRpm(file.getFilename(), destinationRepo);
   }

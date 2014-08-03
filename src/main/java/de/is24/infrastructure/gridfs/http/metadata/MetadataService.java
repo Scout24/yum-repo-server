@@ -10,10 +10,11 @@ import de.is24.infrastructure.gridfs.http.metadata.generation.FileListsGenerator
 import de.is24.infrastructure.gridfs.http.metadata.generation.OtherDbGenerator;
 import de.is24.infrastructure.gridfs.http.metadata.generation.PrimaryDbGenerator;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
-import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.InApplicationMonitor;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +23,14 @@ import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import static java.io.File.createTempFile;
 import static java.util.Arrays.asList;
 import static org.springframework.util.ObjectUtils.nullSafeEquals;
@@ -54,6 +57,7 @@ public class MetadataService {
   private final RepoCleaner repoCleaner;
   private final YumEntriesHashCalculator entriesHashCalculator;
   private final InApplicationMonitor inApplicationMonitor;
+  private final FileStorageService fileStorageService;
   private File tmpDir;
   private int outdatedMetaDataSurvivalTime;
 
@@ -66,14 +70,16 @@ public class MetadataService {
     repoCleaner = null;
     entriesHashCalculator = null;
     inApplicationMonitor = null;
+    fileStorageService = null;
   }
 
   @Autowired
-  public MetadataService(GridFsService gridFs, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
+  public MetadataService(GridFsService gridFs, FileStorageService fileStorageService, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
                          RepoService repoService, RepoCleaner repoCleaner,
                          YumEntriesHashCalculator entriesHashCalculator,
                          InApplicationMonitor inApplicationMonitor) {
     this.gridFsService = gridFs;
+    this.fileStorageService = fileStorageService;
     this.entriesRepository = entriesRepository;
     this.repoMdGenerator = repoMdGenerator;
     this.repoService = repoService;
@@ -125,7 +131,7 @@ public class MetadataService {
 
     long start = System.currentTimeMillis();
     long current;
-    gridFsService.markForDeletionByFilenameRegex(reponame + METADATA_FILE_PATTERN);
+    fileStorageService.markForDeletionByFilenameRegex(reponame + METADATA_FILE_PATTERN);
 
     current = System.currentTimeMillis();
     inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_MARK_FOR_DELETE + reponame, start,

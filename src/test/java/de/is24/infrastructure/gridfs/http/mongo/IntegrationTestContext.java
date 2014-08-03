@@ -54,7 +54,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public FileStorageService fileStorageService() {
     if (fileStorageService == null) {
-      fileStorageService = new GridFsFileStorageService(gridFs(), gridFsTemplate());
+      fileStorageService = new GridFsFileStorageService(gridFs(), gridFsTemplate(), mongoTemplate());
     }
     return fileStorageService;
   }
@@ -108,7 +108,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public RepoCleaner repoCleaner() {
     if (repoCleaner == null) {
-      repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), gridFsService(), repoService());
+      repoCleaner = new RepoCleaner(mongoTemplate(), yumEntriesRepository(), fileStorageService(), repoService());
     }
 
     return repoCleaner;
@@ -131,7 +131,7 @@ public class IntegrationTestContext extends MongoTestContext {
   public MetadataService metadataService() {
     if (metadataService == null) {
       entriesHashCalculator = new YumEntriesHashCalculator(mongoTemplate());
-      metadataService = new MetadataService(gridFsService(), yumEntriesRepository(), repoMdGenerator(),
+      metadataService = new MetadataService(gridFsService(), fileStorageService(), yumEntriesRepository(), repoMdGenerator(),
         repoService(), repoCleaner(), entriesHashCalculator(), InApplicationMonitor.getInstance());
     }
     return metadataService;

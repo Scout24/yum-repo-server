@@ -27,4 +27,10 @@ public interface FileStorageService {
   public List<FileStorageItem> getAllRpms();
 
   public void removeFilesMarkedAsDeletedBefore(final Date before);
+
+  public void markForDeletionByPath(final String path);
+
+  public void markForDeletionByFilenameRegex(final String regex);
+
+  public void deleteRepo(String reponame);
 }

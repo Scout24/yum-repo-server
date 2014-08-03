@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,7 +51,6 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADAT
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_UPLOAD_DATE_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.SHA256_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.ObjectIdCriteria.whereObjectIdIs;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
 import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_FILE;
 import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_REPO;
@@ -65,9 +63,6 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.substringAfter;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
-import static org.springframework.data.mongodb.core.query.Update.update;
-import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
-import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
 
 @ManagedResource
@@ -172,24 +167,6 @@ public class GridFsService {
     for (FileStorageItem storageItem : storageItems) {
       delete(storageItem);
     }
-  }
-
-  public void markForDeletionById(ObjectId id) {
-    markForDeletion(whereObjectIdIs(id));
-  }
-
-  public void markForDeletionByPath(final String path) {
-    markForDeletion(whereFilename().is(path));
-  }
-
-  public void markForDeletionByFilenameRegex(final String regex) {
-    markForDeletion(whereFilename().regex(regex));
-  }
-
-  private void markForDeletion(final Criteria criteria) {
-    mongoTemplate.updateMulti(query(criteria.and(METADATA_MARKED_AS_DELETED_KEY).is(null)),
-      update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
-      GRIDFS_FILES_COLLECTION);
   }
 
   private FileStorageItem findRpmByPathDirectlyOrFindNewestRpmMatchingNameAndArch(GridFsFileDescriptor descriptor) {
@@ -327,9 +304,7 @@ public class GridFsService {
     }
 
     mongoTemplate.remove(query(where(REPO_KEY).is(reponame)), YumEntry.class);
-
-    markForDeletion(whereMetaData(REPO_KEY).is(reponame));
-
+    fileStorageService.deleteRepo(reponame);
     repoService.delete(reponame);
   }
 

@@ -5,10 +5,10 @@ import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
-import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.rpm.version.CachingVersionDBObjectComparator;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
+
 import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
@@ -40,7 +42,7 @@ public class RepoCleaner {
   public static final String ITEMS_KEY = "items";
   private final MongoTemplate mongo;
   private final YumEntriesRepository entriesRepository;
-  private final GridFsService gridFsService;
+  private final FileStorageService fileStorageService;
   private final RepoService repoService;
   private final CachingVersionDBObjectComparator comparator = new CachingVersionDBObjectComparator();
 
@@ -48,16 +50,16 @@ public class RepoCleaner {
   protected RepoCleaner() {
     mongo = null;
     entriesRepository = null;
-    gridFsService = null;
+    fileStorageService = null;
     repoService = null;
   }
 
   @Autowired
-  public RepoCleaner(MongoTemplate mongo, YumEntriesRepository entriesRepository, GridFsService gridFsService,
+  public RepoCleaner(MongoTemplate mongo, YumEntriesRepository entriesRepository, FileStorageService fileStorageService,
                      RepoService repoService) {
     this.mongo = mongo;
     this.entriesRepository = entriesRepository;
-    this.gridFsService = gridFsService;
+    this.fileStorageService = fileStorageService;
     this.repoService = repoService;
   }
 
@@ -76,7 +78,7 @@ public class RepoCleaner {
             entriesRepository.delete(fileId);
 
             final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
-            gridFsService.markForDeletionByPath(path);
+            fileStorageService.markForDeletionByPath(path);
             filesDeleted = true;
             LOG.info("Mark file {} as deleted during cleanup.", path);
           }

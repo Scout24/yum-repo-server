@@ -2,11 +2,12 @@ package de.is24.infrastructure.gridfs.http.metadata;
 
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.RepoType;
-import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,9 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import java.io.File;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -46,6 +49,8 @@ public class MetadataServiceTest {
   private RepoMdGenerator repoMdGenerator;
   @Mock
   private InApplicationMonitor inApplicationMonitor;
+  @Mock
+  private FileStorageService fileStorageService;
 
   private RepoEntry repoEntry;
 
@@ -68,7 +73,7 @@ public class MetadataServiceTest {
   public void oldMetaDataFilesAreDeleted() throws Exception {
     this.service.generateYumMetadataIfNecessary(reponame);
 
-    verify(gridFsService).markForDeletionByFilenameRegex(eq(reponame + REGEX_REPODATA_SQLITE_FILES));
+    verify(fileStorageService).markForDeletionByFilenameRegex(eq(reponame + REGEX_REPODATA_SQLITE_FILES));
   }
 
   @Test
