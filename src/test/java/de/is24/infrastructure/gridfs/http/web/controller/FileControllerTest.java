@@ -1,8 +1,8 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.springframework.core.io.InputStreamResource;
@@ -13,13 +13,16 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import static com.mongodb.gridfs.GridFSTestUtil.gridFSDBFile;
+
 import static org.apache.commons.lang.RandomStringUtils.random;
 import static org.apache.commons.lang.StringUtils.repeat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.valueOf;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
@@ -116,9 +119,9 @@ public class FileControllerTest extends AbstractControllerTest {
   }
 
   private void givenGridFSDBFile() throws IOException {
-    GridFSDBFile gridFSDBFile = gridFSDBFile(CONTENT_WITH_200_CHARS);
+    FileStorageItem fileStorageItem = storageItem(CONTENT_WITH_200_CHARS);
 
-    when(gridFsService.getFileByDescriptor(any(GridFsFileDescriptor.class))).thenReturn(gridFSDBFile);
+    when(gridFsService.getFileByDescriptor(any(GridFsFileDescriptor.class))).thenReturn(fileStorageItem);
     when(gridFsService.getResource(any(GridFsFileDescriptor.class))).thenCallRealMethod();
     when(gridFsService.getResource(any(GridFsFileDescriptor.class), anyLong())).thenCallRealMethod();
     when(gridFsService.getResource(any(GridFsFileDescriptor.class), anyLong(), anyLong())).thenCallRealMethod();
@@ -146,5 +149,11 @@ public class FileControllerTest extends AbstractControllerTest {
     return IOUtils.toString(response.getBody().getInputStream());
   }
 
-
+  private FileStorageItem storageItem(String content) {
+    FileStorageItem storageItem = mock(FileStorageItem.class);
+    when(storageItem.getInputStream()).thenReturn(new ByteArrayInputStream(content.getBytes()));
+    when(storageItem.getSize()).thenReturn((long) content.length());
+    when(storageItem.getContentType()).thenReturn("application/x-rpm");
+    return storageItem;
+  }
 }

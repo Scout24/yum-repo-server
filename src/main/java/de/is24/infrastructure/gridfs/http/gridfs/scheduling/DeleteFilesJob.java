@@ -1,8 +1,8 @@
 package de.is24.infrastructure.gridfs.http.gridfs.scheduling;
 
 import com.google.common.annotations.VisibleForTesting;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -19,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @ManagedResource
 @Service
 public class DeleteFilesJob {
-  private final GridFsService gridFsService;
+  private final FileStorageService fileStorageService;
   private final MongoPrimaryDetector primaryDetector;
   private final int minuetsToWaitForActualDelete;
 
@@ -29,10 +30,10 @@ public class DeleteFilesJob {
   private String lastStackTrace;
 
   @Autowired
-  public DeleteFilesJob(final GridFsService gridFsService,
+  public DeleteFilesJob(final FileStorageService fileStorageService,
                         final MongoPrimaryDetector primaryDetector,
                         @Value("${scheduler.delete.files.delay.minuets:10}") final int minuetsToWaitForActualDelete) {
-    this.gridFsService = gridFsService;
+    this.fileStorageService = fileStorageService;
     this.primaryDetector = primaryDetector;
     this.minuetsToWaitForActualDelete = minuetsToWaitForActualDelete;
   }
@@ -73,7 +74,7 @@ public class DeleteFilesJob {
   private void doRemoveFilesMarkedAsDeleted(Date now) {
     executionsSinceStartUp.incrementAndGet();
     try {
-      gridFsService.removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(now, -minuetsToWaitForActualDelete));
+      fileStorageService.removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(now, -minuetsToWaitForActualDelete));
     } catch (Exception ex) {
       failureSinceStartUp.incrementAndGet();
       lastStackTrace = ExceptionUtils.getFullStackTrace(ex);

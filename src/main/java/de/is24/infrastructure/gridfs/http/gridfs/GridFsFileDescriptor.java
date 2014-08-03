@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.gridfs;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -56,6 +57,10 @@ public class GridFsFileDescriptor {
       throw new IllegalArgumentException("location href " + href +
         " does not follow pattern arch/filename");
     }
+  }
+
+  public GridFsFileDescriptor(FileStorageItem storageItem) {
+    this(storageItem.getFilename());
   }
 
 

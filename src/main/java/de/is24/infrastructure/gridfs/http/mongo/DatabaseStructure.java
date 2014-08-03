@@ -4,6 +4,7 @@ public interface DatabaseStructure {
   String FILENAME_KEY = "filename";
   String ARCH_KEY = "arch";
   String REPO_KEY = "repo";
+  String SHA256_KEY = "sha256";
   String MARKED_AS_DELETED_KEY = "markedAsDeleted";
   String UPLOAD_DATE_KEY = "uploadDate";
   String ARCH_KEY_REPO_DATA = "repodata";

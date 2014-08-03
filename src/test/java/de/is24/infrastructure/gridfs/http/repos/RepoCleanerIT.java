@@ -8,25 +8,26 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageLocation;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
-import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+
 import java.io.ByteArrayInputStream;
 import java.util.List;
+
 import static ch.lambdaj.Lambda.extract;
 import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static java.lang.System.currentTimeMillis;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertTrue;
 
 
 @Category(LocalExecutionOnly.class)
@@ -108,10 +109,7 @@ public class RepoCleanerIT {
 
   private void assertThatGridFsFileIsMarkedAsDeleted() {
     for (YumEntry entryToDelete : YUM_ENTRIES_TO_CLEAN_UP) {
-      assertThat(context.gridFsService()
-        .getFileByDescriptor(new GridFsFileDescriptor(entryToDelete))
-        .getMetaData()
-        .get(DatabaseStructure.MARKED_AS_DELETED_KEY), is(notNullValue()));
+      assertTrue(context.fileStorageService().findBy(new GridFsFileDescriptor(entryToDelete)).isMarkedAsDeleted());
     }
   }
 

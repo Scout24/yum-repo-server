@@ -1,5 +1,24 @@
 package de.is24.infrastructure.gridfs.http.metadata;
 
+import com.mongodb.QueryBuilder;
+import com.mongodb.gridfs.GridFSDBFile;
+import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
+import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
+import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
+import org.bson.types.ObjectId;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.gridfs.GridFsCriteria;
+
+import java.io.IOException;
+import java.util.Date;
+
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_FILE_NAME;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
@@ -13,22 +32,6 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import java.io.IOException;
-import java.util.Date;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
-import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
-import org.bson.types.ObjectId;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.gridfs.GridFsCriteria;
-import com.mongodb.QueryBuilder;
-import com.mongodb.gridfs.GridFSDBFile;
-import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
-import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 
 
 @Category(LocalExecutionOnly.class)
@@ -115,15 +118,15 @@ public class MetadataServiceIT {
   private void assertRepoMdXml() {
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml");
 
-    GridFSDBFile dbFile = context.gridFsService().findFileByDescriptor(descriptor);
-    assertThat(dbFile, notNullValue());
+    FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
+    assertThat(storageItem, notNullValue());
   }
 
   private void assertRepoMdXmlSignature() {
     GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml.asc");
 
-    GridFSDBFile dbFile = context.gridFsService().findFileByDescriptor(descriptor);
-    assertThat(dbFile, notNullValue());
+    FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
+    assertThat(storageItem, notNullValue());
   }
 
   private void assertDbFile(String type) {

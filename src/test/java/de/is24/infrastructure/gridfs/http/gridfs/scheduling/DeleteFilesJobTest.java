@@ -1,14 +1,16 @@
 package de.is24.infrastructure.gridfs.http.gridfs.scheduling;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
 import java.util.Date;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -21,7 +23,7 @@ public class DeleteFilesJobTest {
   private MongoPrimaryDetector primaryDetectorMock;
 
   @Mock
-  private GridFsService gridFsServiceMock;
+  private FileStorageService fileStorageServiceMock;
 
   private DeleteFilesJob deleteFilesJob;
 
@@ -29,7 +31,7 @@ public class DeleteFilesJobTest {
 
   @Before
   public void setUp() throws Exception {
-    deleteFilesJob = new DeleteFilesJob(gridFsServiceMock, primaryDetectorMock, CONFIGURED_WAIT);
+    deleteFilesJob = new DeleteFilesJob(fileStorageServiceMock, primaryDetectorMock, CONFIGURED_WAIT);
   }
 
   @Test
@@ -38,7 +40,7 @@ public class DeleteFilesJobTest {
 
     deleteFilesJob.deleteFilesMarkedAsDeleted(testStart);
 
-    verifyZeroInteractions(gridFsServiceMock);
+    verifyZeroInteractions(fileStorageServiceMock);
   }
 
   @Test
@@ -47,6 +49,6 @@ public class DeleteFilesJobTest {
 
     deleteFilesJob.deleteFilesMarkedAsDeleted(testStart);
 
-    verify(gridFsServiceMock).removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(testStart, -CONFIGURED_WAIT));
+    verify(fileStorageServiceMock).removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(testStart, -CONFIGURED_WAIT));
   }
 }

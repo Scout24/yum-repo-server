@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http.mongo;
 
 import com.mongodb.Mongo;
 import com.mongodb.gridfs.GridFS;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileStorageService;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
@@ -11,6 +12,7 @@ import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -29,6 +31,7 @@ public class IntegrationTestContext extends MongoTestContext {
   public static final String RPM_DB = "rpm_db";
 
   private MongoTemplate mongoTemplate;
+  private FileStorageService fileStorageService;
   private GridFS gridFs;
   private GridFsTemplate gridFsTemplate;
   private GridFsService gridFsService;
@@ -49,9 +52,16 @@ public class IntegrationTestContext extends MongoTestContext {
     return gridFs;
   }
 
+  public FileStorageService fileStorageService() {
+    if (fileStorageService == null) {
+      fileStorageService = new GridFsFileStorageService(gridFs(), gridFsTemplate());
+    }
+    return fileStorageService;
+  }
+
   public GridFsService gridFsService() {
     if (gridFsService == null) {
-      gridFsService = new GridFsService(gridFs(), gridFsTemplate(), mongoTemplate(), yumEntriesRepository(),
+      gridFsService = new GridFsService(fileStorageService(), mongoTemplate(), yumEntriesRepository(),
         repoService());
     }
     return gridFsService;

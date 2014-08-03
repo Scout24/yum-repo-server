@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
-import com.mongodb.gridfs.GridFSDBFile;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.core.io.InputStreamResource;
 
@@ -10,45 +10,45 @@ import java.io.InputStream;
 import static java.lang.Math.min;
 
 public class BoundedGridFsResource extends InputStreamResource {
-  private final GridFSDBFile file;
+  private final FileStorageItem storageItem;
   private final long length;
   private final long startPos;
 
-  public BoundedGridFsResource(GridFSDBFile file, long startPos) throws IOException {
-    super(skip(file.getInputStream(), startPos));
-    this.file = file;
+  public BoundedGridFsResource(FileStorageItem storageItem, long startPos) throws IOException {
+    super(skip(storageItem.getInputStream(), startPos));
+    this.storageItem = storageItem;
     this.startPos = startPos;
-    this.length = file.getLength() - startPos;
+    this.length = storageItem.getSize() - startPos;
   }
 
-  public BoundedGridFsResource(GridFSDBFile file, long startPos, long length) throws IOException {
-    super(new BoundedInputStream(skip(file.getInputStream(), startPos), length));
-    this.file = file;
+  public BoundedGridFsResource(FileStorageItem storageItem, long startPos, long length) throws IOException {
+    super(new BoundedInputStream(skip(storageItem.getInputStream(), startPos), length));
+    this.storageItem = storageItem;
     this.length = length;
     this.startPos = startPos;
   }
 
   @Override
   public long contentLength() throws IOException {
-    return min(file.getLength() - startPos, length);
+    return min(storageItem.getSize() - startPos, length);
   }
 
   @Override
   public String getFilename() throws IllegalStateException {
-    return file.getFilename();
+    return storageItem.getFilename();
   }
 
   @Override
   public long lastModified() throws IOException {
-    return file.getUploadDate().getTime();
+    return storageItem.getUploadDate().getTime();
   }
 
   public long getFileLength() {
-    return file.getLength();
+    return storageItem.getSize();
   }
 
   public String getContentType() {
-    return file.getContentType();
+    return storageItem.getContentType();
   }
 
   private static InputStream skip(InputStream inputStream, long startPos) throws IOException {

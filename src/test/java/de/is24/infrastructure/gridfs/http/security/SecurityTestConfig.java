@@ -2,12 +2,12 @@ package de.is24.infrastructure.gridfs.http.security;
 
 import com.mongodb.DBCollection;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 
@@ -37,7 +37,7 @@ public class SecurityTestConfig {
     MongoTemplate mongoTemplate = mock(MongoTemplate.class);
     DBCollection collection = mock(DBCollection.class);
     when(mongoTemplate.getCollection(anyString())).thenReturn(collection);
-    GridFsTemplate gridFsTemplate = mock(GridFsTemplate.class);
-    return new GridFsService(null, gridFsTemplate, mongoTemplate, null, null);
+    FileStorageService fileStorageService = mock(FileStorageService.class);
+    return new GridFsService(fileStorageService, mongoTemplate, null, null);
   }
 }
