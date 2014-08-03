@@ -16,6 +16,7 @@ import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
@@ -72,6 +73,7 @@ public class GridFsFileStorageService implements FileStorageService {
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
 
+  @Autowired
   public GridFsFileStorageService(GridFS gridFs, GridFsOperations gridFsTemplate) {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
