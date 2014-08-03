@@ -116,7 +116,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public RepoMdGenerator repoMdGenerator() {
     if (repoMdGenerator == null) {
-      repoMdGenerator = new RepoMdGenerator(gridFs(), pgpSigner());
+      repoMdGenerator = new RepoMdGenerator(fileStorageService(), pgpSigner());
     }
     return repoMdGenerator;
   }

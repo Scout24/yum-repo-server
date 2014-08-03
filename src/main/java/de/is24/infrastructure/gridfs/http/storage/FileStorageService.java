@@ -22,6 +22,8 @@ public interface FileStorageService {
 
   public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor);
 
+  public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor, boolean allowOverride);
+
   public UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException;
 
   public List<FileStorageItem> getAllRpms();

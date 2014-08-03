@@ -1,18 +1,17 @@
 package de.is24.infrastructure.gridfs.http.metadata.generation;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.gridfs.GridFS;
-import com.mongodb.gridfs.GridFSDBFile;
-import com.mongodb.gridfs.GridFSInputFile;
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.jaxb.RepoMd;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
-import org.apache.commons.io.output.NullOutputStream;
-import org.bson.types.ObjectId;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
+import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.http.MediaType;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -20,124 +19,57 @@ import javax.xml.bind.Unmarshaller;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY_REPO_DATA;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RepoMdGeneratorTest {
-  private GridFS gridFs;
-  private GridFSInputFile gridFsinputFile;
+  private FileStorageService fileStorageService;
   private PGPSigner pgpSigner;
   private RepoMdGenerator repoMdGenerator;
 
   @Before
   public void setup() {
-    gridFs = mock(GridFS.class);
-    gridFsinputFile = mock(GridFSInputFile.class);
+    fileStorageService = mock(FileStorageService.class);
     pgpSigner = mock(PGPSigner.class);
     when(pgpSigner.isActive()).thenReturn(true);
-    repoMdGenerator = new RepoMdGenerator(gridFs, pgpSigner);
-  }
-
-  @Test
-  public void correctMetaDataIsCreated() throws Exception {
-    String reponame = "any-reponame";
-    BasicDBObject metaData = createExpectedMetaData(reponame);
-
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(new NullOutputStream());
-
-    repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
-
-    verify(gridFsinputFile, times(2)).setMetaData(metaData);
+    repoMdGenerator = new RepoMdGenerator(fileStorageService, pgpSigner);
   }
 
   @Test
   public void correctFilenameIsSet() throws Exception {
     String reponame = "any-reponame";
 
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(new NullOutputStream());
-
     repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
 
-    verify(gridFsinputFile).setFilename(createFilename(reponame));
-  }
-
-  @Test
-  public void correctContentTypeIsSet() throws Exception {
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(new NullOutputStream());
-
-    repoMdGenerator.generateRepoMdXml("any-reponame", new ArrayList<Data>());
-
-    verify(gridFsinputFile).setContentType(MediaType.APPLICATION_XML.toString());
-  }
-
-  @Test
-  public void gridFsFileIsActuallySaved() throws IOException {
-    OutputStream outputStream = mock(OutputStream.class);
-
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(outputStream);
-
-    repoMdGenerator.generateRepoMdXml("any-reponame", new ArrayList<Data>());
-
-    verify(outputStream, times(2)).close();
-  }
-
-  @Test
-  public void previousRepoMdXmlIsDeletedIfExists() throws IOException {
-    String reponame = "any-reponame";
-    GridFSDBFile gridFSDBFile = mock(GridFSDBFile.class);
-
-    when(gridFs.findOne(createFilename(reponame))).thenReturn(gridFSDBFile);
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(new NullOutputStream());
-
-    repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
-
-    verify(gridFs).remove(gridFSDBFile);
-  }
-
-  @Test
-  public void previousRepoMdXmlIsNOTDeletedIfNotExists() throws IOException {
-    String reponame = "any-reponame";
-
-    when(gridFs.findOne(createFilename(reponame))).thenReturn(null);
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(new NullOutputStream());
-
-    repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
-
-    verify(gridFs, never()).remove(any(String.class));
-    verify(gridFs, never()).remove(any(BasicDBObject.class));
-    verify(gridFs, never()).remove(any(ObjectId.class));
+    verify(fileStorageService).storeFile(any(InputStream.class), eq(new GridFsFileDescriptor(createFilename(reponame))));
   }
 
   @Test
   public void repoMdXmlMatchesExpectedResult() throws Exception {
     Path path = Files.createTempFile(null, null);
-    FileOutputStream os = new FileOutputStream(path.toFile());
+    final FileOutputStream os = new FileOutputStream(path.toFile());
     Data data = createData();
 
-    when(gridFs.createFile()).thenReturn(gridFsinputFile);
-    when(gridFsinputFile.getOutputStream()).thenReturn(os);
+    when(pgpSigner.isActive()).thenReturn(false);
+    when(fileStorageService.storeFile(any(InputStream.class), any(GridFsFileDescriptor.class), eq(true))).then(new Answer<FileStorageItem>() {
+      @Override
+      public FileStorageItem answer(InvocationOnMock invocation) throws Throwable {
+        InputStream inputStream = (InputStream) invocation.getArguments()[0];
+        IOUtils.copy(inputStream, os);
+        return null;
+      }
+    });
 
     repoMdGenerator.generateRepoMdXml("any-reponame", asList(data));
 
@@ -168,12 +100,5 @@ public class RepoMdGeneratorTest {
     Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
     FileInputStream is = new FileInputStream(path.toFile());
     return (RepoMd) unmarshaller.unmarshal(is);
-  }
-
-  private BasicDBObject createExpectedMetaData(String reponame) {
-    BasicDBObject metaData = new BasicDBObject();
-    metaData.put(REPO_KEY, reponame);
-    metaData.put(ARCH_KEY, ARCH_KEY_REPO_DATA);
-    return metaData;
   }
 }

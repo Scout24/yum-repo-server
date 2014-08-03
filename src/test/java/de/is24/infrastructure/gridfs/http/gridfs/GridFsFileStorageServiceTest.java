@@ -62,4 +62,16 @@ public class GridFsFileStorageServiceTest {
     verify(dbObject).put(eq("repo"), eq("dest-repo"));
     verify(dbFile).save();
   }
+
+  //TODO:
+
+  @Test
+  public void setCorrectContentType() throws Exception {
+
+  }
+
+  @Test
+  public void overrideExistingFile() throws Exception {
+
+  }
 }

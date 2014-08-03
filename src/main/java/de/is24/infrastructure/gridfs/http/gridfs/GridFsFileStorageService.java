@@ -57,12 +57,15 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.data.mongodb.core.query.Update.update;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
+import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 @ManagedResource
 @Service
 public class GridFsFileStorageService implements FileStorageService {
   private static final Logger LOGGER = LoggerFactory.getLogger(GridFsFileStorageService.class);
   public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
+  public static final String CONTENT_TYPE_APPLICATION_X_GPG = "application/x-gpg";
   private static final String BZ2_CONTENT_TYPE = new MediaType("application", "x-bzip2").toString();
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   private static final int MB = 1024 * 1024;
@@ -135,14 +138,18 @@ public class GridFsFileStorageService implements FileStorageService {
 
   @Override
   public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor) {
+    return storeFile(inputStream, descriptor, false);
+  }
+
+  @Override
+  public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor, boolean allowOverride) {
     FileStorageItem existingDbFile = findBy(descriptor);
-    if (existingDbFile != null) {
+    if (existingDbFile != null && !allowOverride) {
       throw new GridFSFileAlreadyExistsException("Reupload of rpm is not possible.", descriptor.getPath());
     }
 
     DigestInputStream digestInputStream = new DigestInputStream(inputStream, getSha256Digest());
-    GridFSFile inputFile = gridFsTemplate.store(digestInputStream, descriptor.getPath(),
-        CONTENT_TYPE_APPLICATION_X_RPM);
+    GridFSFile inputFile = gridFsTemplate.store(digestInputStream, descriptor.getPath(), getContentType(descriptor.getPath()));
     closeQuietly(digestInputStream);
 
     String sha256Hash = encodeHexString(digestInputStream.getMessageDigest().digest());
@@ -150,7 +157,24 @@ public class GridFsFileStorageService implements FileStorageService {
     mergeMetaData(inputFile, metaData);
 
     inputFile.save();
+
+    if (existingDbFile != null) {
+      delete(existingDbFile);
+    }
+
     return findById(inputFile.getId());
+  }
+
+  private String getContentType(String path) {
+    if (path.endsWith(".rpm")) {
+      return CONTENT_TYPE_APPLICATION_X_RPM;
+    } else if (path.endsWith(".xml")) {
+      return APPLICATION_XML_VALUE;
+    } else if (path.endsWith(".asc")) {
+      return CONTENT_TYPE_APPLICATION_X_GPG;
+    }
+
+    return APPLICATION_OCTET_STREAM_VALUE;
   }
 
   @Override
