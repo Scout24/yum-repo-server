@@ -49,10 +49,11 @@ public class RepoMdGeneratorTest {
   @Test
   public void correctFilenameIsSet() throws Exception {
     String reponame = "any-reponame";
+    when(pgpSigner.isActive()).thenReturn(false);
 
     repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
 
-    verify(fileStorageService).storeFile(any(InputStream.class), eq(new GridFsFileDescriptor(createFilename(reponame))));
+    verify(fileStorageService).storeFile(any(InputStream.class), eq(new GridFsFileDescriptor(createFilename(reponame))), eq(true));
   }
 
   @Test

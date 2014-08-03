@@ -7,6 +7,9 @@ import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
+import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
+import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
+
 
 public class GridFsFileDescriptor {
   private String repo;
@@ -82,6 +85,16 @@ public class GridFsFileDescriptor {
 
   public void setRepo(String repo) {
     this.repo = repo;
+  }
+
+  @Override
+  public int hashCode() {
+    return reflectionHashCode(this);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return reflectionEquals(this, obj);
   }
 
   @Override
