@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.storage;
 
-import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -41,10 +40,6 @@ public class FileDescriptor {
 
   public FileDescriptor(YumEntry entry) {
     this(entry.getRepo(), entry.getYumPackage());
-  }
-
-  public FileDescriptor(GridFSDBFile gridFSDBFile) {
-    this(gridFSDBFile.getFilename());
   }
 
   public FileDescriptor(String repo, YumPackage yumPackage) {

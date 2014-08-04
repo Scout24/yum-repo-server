@@ -112,7 +112,7 @@ public class GridFsFileStorageService implements FileStorageService {
   @Override
   public void moveTo(FileStorageItem storageItem, String repo) {
     GridFSDBFile dbFile = ((GridFsFileStorageItem) storageItem).getDbFile();
-    FileDescriptor descriptor = new FileDescriptor(dbFile);
+    FileDescriptor descriptor = new FileDescriptor(storageItem);
     descriptor.setRepo(repo);
     dbFile.put(FILENAME_KEY, descriptor.getPath());
     dbFile.getMetaData().put(REPO_KEY, repo);
