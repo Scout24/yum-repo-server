@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class ProtectedRepoAccessEvaluator {
     return !protectedRepos.contains(repo);
   }
 
-  public boolean isAllowed(GridFsFileDescriptor gridFsFileDescriptor, Authentication authentication) {
+  public boolean isAllowed(FileDescriptor fileDescriptor, Authentication authentication) {
     boolean isWebCall = false;
     HostName remoteHostName = null;
     if (authentication != null) {
@@ -53,16 +53,16 @@ public class ProtectedRepoAccessEvaluator {
       remoteHostName = ((AuthenticationDetails) authentication.getDetails()).getRemoteHost();
     }
 
-    if (isWebCall && !gridFsFileDescriptor.getArch().equals("repodata") &&
-        protectedRepos.contains(gridFsFileDescriptor.getRepo())) {
-      LOGGER.info("check access permission for {} to {}", remoteHostName, gridFsFileDescriptor.getPath());
+    if (isWebCall && !fileDescriptor.getArch().equals("repodata") &&
+        protectedRepos.contains(fileDescriptor.getRepo())) {
+      LOGGER.info("check access permission for {} to {}", remoteHostName, fileDescriptor.getPath());
       if (remoteHostName.isIp()) {
         LOGGER.debug("..is IP...");
         if (!isAllowedIp(remoteHostName.getName())) {
           LOGGER.info("... ip not in whitelist: deny");
           return false;
         }
-      } else if (!gridFsFileDescriptor.getFilename().contains(remoteHostName.getShortName())) {
+      } else if (!fileDescriptor.getFilename().contains(remoteHostName.getShortName())) {
         LOGGER.info("... not ip, not matching: deny");
         return false;
       }

@@ -3,10 +3,10 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.util.monitoring.spring.TimeMeasurement;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.util.monitoring.InApplicationMonitor;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
@@ -63,7 +65,7 @@ public class FileController {
   public ResponseEntity<InputStreamResource> deliverFile(@PathVariable("repo") String repo,
                                                          @PathVariable("arch") String arch,
                                                          @PathVariable("filename") String filename) throws IOException {
-    BoundedGridFsResource resource = gridFs.getResource(new GridFsFileDescriptor(repo, arch, filename));
+    BoundedGridFsResource resource = gridFs.getResource(new FileDescriptor(repo, arch, filename));
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentLength(resource.contentLength());
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm");
@@ -76,7 +78,7 @@ public class FileController {
                                                                 @PathVariable("filename") String filename,
                                                                 @RequestHeader("Range") String rangeHeader)
                                                          throws IOException {
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(repo, arch, filename);
+    FileDescriptor descriptor = new FileDescriptor(repo, arch, filename);
     Matcher matcher = getMatcher(rangeHeader);
     String intervalStartString = matcher.group(1);
     String intervalEndString = matcher.group(2);
@@ -130,7 +132,7 @@ public class FileController {
   public void deleteFile(@PathVariable("repoName") String repoName,
                          @PathVariable("arch") String arch,
                          @PathVariable("filename") String filename, HttpServletResponse response) {
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(repoName, arch, filename + RPM_EXTENSION);
+    FileDescriptor descriptor = new FileDescriptor(repoName, arch, filename + RPM_EXTENSION);
     try {
       gridFs.delete(descriptor);
     } catch (GridFSFileNotFoundException ex) {

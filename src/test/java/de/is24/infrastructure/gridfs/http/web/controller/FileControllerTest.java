@@ -1,7 +1,7 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class FileControllerTest extends AbstractControllerTest {
   @SuppressWarnings("unchecked")
   @Test
   public void get404ResponseWhenFileIsNotFound() throws Exception {
-    when(gridFsService.getResource(any(GridFsFileDescriptor.class))).thenThrow(GridFSFileNotFoundException.class);
+    when(gridFsService.getResource(any(FileDescriptor.class))).thenThrow(GridFSFileNotFoundException.class);
 
     performRpmGet().andExpect(status().isNotFound());
   }
@@ -107,7 +107,7 @@ public class FileControllerTest extends AbstractControllerTest {
 
   @Test
   public void deliver204IfRpmDoesNotExists() throws Exception {
-    doThrow(GridFSFileNotFoundException.class).when(gridFsService).delete(any(GridFsFileDescriptor.class));
+    doThrow(GridFSFileNotFoundException.class).when(gridFsService).delete(any(FileDescriptor.class));
 
     mockMvc.perform(DELETE_REQUEST).andExpect(status().isNoContent());
   }
@@ -121,10 +121,10 @@ public class FileControllerTest extends AbstractControllerTest {
   private void givenGridFSDBFile() throws IOException {
     FileStorageItem fileStorageItem = storageItem(CONTENT_WITH_200_CHARS);
 
-    when(gridFsService.getFileByDescriptor(any(GridFsFileDescriptor.class))).thenReturn(fileStorageItem);
-    when(gridFsService.getResource(any(GridFsFileDescriptor.class))).thenCallRealMethod();
-    when(gridFsService.getResource(any(GridFsFileDescriptor.class), anyLong())).thenCallRealMethod();
-    when(gridFsService.getResource(any(GridFsFileDescriptor.class), anyLong(), anyLong())).thenCallRealMethod();
+    when(gridFsService.getFileByDescriptor(any(FileDescriptor.class))).thenReturn(fileStorageItem);
+    when(gridFsService.getResource(any(FileDescriptor.class))).thenCallRealMethod();
+    when(gridFsService.getResource(any(FileDescriptor.class), anyLong())).thenCallRealMethod();
+    when(gridFsService.getResource(any(FileDescriptor.class), anyLong(), anyLong())).thenCallRealMethod();
   }
 
   private ResultActions performRpmGet() throws Exception {

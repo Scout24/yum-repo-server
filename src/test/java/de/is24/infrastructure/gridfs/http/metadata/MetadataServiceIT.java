@@ -4,9 +4,9 @@ import com.mongodb.QueryBuilder;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.bson.types.ObjectId;
 import org.junit.Before;
@@ -116,14 +116,14 @@ public class MetadataServiceIT {
   }
 
   private void assertRepoMdXml() {
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml");
+    FileDescriptor descriptor = new FileDescriptor(reponame, "repodata", "repomd.xml");
 
     FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
     assertThat(storageItem, notNullValue());
   }
 
   private void assertRepoMdXmlSignature() {
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, "repodata", "repomd.xml.asc");
+    FileDescriptor descriptor = new FileDescriptor(reponame, "repodata", "repomd.xml.asc");
 
     FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
     assertThat(storageItem, notNullValue());

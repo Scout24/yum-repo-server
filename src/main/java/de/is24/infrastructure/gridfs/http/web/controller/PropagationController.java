@@ -1,9 +1,9 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.util.monitoring.spring.TimeMeasurement;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.util.monitoring.InApplicationMonitor;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
 import javax.servlet.http.HttpServletResponse;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -36,7 +38,7 @@ public class PropagationController {
   @ResponseStatus(CREATED)
   public void propgateRpm(@RequestParam("source") String sourcePath,
                           @RequestParam("destination") String destinationRepo, HttpServletResponse response) {
-    GridFsFileDescriptor destination = gridFs.propagateRpm(sourcePath, destinationRepo);
+    FileDescriptor destination = gridFs.propagateRpm(sourcePath, destinationRepo);
 
     LOG.info("Moved {} to repository {}", sourcePath, destinationRepo);
     response.addHeader("Location", FileController.PREFIX + "/" + destination.getPath());

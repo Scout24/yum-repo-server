@@ -1,9 +1,9 @@
 package de.is24.infrastructure.gridfs.http.metadata.generation;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.jaxb.RepoMd;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +43,10 @@ public class RepoMdGenerator {
 
   public void generateRepoMdXml(final String reponame, final List<Data> data) {
     byte[] content = createXml(createRepoMd(createRevision(), data));
-    fileStorageService.storeFile(new ByteArrayInputStream(content), new GridFsFileDescriptor(filename(reponame)), true);
+    fileStorageService.storeFile(new ByteArrayInputStream(content), new FileDescriptor(filename(reponame)), true);
     if (pgpSigner.isActive()) {
       byte[] signature = pgpSigner.sign(content);
-      fileStorageService.storeFile(new ByteArrayInputStream(signature), new GridFsFileDescriptor(signatureFilename(reponame)), true);
+      fileStorageService.storeFile(new ByteArrayInputStream(signature), new FileDescriptor(signatureFilename(reponame)), true);
     }
   }
 

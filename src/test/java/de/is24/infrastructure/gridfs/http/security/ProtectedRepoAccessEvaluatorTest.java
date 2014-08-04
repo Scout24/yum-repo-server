@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
 import org.junit.After;
 import org.junit.Before;
@@ -22,11 +22,11 @@ public class ProtectedRepoAccessEvaluatorTest {
   public static final String NOT_WHITELISTED_IP = "1.2.3.4";
   private ProtectedRepoAccessEvaluator patternEvaluator;
 
-  public static final GridFsFileDescriptor PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR = new GridFsFileDescriptor(
+  public static final FileDescriptor PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR = new FileDescriptor(
     PROTECTED_REPO,
     "noarch",
     "lala-devxyz01.noarch.rpm");
-  public static final GridFsFileDescriptor METADATA_IN_PROTECTED_REPO_DESCRIPTOR = new GridFsFileDescriptor(
+  public static final FileDescriptor METADATA_IN_PROTECTED_REPO_DESCRIPTOR = new FileDescriptor(
     PROTECTED_REPO, "repodata", "repomd.xml");
 
   @Before
@@ -41,10 +41,10 @@ public class ProtectedRepoAccessEvaluatorTest {
 
   @Test
   public void allowAccessToAnyFileForAnyHostToReposNotProtected() throws Exception {
-    GridFsFileDescriptor gridFsFileDescriptor = new GridFsFileDescriptor(NOT_PROTECTED_REPO, "noarch",
+    FileDescriptor fileDescriptor = new FileDescriptor(NOT_PROTECTED_REPO, "noarch",
       "lala-devxyz01.noarch.rpm");
 
-    boolean allowed = patternEvaluator.isAllowed(gridFsFileDescriptor, currentAuthentication("devabc01"));
+    boolean allowed = patternEvaluator.isAllowed(fileDescriptor, currentAuthentication("devabc01"));
 
     assertThat(allowed, is(true));
   }

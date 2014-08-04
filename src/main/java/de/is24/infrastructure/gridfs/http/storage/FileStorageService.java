@@ -1,8 +1,6 @@
 package de.is24.infrastructure.gridfs.http.storage;
 
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +10,7 @@ import java.util.List;
 public interface FileStorageService {
   public FileStorageItem findById(Object id);
 
-  public FileStorageItem findBy(GridFsFileDescriptor descriptor);
+  public FileStorageItem findBy(FileDescriptor descriptor);
 
   public void delete(FileStorageItem storageItem);
 
@@ -20,9 +18,9 @@ public interface FileStorageService {
 
   public List<FileStorageItem> getAllRpms(String repo);
 
-  public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor);
+  public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor);
 
-  public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor, boolean allowOverride);
+  public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride);
 
   public UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException;
 

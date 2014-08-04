@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +34,14 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
   public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
     if (READ_FILE.equals(permission)) {
       Assert.notNull(targetDomainObject);
-      Assert.isInstanceOf(GridFsFileDescriptor.class, targetDomainObject, "GridFsFileDescriptor expected for read file permission");
-      return hasReadFilePermission((GridFsFileDescriptor) targetDomainObject, authentication);
+      Assert.isInstanceOf(FileDescriptor.class, targetDomainObject, "GridFsFileDescriptor expected for read file permission");
+      return hasReadFilePermission((FileDescriptor) targetDomainObject, authentication);
     }
 
     if (PROPAGATE_FILE.equals(permission)) {
       Assert.notNull(targetDomainObject);
       Assert.isInstanceOf(String.class, targetDomainObject, "String exepected for propagate file permission");
-      return hasReadFilePermission(new GridFsFileDescriptor(targetDomainObject.toString()), authentication);
+      return hasReadFilePermission(new FileDescriptor(targetDomainObject.toString()), authentication);
     }
 
     if (PROPAGATE_REPO.equals(permission)) {
@@ -53,7 +53,7 @@ public class ProtectedRepoFilePermissionEvaluator implements PermissionEvaluator
     throw new IllegalArgumentException("Unknown permission: " + permission.toString());
   }
 
-  private boolean hasReadFilePermission(GridFsFileDescriptor descriptor, Authentication authentication) {
+  private boolean hasReadFilePermission(FileDescriptor descriptor, Authentication authentication) {
     if (!accessEvaluator.isAllowed(descriptor, authentication)) {
       InApplicationMonitor.getInstance().incrementCounter(APPMON_ACCESS_PREVENTION);
       LOGGER.warn("preventing access to {}", descriptor.getPath());

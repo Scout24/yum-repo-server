@@ -1,9 +1,9 @@
 package de.is24.infrastructure.gridfs.http.metadata.generation;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.jaxb.RepoMd;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.apache.commons.io.IOUtils;
@@ -53,7 +53,7 @@ public class RepoMdGeneratorTest {
 
     repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
 
-    verify(fileStorageService).storeFile(any(InputStream.class), eq(new GridFsFileDescriptor(createFilename(reponame))), eq(true));
+    verify(fileStorageService).storeFile(any(InputStream.class), eq(new FileDescriptor(createFilename(reponame))), eq(true));
   }
 
   @Test
@@ -63,7 +63,7 @@ public class RepoMdGeneratorTest {
     Data data = createData();
 
     when(pgpSigner.isActive()).thenReturn(false);
-    when(fileStorageService.storeFile(any(InputStream.class), any(GridFsFileDescriptor.class), eq(true))).then(new Answer<FileStorageItem>() {
+    when(fileStorageService.storeFile(any(InputStream.class), any(FileDescriptor.class), eq(true))).then(new Answer<FileStorageItem>() {
       @Override
       public FileStorageItem answer(InvocationOnMock invocation) throws Throwable {
         InputStream inputStream = (InputStream) invocation.getArguments()[0];

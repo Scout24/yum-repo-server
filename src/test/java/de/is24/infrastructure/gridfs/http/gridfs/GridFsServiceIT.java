@@ -11,6 +11,7 @@ import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.lang.time.DateUtils;
 import org.bson.types.ObjectId;
@@ -136,7 +137,7 @@ public class GridFsServiceIT {
   @Test
   public void propagateRepositoryWithDeletedFiles() throws Exception {
     String sourceRepo = givenFullRepository();
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceRepo, NOARCH, "myDeleteFile.rpm");
+    FileDescriptor descriptor = new FileDescriptor(sourceRepo, NOARCH, "myDeleteFile.rpm");
     givenFileToBeDeleted(descriptor, new Date());
 
     String destinationRepo = givenFullRepository();
@@ -264,8 +265,8 @@ public class GridFsServiceIT {
     assertThat(context.repoEntriesRepository().findFirstByName(reponame), nullValue());
   }
 
-  private GridFsFileDescriptor createValidNoarchRPMDescriptorInRepo(String reponame) {
-    return new GridFsFileDescriptor(reponame, NOARCH, VALID_FILENAME);
+  private FileDescriptor createValidNoarchRPMDescriptorInRepo(String reponame) {
+    return new FileDescriptor(reponame, NOARCH, VALID_FILENAME);
   }
 
   @Test
@@ -273,7 +274,7 @@ public class GridFsServiceIT {
     String reponame = givenFullRepository();
     startTime = currentTimeMillis();
 
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, NOARCH,
+    FileDescriptor descriptor = new FileDescriptor(reponame, NOARCH,
       VALID_FILENAME_WITHOUT_VERSION + NOARCH_RPM_VERSION);
     context.gridFsService().delete(descriptor);
     assertThat(context.gridFsService().findFileByDescriptor(descriptor), nullValue());
@@ -284,12 +285,12 @@ public class GridFsServiceIT {
   @Test
   public void metaDataForDeletionIsSetByFilenameRegex() throws Exception {
     final String reponame = uniqueRepoName();
-    GridFsFileDescriptor matchingDescriptor = new GridFsFileDescriptor(reponame, TESTING_ARCH,
+    FileDescriptor matchingDescriptor = new FileDescriptor(reponame, TESTING_ARCH,
       "willmatch-filename.rpm");
     givenFileWithDescriptor(matchingDescriptor);
 
 
-    GridFsFileDescriptor noMatchDescriptor = new GridFsFileDescriptor(reponame, TESTING_ARCH, "no_match");
+    FileDescriptor noMatchDescriptor = new FileDescriptor(reponame, TESTING_ARCH, "no_match");
     givenFileWithDescriptor(noMatchDescriptor);
 
     context.fileStorageService().markForDeletionByFilenameRegex(".*-filename");
@@ -304,14 +305,14 @@ public class GridFsServiceIT {
   @Test
   public void metaDataForDeletionIsSetByPath() throws Exception {
     final String repoName = givenFullRepository();
-    GridFsFileDescriptor descriptor = createValidNoarchRPMDescriptorInRepo(repoName);
+    FileDescriptor descriptor = createValidNoarchRPMDescriptorInRepo(repoName);
 
     context.fileStorageService().markForDeletionByPath(descriptor.getPath());
 
     assertThatFileIsMarkedForDeletion(descriptor);
   }
 
-  private void assertThatFileIsMarkedForDeletion(GridFsFileDescriptor descriptor) {
+  private void assertThatFileIsMarkedForDeletion(FileDescriptor descriptor) {
     FileStorageItem storageItem = context.gridFsService().findFileByDescriptor(descriptor);
     final Date deletionObject = storageItem.getDateOfMarkAsDeleted();
     assertThat(deletionObject, is(notNullValue()));
@@ -327,7 +328,7 @@ public class GridFsServiceIT {
     final String repoName = givenFullRepository();
     final Date yesterday = DateUtils.addDays(new Date(), -1);
     final String file = "a_file_to_be_deleted";
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(repoName, TESTING_ARCH, file);
+    FileDescriptor descriptor = new FileDescriptor(repoName, TESTING_ARCH, file);
     givenFileToBeDeleted(descriptor, yesterday);
 
     context.fileStorageService().markForDeletionByPath(descriptor.getPath());
@@ -357,13 +358,13 @@ public class GridFsServiceIT {
   private void givenTowOfThreeFilesToBeDeleted(final Date now) throws IOException {
     final String repoToDeleteIn = uniqueRepoName();
     final Date past = DateUtils.addDays(now, -1);
-    givenFileToBeDeleted(new GridFsFileDescriptor(repoToDeleteIn, TESTING_ARCH, "toBeDeletedPast1"), past);
-    givenFileToBeDeleted(new GridFsFileDescriptor(repoToDeleteIn, TESTING_ARCH, "toBeDeletedPast2"), past);
-    givenFileToBeDeleted(new GridFsFileDescriptor(repoToDeleteIn, TESTING_ARCH, "toBeDeletedFuture"),
+    givenFileToBeDeleted(new FileDescriptor(repoToDeleteIn, TESTING_ARCH, "toBeDeletedPast1"), past);
+    givenFileToBeDeleted(new FileDescriptor(repoToDeleteIn, TESTING_ARCH, "toBeDeletedPast2"), past);
+    givenFileToBeDeleted(new FileDescriptor(repoToDeleteIn, TESTING_ARCH, "toBeDeletedFuture"),
       DateUtils.addDays(now, 1));
   }
 
-  private GridFSFile givenFileToBeDeleted(GridFsFileDescriptor descriptor, final Date time) throws IOException {
+  private GridFSFile givenFileToBeDeleted(FileDescriptor descriptor, final Date time) throws IOException {
     final GridFSDBFile toBeDeleted = ((GridFsFileStorageItem) givenFileWithDescriptor(descriptor)).getDbFile();
 
     mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
@@ -371,7 +372,7 @@ public class GridFsServiceIT {
     return toBeDeleted;
   }
 
-  private FileStorageItem givenFileWithDescriptor(GridFsFileDescriptor descriptor) throws IOException {
+  private FileStorageItem givenFileWithDescriptor(FileDescriptor descriptor) throws IOException {
     return context.fileStorageService().storeFile(contentInputStream(), descriptor);
   }
 
@@ -379,7 +380,7 @@ public class GridFsServiceIT {
   @Test
   public void deleteFiles() throws Exception {
     String repo = givenFullRepository();
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(repo, TESTING_ARCH, "any-filename");
+    FileDescriptor descriptor = new FileDescriptor(repo, TESTING_ARCH, "any-filename");
 
     context.gridFsTemplate().store(asStream("/test-for-delete-file.txt"), descriptor.getPath());
 
@@ -398,7 +399,7 @@ public class GridFsServiceIT {
     assertThat(data.getOpenSize(), is(33L));
     assertThat(data.getOpenChecksum().getChecksum(), is(TEST_FILE_OPEN_SHA256));
 
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, REPODATA,
+    FileDescriptor descriptor = new FileDescriptor(reponame, REPODATA,
       "primary-" + TEST_FILE_BZ2_SHA256 + ".sqlite.bz2");
 
     FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);

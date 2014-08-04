@@ -1,9 +1,10 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import org.junit.Test;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -28,7 +29,7 @@ public class PropagationControllerTest extends AbstractControllerTest {
 
   @Test
   public void moveFileToDestRepo() throws Exception {
-    doReturn(new GridFsFileDescriptor("my", "existing", "file")).when(gridFsService)
+    doReturn(new FileDescriptor("my", "existing", "file")).when(gridFsService)
     .propagateRpm(anyString(), anyString());
 
     final String sourceFile = "my/existing/file";

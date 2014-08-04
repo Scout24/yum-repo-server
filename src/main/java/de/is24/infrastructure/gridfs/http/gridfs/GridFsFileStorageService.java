@@ -9,6 +9,7 @@ import com.mongodb.gridfs.GridFSFile;
 import com.mongodb.gridfs.GridFSInputFile;
 import com.mongodb.gridfs.GridFSUtil;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.infrastructure.gridfs.http.storage.UploadResult;
@@ -98,7 +99,7 @@ public class GridFsFileStorageService implements FileStorageService {
   }
 
   @Override
-  public FileStorageItem findBy(GridFsFileDescriptor descriptor) {
+  public FileStorageItem findBy(FileDescriptor descriptor) {
     GridFSDBFile gridFSDBFile = gridFsTemplate.findOne(query(whereFilename().is(descriptor.getPath())));
     return gridFSDBFile != null ? new GridFsFileStorageItem(gridFSDBFile) : null;
   }
@@ -111,7 +112,7 @@ public class GridFsFileStorageService implements FileStorageService {
   @Override
   public void moveTo(FileStorageItem storageItem, String repo) {
     GridFSDBFile dbFile = ((GridFsFileStorageItem) storageItem).getDbFile();
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(dbFile);
+    FileDescriptor descriptor = new FileDescriptor(dbFile);
     descriptor.setRepo(repo);
     dbFile.put(FILENAME_KEY, descriptor.getPath());
     dbFile.getMetaData().put(REPO_KEY, repo);
@@ -137,12 +138,12 @@ public class GridFsFileStorageService implements FileStorageService {
   }
 
   @Override
-  public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor) {
+  public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor) {
     return storeFile(inputStream, descriptor, false);
   }
 
   @Override
-  public FileStorageItem storeFile(InputStream inputStream, GridFsFileDescriptor descriptor, boolean allowOverride) {
+  public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride) {
     FileStorageItem existingDbFile = findBy(descriptor);
     if (existingDbFile != null && !allowOverride) {
       throw new GridFSFileAlreadyExistsException("Reupload of rpm is not possible.", descriptor.getPath());
@@ -179,7 +180,7 @@ public class GridFsFileStorageService implements FileStorageService {
 
   @Override
   public UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException {
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, ARCH_KEY_REPO_DATA, name);
+    FileDescriptor descriptor = new FileDescriptor(reponame, ARCH_KEY_REPO_DATA, name);
     GridFSInputFile inputFile = gridFs.createFile();
     inputFile.setContentType(BZ2_CONTENT_TYPE);
 
@@ -288,7 +289,7 @@ public class GridFsFileStorageService implements FileStorageService {
     return ARCH_KEY_REPO_DATA + "/" + name + "-" + checksum + ".sqlite.bz2";
   }
 
-  private DBObject createBasicMetaDataObject(GridFsFileDescriptor descriptor, String sha256Hash) {
+  private DBObject createBasicMetaDataObject(FileDescriptor descriptor, String sha256Hash) {
     DBObject metaData = new BasicDBObject();
     metaData.put(REPO_KEY, descriptor.getRepo());
     metaData.put(ARCH_KEY, descriptor.getArch());

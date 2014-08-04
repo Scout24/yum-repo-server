@@ -16,6 +16,7 @@ import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderToYumPackageConverter;
 import de.is24.infrastructure.gridfs.http.rpm.RpmHeaderWrapper;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.infrastructure.gridfs.http.storage.UploadResult;
@@ -107,10 +108,10 @@ public class GridFsService {
 
   @TimeMeasurement
   @PreAuthorize("hasPermission(#sourceFile, '" + PROPAGATE_FILE + "')")
-  public GridFsFileDescriptor propagateRpm(String sourceFile, String destinationRepo) {
+  public FileDescriptor propagateRpm(String sourceFile, String destinationRepo) {
     validatePathToRpm(sourceFile);
 
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(sourceFile);
+    FileDescriptor descriptor = new FileDescriptor(sourceFile);
     validateDestinationRepo(descriptor.getRepo(), destinationRepo);
 
     FileStorageItem storageItem = findRpmByPathDirectlyOrFindNewestRpmMatchingNameAndArch(descriptor);
@@ -122,7 +123,7 @@ public class GridFsService {
     }
 
     String sourceRepo = storageItem.getRepo();
-    GridFsFileDescriptor fileDescriptor = move(storageItem, destinationRepo);
+    FileDescriptor fileDescriptor = move(storageItem, destinationRepo);
     repoService.createOrUpdate(sourceRepo);
     repoService.createOrUpdate(destinationRepo);
     return fileDescriptor;
@@ -131,19 +132,19 @@ public class GridFsService {
 
   @TimeMeasurement
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public FileStorageItem findFileByDescriptor(GridFsFileDescriptor descriptor) {
+  public FileStorageItem findFileByDescriptor(FileDescriptor descriptor) {
     return internalUnsecuredFindFileByDescriptor(descriptor);
   }
 
   @TimeMeasurement
-  public FileStorageItem internalUnsecuredFindFileByDescriptor(GridFsFileDescriptor descriptor) {
+  public FileStorageItem internalUnsecuredFindFileByDescriptor(FileDescriptor descriptor) {
     return fileStorageService.findBy(descriptor);
   }
 
 
   @TimeMeasurement
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public FileStorageItem getFileByDescriptor(GridFsFileDescriptor descriptor) {
+  public FileStorageItem getFileByDescriptor(FileDescriptor descriptor) {
     FileStorageItem storageItem = findFileByDescriptor(descriptor);
     if (storageItem == null) {
       throw new GridFSFileNotFoundException("Could not find file in gridfs.", descriptor.getPath());
@@ -152,7 +153,7 @@ public class GridFsService {
   }
 
   @TimeMeasurement
-  public void delete(GridFsFileDescriptor descriptor) {
+  public void delete(FileDescriptor descriptor) {
     FileStorageItem dbFile = getFileByDescriptor(descriptor);
     delete(dbFile);
 
@@ -169,7 +170,7 @@ public class GridFsService {
     }
   }
 
-  private FileStorageItem findRpmByPathDirectlyOrFindNewestRpmMatchingNameAndArch(GridFsFileDescriptor descriptor) {
+  private FileStorageItem findRpmByPathDirectlyOrFindNewestRpmMatchingNameAndArch(FileDescriptor descriptor) {
     FileStorageItem dbFile = findFileByDescriptor(descriptor);
     if (dbFile != null) {
       if (!dbFile.getFilename().endsWith(".rpm")) {
@@ -181,7 +182,7 @@ public class GridFsService {
     return findNewestRpmByPath(descriptor);
   }
 
-  private FileStorageItem findNewestRpmByPath(GridFsFileDescriptor descriptor) {
+  private FileStorageItem findNewestRpmByPath(FileDescriptor descriptor) {
     return findNewestRpmInRepoByNameAndArch(descriptor.getRepo(), descriptor.getArch(), descriptor.getFilename());
   }
 
@@ -197,7 +198,7 @@ public class GridFsService {
     return fileStorageService.findById(lastEntry.getId());
   }
 
-  private GridFsFileDescriptor move(FileStorageItem storageItem, String destinationRepo) {
+  private FileDescriptor move(FileStorageItem storageItem, String destinationRepo) {
     YumEntry yumEntry = yumEntriesRepository.findOne((ObjectId) storageItem.getId());
     if (yumEntry == null) {
       try {
@@ -209,7 +210,7 @@ public class GridFsService {
     yumEntry.setRepo(null);
     yumEntriesRepository.save(yumEntry);
 
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(storageItem);
+    FileDescriptor descriptor = new FileDescriptor(storageItem);
     descriptor.setRepo(destinationRepo);
 
     FileStorageItem storageItemToOverride = findFileByDescriptor(descriptor);
@@ -226,22 +227,22 @@ public class GridFsService {
   }
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor) throws IOException {
+  public BoundedGridFsResource getResource(FileDescriptor descriptor) throws IOException {
     return getResource(descriptor, 0);
   }
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos) throws IOException {
+  public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos) throws IOException {
     return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos);
   }
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public BoundedGridFsResource getResource(GridFsFileDescriptor descriptor, long startPos, long size)
+  public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size)
                                     throws IOException {
     return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos, size);
   }
 
-  private FileStorageItem getFileStorageItemWithCheckedStartPos(GridFsFileDescriptor descriptor, long startPos) {
+  private FileStorageItem getFileStorageItemWithCheckedStartPos(FileDescriptor descriptor, long startPos) {
     FileStorageItem storageItem = getFileByDescriptor(descriptor);
     if (startPos >= storageItem.getSize()) {
       throw new BadRangeRequestException(format(
@@ -279,7 +280,7 @@ public class GridFsService {
     YumPackage yumPackage = convertHeader(bufferedInputStream);
     bufferedInputStream.reset();
 
-    GridFsFileDescriptor descriptor = new GridFsFileDescriptor(reponame, yumPackage);
+    FileDescriptor descriptor = new FileDescriptor(reponame, yumPackage);
     final FileStorageItem storageItem = fileStorageService.storeFile(bufferedInputStream, descriptor);
 
     yumEntriesRepository.save(createYumEntry(yumPackage, storageItem));
@@ -309,7 +310,7 @@ public class GridFsService {
   }
 
   @ManagedOperation
-  public YumEntry regenerateMetadataFor(GridFsFileDescriptor descriptor) throws InvalidRpmHeaderException {
+  public YumEntry regenerateMetadataFor(FileDescriptor descriptor) throws InvalidRpmHeaderException {
     return regenerateMetadataFor(getFileByDescriptor(descriptor));
   }
 

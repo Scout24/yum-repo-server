@@ -1,9 +1,8 @@
-package de.is24.infrastructure.gridfs.http.gridfs;
+package de.is24.infrastructure.gridfs.http.storage;
 
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
-import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 
@@ -11,7 +10,7 @@ import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
 import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
 
 
-public class GridFsFileDescriptor {
+public class FileDescriptor {
   private String repo;
   private String arch;
   private String filename;
@@ -22,7 +21,7 @@ public class GridFsFileDescriptor {
    * @param path following the pattern repo/arch/filename or more detailed contains two slashes
    * @throws IllegalArgumentException if path does not follow pattern repo/arch/filename
    */
-  public GridFsFileDescriptor(String path) {
+  public FileDescriptor(String path) {
     String[] split = path.split("/");
     if (split.length != 3) {
       throw new IllegalArgumentException("path " + path +
@@ -34,21 +33,21 @@ public class GridFsFileDescriptor {
     this.filename = split[2];
   }
 
-  public GridFsFileDescriptor(String repo, String arch, String filename) {
+  public FileDescriptor(String repo, String arch, String filename) {
     this.repo = repo;
     this.arch = arch;
     this.filename = filename;
   }
 
-  public GridFsFileDescriptor(YumEntry entry) {
+  public FileDescriptor(YumEntry entry) {
     this(entry.getRepo(), entry.getYumPackage());
   }
 
-  public GridFsFileDescriptor(GridFSDBFile gridFSDBFile) {
+  public FileDescriptor(GridFSDBFile gridFSDBFile) {
     this(gridFSDBFile.getFilename());
   }
 
-  public GridFsFileDescriptor(String repo, YumPackage yumPackage) {
+  public FileDescriptor(String repo, YumPackage yumPackage) {
     this.repo = repo;
 
     String href = yumPackage.getLocation().getHref();
@@ -62,7 +61,7 @@ public class GridFsFileDescriptor {
     }
   }
 
-  public GridFsFileDescriptor(FileStorageItem storageItem) {
+  public FileDescriptor(FileStorageItem storageItem) {
     this(storageItem.getFilename());
   }
 

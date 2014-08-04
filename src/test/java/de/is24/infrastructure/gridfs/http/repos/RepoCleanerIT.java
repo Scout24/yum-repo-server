@@ -7,8 +7,8 @@ import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageLocation;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileDescriptor;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -109,7 +109,7 @@ public class RepoCleanerIT {
 
   private void assertThatGridFsFileIsMarkedAsDeleted() {
     for (YumEntry entryToDelete : YUM_ENTRIES_TO_CLEAN_UP) {
-      assertTrue(context.fileStorageService().findBy(new GridFsFileDescriptor(entryToDelete)).isMarkedAsDeleted());
+      assertTrue(context.fileStorageService().findBy(new FileDescriptor(entryToDelete)).isMarkedAsDeleted());
     }
   }
 

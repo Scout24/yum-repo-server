@@ -8,6 +8,7 @@ import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.RepositoryIsUndeletableException;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.bson.types.ObjectId;
@@ -79,7 +80,7 @@ public class GridFsServiceTest {
   public void moveFileToNewRepo() throws Exception {
     FileStorageItem storageItem = mock(FileStorageItem.class);
     when(storageItem.getFilename()).thenReturn("repo/arch/file.rpm");
-    when(fileStorageService.findBy(any(GridFsFileDescriptor.class))).thenReturn(storageItem);
+    when(fileStorageService.findBy(any(FileDescriptor.class))).thenReturn(storageItem);
 
     service.propagateRpm("repo/arch/file.rpm", "dest-repo");
 
