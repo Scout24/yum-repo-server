@@ -1,14 +1,14 @@
 package de.is24.infrastructure.gridfs.http.maintenance;
 
 import com.mongodb.DBObject;
-import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.apache.log4j.MDC;
 import org.bson.types.ObjectId;
@@ -48,7 +48,7 @@ public class MaintenanceService {
 
 
   private YumEntriesRepository yumEntriesRepository;
-  private GridFsService gridFsService;
+  private FileStorageService fileStorageService;
   private MongoTemplate mongoTemplate;
   private GridFsOperations gridFsTemplate;
 
@@ -59,10 +59,10 @@ public class MaintenanceService {
 
   @Autowired
   public MaintenanceService(TaskScheduler taskScheduler, YumEntriesRepository yumEntriesRepository,
-                            GridFsService gridFsService, MongoTemplate mongoTemplate, GridFsOperations gridFsTemplate) {
+                            FileStorageService fileStorageService, MongoTemplate mongoTemplate, GridFsOperations gridFsTemplate) {
     this.taskScheduler = taskScheduler;
     this.yumEntriesRepository = yumEntriesRepository;
-    this.gridFsService = gridFsService;
+    this.fileStorageService = fileStorageService;
     this.mongoTemplate = mongoTemplate;
     this.gridFsTemplate = gridFsTemplate;
   }
@@ -100,17 +100,16 @@ public class MaintenanceService {
     return result;
   }
 
-  public Set<GridFSDBFile> getFilesWithoutYumEntry() {
+  public Set<FileStorageItem> getFilesWithoutYumEntry() {
     final Query query = new Query(where("metadata.arch").ne("repodata"));
     query.addCriteria(where("metadata.markedAsDeleted").exists(false));
 
     CheckForMissingEntriesCallbackHandler callbackHandler = new CheckForMissingEntriesCallbackHandler();
     mongoTemplate.executeQuery(query, GRIDFS_FILES_COLLECTION, callbackHandler);
 
-    Set<GridFSDBFile> result = new HashSet<GridFSDBFile>();
+    Set<FileStorageItem> result = new HashSet<>();
     for (ObjectId id : callbackHandler.getFilesWithMissingEntry()) {
-      GridFSDBFile gridFSDBFile = gridFsTemplate.findOne(Query.query(where("_id").is(id)));
-      result.add(gridFSDBFile);
+      result.add(fileStorageService.findById(id));
     }
     return result;
   }
@@ -123,7 +122,7 @@ public class MaintenanceService {
       FileDescriptor descriptor = new FileDescriptor(sourceRepo, strings[0], strings[1]);
       LOGGER.info("delete obsolete RPM {} obsoleted by a RPM in {}", descriptor.getPath(), targetRepo);
 
-      gridFsService.delete(descriptor);
+      fileStorageService.delete(descriptor);
     }
   }
 

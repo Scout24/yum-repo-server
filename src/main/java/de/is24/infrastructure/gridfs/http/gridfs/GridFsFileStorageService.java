@@ -110,6 +110,11 @@ public class GridFsFileStorageService implements FileStorageService {
   }
 
   @Override
+  public void delete(FileDescriptor descriptor) {
+    delete(findBy(descriptor));
+  }
+
+  @Override
   public void moveTo(FileStorageItem storageItem, String repo) {
     GridFSDBFile dbFile = ((GridFsFileStorageItem) storageItem).getDbFile();
     FileDescriptor descriptor = new FileDescriptor(storageItem);

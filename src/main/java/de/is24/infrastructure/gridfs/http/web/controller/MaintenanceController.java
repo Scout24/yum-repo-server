@@ -1,10 +1,10 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.maintenance.MaintenanceService;
-import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -159,7 +161,7 @@ public class MaintenanceController {
   )
   @ResponseBody
   @TimeMeasurement
-  public Set<GridFSDBFile> getGridFsFilesWithoutYumEntries() {
+  public Set<FileStorageItem> getFilesWithoutYumEntries() {
     return maintenanceService.getFilesWithoutYumEntry();
   }
 

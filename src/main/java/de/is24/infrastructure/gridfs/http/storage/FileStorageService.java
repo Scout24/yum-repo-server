@@ -14,6 +14,8 @@ public interface FileStorageService {
 
   public void delete(FileStorageItem storageItem);
 
+  public void delete(FileDescriptor descriptor);
+
   public void moveTo(FileStorageItem storageItem, String destinationRepo);
 
   public List<FileStorageItem> getAllRpms(String repo);
