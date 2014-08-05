@@ -18,7 +18,7 @@ public class PropagationControllerTest extends AbstractControllerTest {
 
   @Test
   public void throwExceptionForFileNotFound() throws Exception {
-    doThrow(GridFSFileNotFoundException.class).when(gridFsService).propagateRpm(anyString(), anyString());
+    doThrow(GridFSFileNotFoundException.class).when(storageService).propagateRpm(anyString(), anyString());
 
     mockMvc.perform(postPorpagationWithSourceFile("not/existing/file")).andExpect(status().isNotFound());
   }
@@ -29,13 +29,13 @@ public class PropagationControllerTest extends AbstractControllerTest {
 
   @Test
   public void moveFileToDestRepo() throws Exception {
-    doReturn(new FileDescriptor("my", "existing", "file")).when(gridFsService)
+    doReturn(new FileDescriptor("my", "existing", "file")).when(storageService)
     .propagateRpm(anyString(), anyString());
 
     final String sourceFile = "my/existing/file";
     mockMvc.perform(postPorpagationWithSourceFile(sourceFile)).andExpect(status().isCreated());
 
-    verify(gridFsService).propagateRpm(sourceFile, DEST_REPO);
+    verify(storageService).propagateRpm(sourceFile, DEST_REPO);
   }
 
 }

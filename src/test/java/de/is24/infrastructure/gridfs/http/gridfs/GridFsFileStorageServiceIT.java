@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
-import static de.is24.infrastructure.gridfs.http.gridfs.GridFsServiceIT.TESTING_ARCH;
+import static de.is24.infrastructure.gridfs.http.gridfs.StorageServiceIT.TESTING_ARCH;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;

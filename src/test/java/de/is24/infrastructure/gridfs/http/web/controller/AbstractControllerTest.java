@@ -1,7 +1,7 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileStorageService;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import org.junit.Before;
@@ -23,7 +23,7 @@ public abstract class AbstractControllerTest {
   @Mock
   protected GridFsFileStorageService fileStorageService;
   @Mock
-  protected GridFsService gridFsService;
+  protected StorageService storageService;
   @Mock
   protected MetadataService metadataService;
   @Mock
@@ -36,8 +36,8 @@ public abstract class AbstractControllerTest {
     mockMvc = standaloneSetup(
                 new FileController(fileStorageService),
                 new MetadataController(metadataService, repoService),
-                new RepositoryController(gridFsService, repoService),
-                new PropagationController(gridFsService)
+                new RepositoryController(storageService, repoService),
+                new PropagationController(storageService)
     ).build();
   }
 

@@ -3,7 +3,7 @@ package de.is24.infrastructure.gridfs.http.mongo;
 import com.mongodb.Mongo;
 import com.mongodb.gridfs.GridFS;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileStorageService;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesHashCalculator;
@@ -36,7 +36,7 @@ public class IntegrationTestContext extends MongoTestContext {
   private FileStorageService fileStorageService;
   private GridFS gridFs;
   private GridFsTemplate gridFsTemplate;
-  private GridFsService gridFsService;
+  private StorageService storageService;
   private YumEntriesRepository yumEntriesRepository;
   private RepoEntriesRepository repoEntriesRepository;
   private RepoService repoService;
@@ -62,12 +62,12 @@ public class IntegrationTestContext extends MongoTestContext {
     return fileStorageService;
   }
 
-  public GridFsService gridFsService() {
-    if (gridFsService == null) {
-      gridFsService = new GridFsService(fileStorageService(), yumEntriesRepository(),
+  public StorageService gridFsService() {
+    if (storageService == null) {
+      storageService = new StorageService(fileStorageService(), yumEntriesRepository(),
         repoService());
     }
-    return gridFsService;
+    return storageService;
   }
 
   public YumEntriesRepository yumEntriesRepository() {

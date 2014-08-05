@@ -41,7 +41,7 @@ import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilena
 
 
 @Category(LocalExecutionOnly.class)
-public class GridFsServiceIT  {
+public class StorageServiceIT {
   public static final String INVALIDE_REPO_NAME = "hall//fdg";
   public static final String NOARCH = "noarch";
   public static final String SRC = "src";

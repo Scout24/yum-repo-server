@@ -107,7 +107,7 @@ public class FileControllerTest extends AbstractControllerTest {
 
   @Test
   public void deliver204IfRpmDoesNotExists() throws Exception {
-    doThrow(GridFSFileNotFoundException.class).when(gridFsService).delete(any(FileDescriptor.class));
+    doThrow(GridFSFileNotFoundException.class).when(storageService).delete(any(FileDescriptor.class));
 
     mockMvc.perform(DELETE_REQUEST).andExpect(status().isNoContent());
   }

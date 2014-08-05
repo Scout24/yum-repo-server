@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.util.monitoring.InApplicationMonitor;
 import de.is24.util.monitoring.spring.TimeMeasurement;
@@ -21,7 +21,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 @TimeMeasurement
 public class PropagationController {
-  private final GridFsService gridFs;
+  private final StorageService gridFs;
   private static final Logger LOG = LoggerFactory.getLogger(PropagationController.class);
 
   // just for CGLIB
@@ -30,7 +30,7 @@ public class PropagationController {
   }
 
   @Autowired
-  public PropagationController(GridFsService gridFs) {
+  public PropagationController(StorageService gridFs) {
     this.gridFs = gridFs;
   }
 

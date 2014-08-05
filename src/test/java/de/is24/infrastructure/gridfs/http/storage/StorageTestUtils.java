@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.storage;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -9,11 +9,11 @@ import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRep
 
 public class StorageTestUtils {
 
-  private final GridFsService gridFsService;
+  private final StorageService storageService;
   private final FileStorageService fileStorageService;
 
-  public StorageTestUtils(GridFsService gridFsService, FileStorageService fileStorageService) {
-    this.gridFsService = gridFsService;
+  public StorageTestUtils(StorageService storageService, FileStorageService fileStorageService) {
+    this.storageService = storageService;
     this.fileStorageService = fileStorageService;
   }
 
@@ -23,7 +23,7 @@ public class StorageTestUtils {
 
   public String givenFullRepository() throws Exception {
     String repoName = uniqueRepoName();
-    gridFsService.storeRpm(repoName, getClass().getResourceAsStream("/rpms/valid.noarch.rpm"));
+    storageService.storeRpm(repoName, getClass().getResourceAsStream("/rpms/valid.noarch.rpm"));
     storeFile(repoName, REPOMD_PATH);
     storeFile(repoName, PRIMARY_XMl_PATH);
     storeFile(repoName, METADATA_PATH);

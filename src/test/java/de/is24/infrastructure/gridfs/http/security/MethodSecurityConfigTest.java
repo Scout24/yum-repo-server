@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.security;
 
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
@@ -29,7 +29,7 @@ public class MethodSecurityConfigTest {
   public static final String ANOTHER_REPO = "another-repo";
 
   @Autowired
-  private GridFsService gridFsService;
+  private StorageService storageService;
 
   @Autowired
   private FileStorageService fileStorageService;
@@ -53,11 +53,11 @@ public class MethodSecurityConfigTest {
 
   @Test(expected=AccessDeniedException.class)
   public void forbidPropagtionOfProtectedRpms() throws Exception {
-    gridFsService.propagateRpm(RPM_FILE_IN_PROTECTED_REPO.getPath(), ANOTHER_REPO);
+    storageService.propagateRpm(RPM_FILE_IN_PROTECTED_REPO.getPath(), ANOTHER_REPO);
   }
 
   @Test(expected=AccessDeniedException.class)
   public void forbidPropagtionOfProtectedRepos() throws Exception {
-    gridFsService.propagateRepository(PROTECTED_REPO, ANOTHER_REPO);
+    storageService.propagateRepository(PROTECTED_REPO, ANOTHER_REPO);
   }
 }

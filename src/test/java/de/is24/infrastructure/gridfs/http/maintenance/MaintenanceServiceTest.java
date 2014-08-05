@@ -4,7 +4,7 @@ import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,9 +13,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.scheduling.TaskScheduler;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
@@ -28,7 +30,7 @@ public class MaintenanceServiceTest {
   @Mock
   private YumEntriesRepository yumEntriesRepository;
   @Mock
-  private GridFsService gridFsService;
+  private StorageService storageService;
 
   @InjectMocks
   private MaintenanceService maintenanceService;

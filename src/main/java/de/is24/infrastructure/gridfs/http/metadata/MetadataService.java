@@ -3,7 +3,7 @@ package de.is24.infrastructure.gridfs.http.metadata;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.metadata.generation.DbGenerator;
 import de.is24.infrastructure.gridfs.http.metadata.generation.FileListsGenerator;
@@ -50,7 +50,7 @@ public class MetadataService {
   private static final String METADATA_SERVICE_GENERATE_REPOMDXML = METADATA_SERVICE + "generateRepomdXml.";
 
 
-  private final GridFsService gridFsService;
+  private final StorageService storageService;
   private final RepoMdGenerator repoMdGenerator;
   private final YumEntriesRepository entriesRepository;
   private final RepoService repoService;
@@ -63,7 +63,7 @@ public class MetadataService {
 
   //only for cglib proxy
   public MetadataService() {
-    gridFsService = null;
+    storageService = null;
     repoMdGenerator = null;
     entriesRepository = null;
     repoService = null;
@@ -74,11 +74,11 @@ public class MetadataService {
   }
 
   @Autowired
-  public MetadataService(GridFsService gridFs, FileStorageService fileStorageService, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
+  public MetadataService(StorageService gridFs, FileStorageService fileStorageService, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
                          RepoService repoService, RepoCleaner repoCleaner,
                          YumEntriesHashCalculator entriesHashCalculator,
                          InApplicationMonitor inApplicationMonitor) {
-    this.gridFsService = gridFs;
+    this.storageService = gridFs;
     this.fileStorageService = fileStorageService;
     this.entriesRepository = entriesRepository;
     this.repoMdGenerator = repoMdGenerator;
@@ -177,7 +177,7 @@ public class MetadataService {
         start, current);
       start = current;
 
-      Data data = gridFsService.storeRepodataDbBz2(reponame, tempDbFile, dbGenerator.getName());
+      Data data = storageService.storeRepodataDbBz2(reponame, tempDbFile, dbGenerator.getName());
       data.setType(dbGenerator.getName() + "_db");
 
       inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_STORE_DB + dbGenerator.getName() + "." + reponame,

@@ -3,10 +3,10 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
-import de.is24.util.monitoring.spring.TimeMeasurement;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.util.monitoring.InApplicationMonitor;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.MultipartFile;
+
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -35,7 +37,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 @RequestMapping("/repo")
 @TimeMeasurement
 public class RepositoryController {
-  private final GridFsService gridFs;
+  private final StorageService gridFs;
   private final RepoService repoService;
 
   /* for cglib */
@@ -45,7 +47,7 @@ public class RepositoryController {
   }
 
   @Autowired
-  public RepositoryController(GridFsService gridFs, RepoService repoService) {
+  public RepositoryController(StorageService gridFs, RepoService repoService) {
     this.gridFs = gridFs;
     this.repoService = repoService;
   }

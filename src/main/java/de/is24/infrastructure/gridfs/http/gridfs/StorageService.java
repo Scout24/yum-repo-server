@@ -55,8 +55,8 @@ import static org.apache.commons.lang.StringUtils.substringAfter;
 
 @ManagedResource
 @Service
-public class GridFsService {
-  private static final Logger LOGGER = LoggerFactory.getLogger(GridFsService.class);
+public class StorageService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(StorageService.class);
   private static final int BUFFER_SIZE = 16 * 1024 * 1024;
 
   private final FileStorageService fileStorageService;
@@ -65,15 +65,15 @@ public class GridFsService {
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
 
   //needed for cglib proxy
-  public GridFsService() {
+  public StorageService() {
     this.yumEntriesRepository = null;
     this.fileStorageService = null;
     this.repoService = null;
   }
 
   @Autowired
-  public GridFsService(FileStorageService fileStorageService,
-                       YumEntriesRepository yumEntriesRepository, RepoService repoService) {
+  public StorageService(FileStorageService fileStorageService,
+                        YumEntriesRepository yumEntriesRepository, RepoService repoService) {
     this.fileStorageService = fileStorageService;
     this.yumEntriesRepository = yumEntriesRepository;
     this.repoService = repoService;

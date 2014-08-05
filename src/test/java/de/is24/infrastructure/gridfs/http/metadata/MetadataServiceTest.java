@@ -2,7 +2,7 @@ package de.is24.infrastructure.gridfs.http.metadata;
 
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.RepoType;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
@@ -36,7 +36,7 @@ public class MetadataServiceTest {
   private MetadataService service;
   private String reponame;
   @Mock
-  private GridFsService gridFsService;
+  private StorageService storageService;
   @Mock
   private RepoCleaner repoCleaner;
   @Mock
@@ -56,7 +56,7 @@ public class MetadataServiceTest {
 
   @Before
   public void setup() throws Exception {
-    when(gridFsService.storeRepodataDbBz2(anyString(), any(File.class), anyString())).thenReturn(new Data());
+    when(storageService.storeRepodataDbBz2(anyString(), any(File.class), anyString())).thenReturn(new Data());
 
     this.reponame = "any-reponame";
 
@@ -88,6 +88,6 @@ public class MetadataServiceTest {
 
     service.generateYumMetadataIfNecessary(reponame);
 
-    verifyZeroInteractions(repoCleaner, gridFsService);
+    verifyZeroInteractions(repoCleaner, storageService);
   }
 }

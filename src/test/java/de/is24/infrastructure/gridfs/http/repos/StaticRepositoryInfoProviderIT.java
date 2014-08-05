@@ -6,7 +6,7 @@ import de.is24.infrastructure.gridfs.http.domain.FileInfo;
 import de.is24.infrastructure.gridfs.http.domain.FolderInfo;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.web.controller.StaticRepositoryInfoControllerIT;
 import org.fest.assertions.api.Assertions;
@@ -51,19 +51,19 @@ public class StaticRepositoryInfoProviderIT {
   @ClassRule
   public static IntegrationTestContext context = new IntegrationTestContext();
   private StaticRepositoryInfoProvider provider;
-  private GridFsService gridFsService;
+  private StorageService storageService;
 
   @Before
   public void setUp() throws Exception {
     provider = new StaticRepositoryInfoProvider(context.mongoTemplate(), context.repoEntriesRepository());
-    gridFsService = context.gridFsService();
+    storageService = context.gridFsService();
     cleanExistingRepos();
   }
 
   private void cleanExistingRepos() {
     final List<RepoEntry> repoEntries = context.repoEntriesRepository().findAll();
     for (RepoEntry entry : repoEntries) {
-      gridFsService.deleteRepository(entry.getName());
+      storageService.deleteRepository(entry.getName());
     }
     context.gridFsTemplate().delete(new Query());
   }
@@ -181,7 +181,7 @@ public class StaticRepositoryInfoProviderIT {
 
   private void cleanUpRepositories(String... repoNames) {
     for (String repoName : repoNames) {
-      gridFsService.deleteRepository(repoName);
+      storageService.deleteRepository(repoName);
     }
   }
 }

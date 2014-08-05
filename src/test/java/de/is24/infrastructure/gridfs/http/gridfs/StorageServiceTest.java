@@ -23,8 +23,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-public class GridFsServiceTest {
-  private GridFsService service;
+public class StorageServiceTest {
+  private StorageService service;
   private FileStorageService fileStorageService;
 
   private RepoService repoService;
@@ -36,7 +36,7 @@ public class GridFsServiceTest {
 
     repoService = mock(RepoService.class);
     fileStorageService = mock(FileStorageService.class);
-    service = new GridFsService(fileStorageService, yumEntriesRepository, repoService);
+    service = new StorageService(fileStorageService, yumEntriesRepository, repoService);
   }
 
   @Test(expected = BadRequestException.class)
