@@ -26,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -50,6 +51,7 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.SHA256_KEY;
+import static java.util.regex.Pattern.quote;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 import static org.apache.commons.codec.digest.DigestUtils.getSha256Digest;
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -282,6 +284,21 @@ public class GridFsFileStorageService implements FileStorageService {
   @Override
   public void deleteRepo(String reponame) {
     markForDeletion(whereMetaData(REPO_KEY).is(reponame));
+  }
+
+  @Override
+  public List<FileStorageItem> findByPrefix(String prefix) {
+    List<GridFSDBFile> gridFSDBFiles = gridFsTemplate.find(query(whereFilename().regex("^" + quote(prefix))));
+    return convert(gridFSDBFiles, GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
+  }
+
+  @Override
+  public void setUploadDate(FileStorageItem file, Date date) {
+    Assert.notNull(file);
+    Assert.isInstanceOf(GridFsFileStorageItem.class, file);
+    GridFSDBFile dbFile = ((GridFsFileStorageItem) file).getDbFile();
+    dbFile.getMetaData().put("uploadDate", date);
+    dbFile.save();
   }
 
   private void markForDeletion(final Criteria criteria) {

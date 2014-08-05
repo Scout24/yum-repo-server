@@ -35,4 +35,8 @@ public interface FileStorageService {
   public void markForDeletionByFilenameRegex(final String regex);
 
   public void deleteRepo(String reponame);
+
+  public List<FileStorageItem> findByPrefix(String prefix);
+
+  public void setUploadDate(FileStorageItem file, Date date);
 }

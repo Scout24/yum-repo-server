@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.metadata;
 
-import com.mongodb.QueryBuilder;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
@@ -8,23 +7,20 @@ import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
-import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.gridfs.GridFsCriteria;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_FILE_NAME;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
 import static java.io.File.createTempFile;
 import static java.lang.System.currentTimeMillis;
-import static java.util.regex.Pattern.compile;
 import static org.apache.commons.lang.time.DateUtils.addHours;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.endsWith;
@@ -32,6 +28,9 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
 
 
 @Category(LocalExecutionOnly.class)
@@ -86,33 +85,29 @@ public class MetadataServiceIT {
     String reponame = uniqueRepoName();
     service.setOutdatedMetaDataSurvivalTime(5);
 
-    ObjectId sqliteFileId = givenSomeSqliteFileFromOneHourAgo(reponame);
+    Object sqliteFileId = givenSomeSqliteFileFromOneHourAgo(reponame);
 
     context.gridFsService().storeRpm(reponame, streamOf(COMPLEX_RPM_FILE_NAME));
     service.generateYumMetadataIfNecessary(reponame);
 
-    assertThat(context.gridFs().findOne(sqliteFileId).getMetaData().get(DatabaseStructure.MARKED_AS_DELETED_KEY),
-      is(notNullValue()));
+    assertTrue(context.fileStorageService().findById(sqliteFileId).isMarkedAsDeleted());
   }
 
-  private ObjectId givenSomeSqliteFileFromOneHourAgo(String reponame) throws IOException {
+  private Object givenSomeSqliteFileFromOneHourAgo(String reponame) throws IOException {
     String givenSqliteFilenameInfix = "other-123";
     context.gridFsService()
     .storeRepodataDbBz2(reponame, createTempFile(reponame, "dummyfile"), givenSqliteFilenameInfix);
 
-    GridFSDBFile file = findSqLiteFile(reponame, givenSqliteFilenameInfix);
+    FileStorageItem file = findSqLiteFile(reponame, givenSqliteFilenameInfix);
     assertThat(file, notNullValue());
-    file.put("uploadDate", addHours(new Date(), -1));
-    file.save();
-    return (ObjectId) file.getId();
+    context.fileStorageService().setUploadDate(file, addHours(new Date(), -1));
+    return file.getId();
   }
 
-  private GridFSDBFile findSqLiteFile(String reponame,
+  private FileStorageItem findSqLiteFile(String reponame,
                                       String givenSqliteFilenameInfix) {
-    return context.gridFs()
-      .findOne(QueryBuilder.start("filename")
-        .regex(compile("^" + reponame + "/repodata/" + givenSqliteFilenameInfix))
-        .get());
+    List<FileStorageItem> storageItems = context.fileStorageService().findByPrefix(reponame + "/repodata/" + givenSqliteFilenameInfix);
+    return !storageItems.isEmpty() ? storageItems.get(0) : null;
   }
 
   private void assertRepoMdXml() {
@@ -131,7 +126,7 @@ public class MetadataServiceIT {
 
   private void assertDbFile(String type) {
     GridFSDBFile dbFile = context.gridFsTemplate()
-      .find(Query.query(GridFsCriteria.whereFilename().regex(reponame + "/repodata/.*" + type + ".*.sqlite.bz2")))
+      .find(query(whereFilename().regex(reponame + "/repodata/.*" + type + ".*.sqlite.bz2")))
       .get(0);
     String sha256 = dbFile.getMetaData().get("sha256").toString();
     assertThat(dbFile.getFilename(), endsWith(type + "-" + sha256 + ".sqlite.bz2"));
