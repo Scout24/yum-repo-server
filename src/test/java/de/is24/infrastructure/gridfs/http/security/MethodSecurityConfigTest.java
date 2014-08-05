@@ -2,6 +2,7 @@ package de.is24.infrastructure.gridfs.http.security;
 
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,8 +27,12 @@ public class MethodSecurityConfigTest {
   public static final String TEST_FILENAME = "test.rpm";
   public static final FileDescriptor RPM_FILE_IN_PROTECTED_REPO = new FileDescriptor(PROTECTED_REPO, ARCH, TEST_FILENAME);
   public static final String ANOTHER_REPO = "another-repo";
+
   @Autowired
   private GridFsService gridFsService;
+
+  @Autowired
+  private FileStorageService fileStorageService;
 
   @Before
   public void setUp() throws Exception {
@@ -38,12 +43,12 @@ public class MethodSecurityConfigTest {
 
   @Test(expected=AccessDeniedException.class)
   public void forbidAccessToGridFsFile() throws Exception {
-    gridFsService.findFileByDescriptor(RPM_FILE_IN_PROTECTED_REPO);
+    fileStorageService.findBy(RPM_FILE_IN_PROTECTED_REPO);
   }
 
   @Test(expected=AccessDeniedException.class)
   public void forbidAccessToGridFsResource() throws Exception {
-    gridFsService.getResource(RPM_FILE_IN_PROTECTED_REPO);
+    fileStorageService.getResource(RPM_FILE_IN_PROTECTED_REPO);
   }
 
   @Test(expected=AccessDeniedException.class)

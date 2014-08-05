@@ -8,11 +8,13 @@ import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesHashCalculator;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepositoryImpl;
 import de.is24.infrastructure.gridfs.http.metadata.generation.RepoMdGenerator;
 import de.is24.infrastructure.gridfs.http.repos.RepoCleaner;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
+import de.is24.infrastructure.gridfs.http.storage.StorageTestUtils;
 import de.is24.util.monitoring.InApplicationMonitor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -44,6 +46,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   private MetadataService metadataService;
   private YumEntriesHashCalculator entriesHashCalculator;
+  private StorageTestUtils storageTestUtils;
 
   public GridFS gridFs() {
     if (gridFs == null) {
@@ -61,7 +64,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public GridFsService gridFsService() {
     if (gridFsService == null) {
-      gridFsService = new GridFsService(fileStorageService(), mongoTemplate(), yumEntriesRepository(),
+      gridFsService = new GridFsService(fileStorageService(), yumEntriesRepository(),
         repoService());
     }
     return gridFsService;
@@ -69,7 +72,7 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public YumEntriesRepository yumEntriesRepository() {
     if (yumEntriesRepository == null) {
-      yumEntriesRepository = new MongoRepositoryFactory(mongoTemplate()).getRepository(YumEntriesRepository.class);
+      yumEntriesRepository = new MongoRepositoryFactory(mongoTemplate()).getRepository(YumEntriesRepository.class, new YumEntriesRepositoryImpl(mongoTemplate()));
     }
     return yumEntriesRepository;
   }
@@ -145,5 +148,12 @@ public class IntegrationTestContext extends MongoTestContext {
   public static MongoTemplate mongoTemplate(Mongo mongo) {
     SimpleMongoDbFactory dbFactory = new SimpleMongoDbFactory(mongo, RPM_DB);
     return new MongoTemplate(dbFactory);
+  }
+
+  public StorageTestUtils storageTestUtils() {
+    if (storageTestUtils == null) {
+      storageTestUtils = new StorageTestUtils(gridFsService(), fileStorageService());
+    }
+    return storageTestUtils;
   }
 }

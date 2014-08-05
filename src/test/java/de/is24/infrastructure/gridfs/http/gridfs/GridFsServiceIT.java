@@ -7,10 +7,11 @@ import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsExcep
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
 import de.is24.infrastructure.gridfs.http.jaxb.Data;
-import de.is24.infrastructure.gridfs.http.storage.AbstractStorageServiceIT;
+import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.bson.types.ObjectId;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -20,6 +21,9 @@ import java.io.InputStream;
 import java.util.Date;
 
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
+import static de.is24.infrastructure.gridfs.http.storage.StorageTestUtils.METADATA_PATH;
+import static de.is24.infrastructure.gridfs.http.storage.StorageTestUtils.PRIMARY_XMl_PATH;
+import static de.is24.infrastructure.gridfs.http.storage.StorageTestUtils.REPOMD_PATH;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
@@ -37,7 +41,7 @@ import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilena
 
 
 @Category(LocalExecutionOnly.class)
-public class GridFsServiceIT extends AbstractStorageServiceIT {
+public class GridFsServiceIT  {
   public static final String INVALIDE_REPO_NAME = "hall//fdg";
   public static final String NOARCH = "noarch";
   public static final String SRC = "src";
@@ -61,6 +65,10 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
   private static final String VALID_FILENAME = VALID_FILENAME_WITHOUT_VERSION + NOARCH_RPM_VERSION;
   private static final String VALID_NOARCH_RPM_PATH = VALID_NOARCH_RPM_PATH_WITHOUT_VERSION + NOARCH_RPM_VERSION;
   private static final String VALID_SOURCE_RPM_PATH = "/src/yum-repo-client-1.1-273.src.rpm";
+
+  @ClassRule
+  public static IntegrationTestContext context = new IntegrationTestContext();
+
   private long startTime = Long.MAX_VALUE;
   private Date testStart = new Date();
 
@@ -75,8 +83,8 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
   }
 
   private void assertPropagateRpm(String rpmPathInRepo) throws Exception {
-    String sourceRepo = givenFullRepository();
-    String destinationRepo = givenFullRepository();
+    String sourceRepo = context.storageTestUtils().givenFullRepository();
+    String destinationRepo = context.storageTestUtils().givenFullRepository();
     startTime = currentTimeMillis();
 
     context.gridFsService().propagateRpm(sourceRepo + rpmPathInRepo, destinationRepo);
@@ -93,8 +101,8 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void propagateRepository() throws Exception {
-    String sourceRepo = givenFullRepository();
-    String destinationRepo = givenFullRepository();
+    String sourceRepo = context.storageTestUtils().givenFullRepository();
+    String destinationRepo = context.storageTestUtils().givenFullRepository();
     startTime = currentTimeMillis();
 
     context.gridFsService().propagateRepository(sourceRepo, destinationRepo);
@@ -113,11 +121,11 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void propagateRepositoryWithDeletedFiles() throws Exception {
-    String sourceRepo = givenFullRepository();
+    String sourceRepo = context.storageTestUtils().givenFullRepository();
     FileDescriptor descriptor = new FileDescriptor(sourceRepo, NOARCH, "myDeleteFile.rpm");
     context.fileStorageService().markForDeletionByPath(descriptor.getFilename());
 
-    String destinationRepo = givenFullRepository();
+    String destinationRepo = context.storageTestUtils().givenFullRepository();
     startTime = currentTimeMillis();
 
     context.gridFsService().propagateRepository(sourceRepo, destinationRepo);
@@ -233,7 +241,7 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void deleteRepository() throws Exception {
-    String reponame = givenFullRepository();
+    String reponame = context.storageTestUtils().givenFullRepository();
     context.gridFsService().storeRpm(reponame, streamOf(VALID_SOURCE_RPM));
     context.gridFsService().deleteRepository(reponame);
 
@@ -248,13 +256,13 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void deleteRpm() throws Exception {
-    String reponame = givenFullRepository();
+    String reponame = context.storageTestUtils().givenFullRepository();
     startTime = currentTimeMillis();
 
     FileDescriptor descriptor = new FileDescriptor(reponame, NOARCH,
       VALID_FILENAME_WITHOUT_VERSION + NOARCH_RPM_VERSION);
     context.gridFsService().delete(descriptor);
-    assertThat(context.gridFsService().findFileByDescriptor(descriptor), nullValue());
+    assertThat(context.fileStorageService().findBy(descriptor), nullValue());
     assertThat(context.yumEntriesRepository().findByRepo(reponame).size(), is(0));
     assertRepoWasModifiedAfterStartTime(reponame);
   }
@@ -264,16 +272,16 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
     final String reponame = uniqueRepoName();
     FileDescriptor matchingDescriptor = new FileDescriptor(reponame, TESTING_ARCH,
       "willmatch-filename.rpm");
-    givenFileWithDescriptor(matchingDescriptor);
+    context.storageTestUtils().givenFileWithDescriptor(matchingDescriptor);
 
 
     FileDescriptor noMatchDescriptor = new FileDescriptor(reponame, TESTING_ARCH, "no_match");
-    givenFileWithDescriptor(noMatchDescriptor);
+    context.storageTestUtils().givenFileWithDescriptor(noMatchDescriptor);
 
     context.fileStorageService().markForDeletionByFilenameRegex(".*-filename");
 
     assertThatFileIsMarkedForDeletion(matchingDescriptor);
-    FileStorageItem storageItem = context.gridFsService().findFileByDescriptor(noMatchDescriptor);
+    FileStorageItem storageItem = context.fileStorageService().findBy(noMatchDescriptor);
     assertThat(((GridFsFileStorageItem) storageItem).getDbFile()
             .getMetaData().get(MARKED_AS_DELETED_KEY),
       is(nullValue()));
@@ -281,7 +289,7 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void metaDataForDeletionIsSetByPath() throws Exception {
-    final String repoName = givenFullRepository();
+    final String repoName = context.storageTestUtils().givenFullRepository();
     FileDescriptor descriptor = createValidNoarchRPMDescriptorInRepo(repoName);
 
     context.fileStorageService().markForDeletionByPath(descriptor.getPath());
@@ -290,7 +298,7 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
   }
 
   private void assertThatFileIsMarkedForDeletion(FileDescriptor descriptor) {
-    FileStorageItem storageItem = context.gridFsService().findFileByDescriptor(descriptor);
+    FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
     Date deletionDate = storageItem.getDateOfMarkAsDeleted();
     assertThat(deletionDate, is(notNullValue()));
 
@@ -301,7 +309,7 @@ public class GridFsServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void deleteFiles() throws Exception {
-    String repo = givenFullRepository();
+    String repo = context.storageTestUtils().givenFullRepository();
     FileDescriptor descriptor = new FileDescriptor(repo, TESTING_ARCH, "any-filename");
 
     context.gridFsTemplate().store(asStream("/test-for-delete-file.txt"), descriptor.getPath());

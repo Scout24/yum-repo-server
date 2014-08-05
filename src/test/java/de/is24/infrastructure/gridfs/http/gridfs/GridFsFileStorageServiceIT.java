@@ -4,10 +4,11 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
-import de.is24.infrastructure.gridfs.http.storage.AbstractStorageServiceIT;
+import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.apache.commons.lang.time.DateUtils;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -28,12 +29,15 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
 @Category(LocalExecutionOnly.class)
-public class GridFsFileStorageServiceIT extends AbstractStorageServiceIT {
+public class GridFsFileStorageServiceIT {
+
+  @ClassRule
+  public static IntegrationTestContext context = new IntegrationTestContext();
 
   @Test
   public void deleteFilesMarkedAsDeleted() throws Exception {
     final Date now = new Date();
-    final String nothingToDeleteRepo = givenFullRepository();
+    final String nothingToDeleteRepo = context.storageTestUtils().givenFullRepository();
     givenTowOfThreeFilesToBeDeleted(now);
 
     context.fileStorageService().removeFilesMarkedAsDeletedBefore(now);
@@ -49,7 +53,7 @@ public class GridFsFileStorageServiceIT extends AbstractStorageServiceIT {
 
   @Test
   public void metaDataForDeletionIsSetOnlyOnce() throws Exception {
-    final String repoName = givenFullRepository();
+    final String repoName = context.storageTestUtils().givenFullRepository();
     final Date yesterday = DateUtils.addDays(new Date(), -1);
     final String file = "a_file_to_be_deleted";
     FileDescriptor descriptor = new FileDescriptor(repoName, TESTING_ARCH, file);
@@ -71,7 +75,7 @@ public class GridFsFileStorageServiceIT extends AbstractStorageServiceIT {
   }
 
   private GridFSFile givenFileToBeDeleted(FileDescriptor descriptor, final Date time) throws IOException {
-    final GridFSDBFile toBeDeleted = ((GridFsFileStorageItem) givenFileWithDescriptor(descriptor)).getDbFile();
+    final GridFSDBFile toBeDeleted = ((GridFsFileStorageItem) context.storageTestUtils().givenFileWithDescriptor(descriptor)).getDbFile();
 
     mergeMetaData(toBeDeleted, new BasicDBObject(MARKED_AS_DELETED_KEY, time));
     toBeDeleted.save();

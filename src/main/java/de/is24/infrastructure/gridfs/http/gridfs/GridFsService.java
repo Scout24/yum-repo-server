@@ -1,11 +1,9 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
 import ch.lambdaj.function.compare.ArgumentComparator;
-import com.mongodb.DBCollection;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
-import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
@@ -28,7 +26,6 @@ import org.freecompany.redline.header.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,25 +42,15 @@ import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.metadata.generation.DbGenerator.DB_VERSION;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_ARCH_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_MARKED_AS_DELETED_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_REPO_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_UPLOAD_DATE_KEY;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.SHA256_KEY;
 import static de.is24.infrastructure.gridfs.http.repos.RepositoryNameValidator.validateRepoName;
 import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_FILE;
 import static de.is24.infrastructure.gridfs.http.security.Permission.PROPAGATE_REPO;
-import static de.is24.infrastructure.gridfs.http.security.Permission.READ_FILE;
-import static java.lang.String.format;
 import static java.nio.channels.Channels.newChannel;
 import static java.util.Collections.sort;
 import static org.apache.commons.lang.StringUtils.countMatches;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.substringAfter;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.data.mongodb.core.query.Query.query;
 
 
 @ManagedResource
@@ -71,39 +58,25 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 public class GridFsService {
   private static final Logger LOGGER = LoggerFactory.getLogger(GridFsService.class);
   private static final int BUFFER_SIZE = 16 * 1024 * 1024;
-  public static final String HAS_DESCRIPTOR_READ_PERMISSION = "hasPermission(#descriptor, '" + READ_FILE + "')";
 
   private final FileStorageService fileStorageService;
-  private final MongoTemplate mongoTemplate;
   private final YumEntriesRepository yumEntriesRepository;
   private final RepoService repoService;
   private YumPackageVersionComparator comparator = new YumPackageVersionComparator();
 
   //needed for cglib proxy
   public GridFsService() {
-    this.mongoTemplate = null;
     this.yumEntriesRepository = null;
     this.fileStorageService = null;
     this.repoService = null;
   }
 
   @Autowired
-  public GridFsService(FileStorageService fileStorageService, MongoTemplate mongoTemplate,
+  public GridFsService(FileStorageService fileStorageService,
                        YumEntriesRepository yumEntriesRepository, RepoService repoService) {
     this.fileStorageService = fileStorageService;
-    this.mongoTemplate = mongoTemplate;
     this.yumEntriesRepository = yumEntriesRepository;
     this.repoService = repoService;
-
-    setupIndices();
-  }
-
-  private void setupIndices() {
-    DBCollection filesCollection = mongoTemplate.getCollection(GRIDFS_FILES_COLLECTION);
-    filesCollection.ensureIndex(METADATA_REPO_KEY);
-    filesCollection.ensureIndex(METADATA_ARCH_KEY);
-    filesCollection.ensureIndex(METADATA_UPLOAD_DATE_KEY);
-    filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
   }
 
   @TimeMeasurement
@@ -131,30 +104,8 @@ public class GridFsService {
 
 
   @TimeMeasurement
-  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public FileStorageItem findFileByDescriptor(FileDescriptor descriptor) {
-    return internalUnsecuredFindFileByDescriptor(descriptor);
-  }
-
-  @TimeMeasurement
-  public FileStorageItem internalUnsecuredFindFileByDescriptor(FileDescriptor descriptor) {
-    return fileStorageService.findBy(descriptor);
-  }
-
-
-  @TimeMeasurement
-  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public FileStorageItem getFileByDescriptor(FileDescriptor descriptor) {
-    FileStorageItem storageItem = findFileByDescriptor(descriptor);
-    if (storageItem == null) {
-      throw new GridFSFileNotFoundException("Could not find file in gridfs.", descriptor.getPath());
-    }
-    return storageItem;
-  }
-
-  @TimeMeasurement
   public void delete(FileDescriptor descriptor) {
-    FileStorageItem dbFile = getFileByDescriptor(descriptor);
+    FileStorageItem dbFile = fileStorageService.getFileBy(descriptor);
     delete(dbFile);
 
     String sourceRepo = dbFile.getRepo();
@@ -171,7 +122,7 @@ public class GridFsService {
   }
 
   private FileStorageItem findRpmByPathDirectlyOrFindNewestRpmMatchingNameAndArch(FileDescriptor descriptor) {
-    FileStorageItem dbFile = findFileByDescriptor(descriptor);
+    FileStorageItem dbFile = fileStorageService.findBy(descriptor);
     if (dbFile != null) {
       if (!dbFile.getFilename().endsWith(".rpm")) {
         throw new BadRequestException("Source rpm must end with .rpm!");
@@ -213,7 +164,7 @@ public class GridFsService {
     FileDescriptor descriptor = new FileDescriptor(storageItem);
     descriptor.setRepo(destinationRepo);
 
-    FileStorageItem storageItemToOverride = findFileByDescriptor(descriptor);
+    FileStorageItem storageItemToOverride = fileStorageService.findBy(descriptor);
     fileStorageService.moveTo(storageItem, destinationRepo);
 
     if (storageItemToOverride != null) {
@@ -224,34 +175,6 @@ public class GridFsService {
     yumEntriesRepository.save(yumEntry);
 
     return descriptor;
-  }
-
-  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public BoundedGridFsResource getResource(FileDescriptor descriptor) throws IOException {
-    return getResource(descriptor, 0);
-  }
-
-  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos) throws IOException {
-    return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos);
-  }
-
-  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size)
-                                    throws IOException {
-    return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos, size);
-  }
-
-  private FileStorageItem getFileStorageItemWithCheckedStartPos(FileDescriptor descriptor, long startPos) {
-    FileStorageItem storageItem = getFileByDescriptor(descriptor);
-    if (startPos >= storageItem.getSize()) {
-      throw new BadRangeRequestException(format(
-          "Range start is bigger than file size.\n" +
-              "\tpath: %s\n" +
-              "\tstartPos: %s\n" +
-              "\tlength: %s\n", descriptor.getPath(), startPos, storageItem.getSize()));
-    }
-    return storageItem;
   }
 
   @PreAuthorize("hasPermission(#sourceRepo, '" + PROPAGATE_REPO + "')")
@@ -304,14 +227,14 @@ public class GridFsService {
       throw new RepositoryIsUndeletableException(reponame);
     }
 
-    mongoTemplate.remove(query(where(REPO_KEY).is(reponame)), YumEntry.class);
+    yumEntriesRepository.deleteByRepo(reponame);
     fileStorageService.deleteRepo(reponame);
     repoService.delete(reponame);
   }
 
   @ManagedOperation
   public YumEntry regenerateMetadataFor(FileDescriptor descriptor) throws InvalidRpmHeaderException {
-    return regenerateMetadataFor(getFileByDescriptor(descriptor));
+    return regenerateMetadataFor(fileStorageService.getFileBy(descriptor));
   }
 
   @ManagedOperation

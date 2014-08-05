@@ -2,17 +2,21 @@ package de.is24.infrastructure.gridfs.http.gridfs;
 
 import ch.lambdaj.function.convert.Converter;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import com.mongodb.gridfs.GridFSInputFile;
 import com.mongodb.gridfs.GridFSUtil;
+import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileAlreadyExistsException;
+import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.infrastructure.gridfs.http.storage.UploadResult;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
@@ -25,6 +29,7 @@ import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -48,9 +53,14 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KE
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.FILENAME_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_ARCH_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_MARKED_AS_DELETED_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_REPO_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_UPLOAD_DATE_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.SHA256_KEY;
+import static de.is24.infrastructure.gridfs.http.security.Permission.HAS_DESCRIPTOR_READ_PERMISSION;
+import static java.lang.String.format;
 import static java.util.regex.Pattern.quote;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 import static org.apache.commons.codec.digest.DigestUtils.getSha256Digest;
@@ -89,6 +99,8 @@ public class GridFsFileStorageService implements FileStorageService {
     this.gridFs = gridFs;
     this.gridFsTemplate = gridFsTemplate;
     this.mongoTemplate = mongoTemplate;
+
+    setupIndices();
   }
 
   @Override
@@ -100,10 +112,29 @@ public class GridFsFileStorageService implements FileStorageService {
     return gridFSDBFile != null ? new GridFsFileStorageItem(gridFSDBFile) : null;
   }
 
+  @TimeMeasurement
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   @Override
   public FileStorageItem findBy(FileDescriptor descriptor) {
+    return insecureFindBy(descriptor);
+  }
+
+  @TimeMeasurement
+  @Override
+  public FileStorageItem insecureFindBy(FileDescriptor descriptor) {
     GridFSDBFile gridFSDBFile = gridFsTemplate.findOne(query(whereFilename().is(descriptor.getPath())));
     return gridFSDBFile != null ? new GridFsFileStorageItem(gridFSDBFile) : null;
+  }
+
+  @TimeMeasurement
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
+  @Override
+  public FileStorageItem getFileBy(FileDescriptor descriptor) {
+    FileStorageItem storageItem = findBy(descriptor);
+    if (storageItem == null) {
+      throw new GridFSFileNotFoundException("Could not find file in gridfs.", descriptor.getPath());
+    }
+    return storageItem;
   }
 
   @Override
@@ -113,7 +144,10 @@ public class GridFsFileStorageService implements FileStorageService {
 
   @Override
   public void delete(FileDescriptor descriptor) {
-    delete(findBy(descriptor));
+    FileStorageItem storageItem = findBy(descriptor);
+    if (storageItem != null) {
+      delete(storageItem);
+    }
   }
 
   @Override
@@ -301,6 +335,37 @@ public class GridFsFileStorageService implements FileStorageService {
     dbFile.save();
   }
 
+  @Override
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
+  public BoundedGridFsResource getResource(FileDescriptor descriptor) throws IOException {
+    return getResource(descriptor, 0);
+  }
+
+  @Override
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
+  public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size)
+      throws IOException {
+    return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos, size);
+  }
+
+  @Override
+  @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
+  public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos) throws IOException {
+    return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos);
+  }
+
+  private FileStorageItem getFileStorageItemWithCheckedStartPos(FileDescriptor descriptor, long startPos) {
+    FileStorageItem storageItem = getFileBy(descriptor);
+    if (startPos >= storageItem.getSize()) {
+      throw new BadRangeRequestException(format(
+          "Range start is bigger than file size.\n" +
+              "\tpath: %s\n" +
+              "\tstartPos: %s\n" +
+              "\tlength: %s\n", descriptor.getPath(), startPos, storageItem.getSize()));
+    }
+    return storageItem;
+  }
+
   private void markForDeletion(final Criteria criteria) {
     mongoTemplate.updateMulti(query(criteria.and(METADATA_MARKED_AS_DELETED_KEY).is(null)),
         update(METADATA_MARKED_AS_DELETED_KEY, new Date()),
@@ -330,5 +395,13 @@ public class GridFsFileStorageService implements FileStorageService {
     } catch (InterruptedException e) {
       //should only happen on server shutdown
     }
+  }
+
+  private void setupIndices() {
+    DBCollection filesCollection = mongoTemplate.getCollection(GRIDFS_FILES_COLLECTION);
+    filesCollection.ensureIndex(METADATA_REPO_KEY);
+    filesCollection.ensureIndex(METADATA_ARCH_KEY);
+    filesCollection.ensureIndex(METADATA_UPLOAD_DATE_KEY);
+    filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
   }
 }

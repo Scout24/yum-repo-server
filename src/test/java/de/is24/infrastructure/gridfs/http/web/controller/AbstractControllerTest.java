@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import de.is24.infrastructure.gridfs.http.gridfs.GridFsFileStorageService;
 import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
@@ -20,6 +21,8 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 public abstract class AbstractControllerTest {
 
   @Mock
+  protected GridFsFileStorageService fileStorageService;
+  @Mock
   protected GridFsService gridFsService;
   @Mock
   protected MetadataService metadataService;
@@ -31,7 +34,7 @@ public abstract class AbstractControllerTest {
   @Before
   public void setUp() throws Exception {
     mockMvc = standaloneSetup(
-                new FileController(gridFsService),
+                new FileController(fileStorageService),
                 new MetadataController(metadataService, repoService),
                 new RepositoryController(gridFsService, repoService),
                 new PropagationController(gridFsService)

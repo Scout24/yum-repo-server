@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
-import com.mongodb.DBCollection;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
@@ -14,7 +13,6 @@ import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.mongodb.core.MongoTemplate;
 
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
@@ -28,22 +26,17 @@ import static org.mockito.Mockito.when;
 public class GridFsServiceTest {
   private GridFsService service;
   private FileStorageService fileStorageService;
-  private MongoTemplate mongoTemplate;
-  private YumEntriesRepository yumEntriesRepository;
-  private DBCollection filesCollection;
+
   private RepoService repoService;
 
   @Before
   public void setUp() {
-    fileStorageService = mock(FileStorageService.class);
-    filesCollection = mock(DBCollection.class);
-    mongoTemplate = mock(MongoTemplate.class);
-    when(mongoTemplate.getCollection(eq("fs.files"))).thenReturn(filesCollection);
-    yumEntriesRepository = mock(YumEntriesRepository.class);
+    YumEntriesRepository yumEntriesRepository = mock(YumEntriesRepository.class);
     when(yumEntriesRepository.findOne(any(ObjectId.class))).thenReturn(new YumEntry(null, null, null));
-    repoService = mock(RepoService.class);
 
-    service = new GridFsService(fileStorageService, mongoTemplate, yumEntriesRepository, repoService);
+    repoService = mock(RepoService.class);
+    fileStorageService = mock(FileStorageService.class);
+    service = new GridFsService(fileStorageService, yumEntriesRepository, repoService);
   }
 
   @Test(expected = BadRequestException.class)
@@ -85,12 +78,6 @@ public class GridFsServiceTest {
     service.propagateRpm("repo/arch/file.rpm", "dest-repo");
 
     verify(fileStorageService).moveTo(eq(storageItem), eq("dest-repo"));
-  }
-
-  @Test
-  public void createIndices() throws Exception {
-    verify(filesCollection).ensureIndex("metadata.repo");
-    verify(filesCollection).ensureIndex("metadata.arch");
   }
 
   @Test(expected = RepositoryIsUndeletableException.class)

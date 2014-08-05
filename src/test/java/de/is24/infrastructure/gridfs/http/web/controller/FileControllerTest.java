@@ -47,7 +47,7 @@ public class FileControllerTest extends AbstractControllerTest {
   @SuppressWarnings("unchecked")
   @Test
   public void get404ResponseWhenFileIsNotFound() throws Exception {
-    when(gridFsService.getResource(any(FileDescriptor.class))).thenThrow(GridFSFileNotFoundException.class);
+    when(fileStorageService.getResource(any(FileDescriptor.class))).thenThrow(GridFSFileNotFoundException.class);
 
     performRpmGet().andExpect(status().isNotFound());
   }
@@ -121,10 +121,10 @@ public class FileControllerTest extends AbstractControllerTest {
   private void givenGridFSDBFile() throws IOException {
     FileStorageItem fileStorageItem = storageItem(CONTENT_WITH_200_CHARS);
 
-    when(gridFsService.getFileByDescriptor(any(FileDescriptor.class))).thenReturn(fileStorageItem);
-    when(gridFsService.getResource(any(FileDescriptor.class))).thenCallRealMethod();
-    when(gridFsService.getResource(any(FileDescriptor.class), anyLong())).thenCallRealMethod();
-    when(gridFsService.getResource(any(FileDescriptor.class), anyLong(), anyLong())).thenCallRealMethod();
+    when(fileStorageService.getFileBy(any(FileDescriptor.class))).thenReturn(fileStorageItem);
+    when(fileStorageService.getResource(any(FileDescriptor.class))).thenCallRealMethod();
+    when(fileStorageService.getResource(any(FileDescriptor.class), anyLong())).thenCallRealMethod();
+    when(fileStorageService.getResource(any(FileDescriptor.class), anyLong(), anyLong())).thenCallRealMethod();
   }
 
   private ResultActions performRpmGet() throws Exception {

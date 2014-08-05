@@ -3,8 +3,8 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
-import de.is24.infrastructure.gridfs.http.gridfs.GridFsService;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.InApplicationMonitor;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.slf4j.Logger;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,28 +43,27 @@ public class FileController {
   private static final Logger LOGGER = LoggerFactory.getLogger(FileController.class);
 
   public static final String PREFIX = "/repo";
-  private static final int PREFIX_LENGTH = PREFIX.length() + 1;
   public static final String RANGE_PATTERN_REGEXP = "^bytes=(0|[1-9]\\d*)-((0|[1-9]\\d*)?)$";
   private static final Pattern RANGE_PATTERN = compile(RANGE_PATTERN_REGEXP);
   public static final String RPM_EXTENSION = ".rpm";
 
-  private final GridFsService gridFs;
+  private final FileStorageService fileStorageService;
 
   // just for cglib
   protected FileController() {
-    this.gridFs = null;
+    this.fileStorageService = null;
   }
 
   @Autowired
-  public FileController(GridFsService gridFs) {
-    this.gridFs = gridFs;
+  public FileController(FileStorageService fileStorageService) {
+    this.fileStorageService = fileStorageService;
   }
 
   @RequestMapping(value = "/{repo}/{arch}/{filename:.+}", method = GET)
   public ResponseEntity<InputStreamResource> deliverFile(@PathVariable("repo") String repo,
                                                          @PathVariable("arch") String arch,
                                                          @PathVariable("filename") String filename) throws IOException {
-    BoundedGridFsResource resource = gridFs.getResource(new FileDescriptor(repo, arch, filename));
+    BoundedGridFsResource resource = fileStorageService.getResource(new FileDescriptor(repo, arch, filename));
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentLength(resource.contentLength());
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm");
@@ -87,7 +85,7 @@ public class FileController {
 
     BoundedGridFsResource resource;
     if (isEmpty(intervalEndString)) {
-      resource = gridFs.getResource(descriptor, intervalStart);
+      resource = fileStorageService.getResource(descriptor, intervalStart);
     } else {
       long intervalEnd = parseRangeLong(intervalEndString, rangeHeader);
       if (intervalEnd < intervalStart) {
@@ -95,7 +93,7 @@ public class FileController {
           format("Range end is before range start for path [%s]", descriptor.getPath()),
           rangeHeader);
       }
-      resource = gridFs.getResource(descriptor, intervalStart, intervalEnd - intervalStart + 1);
+      resource = fileStorageService.getResource(descriptor, intervalStart, intervalEnd - intervalStart + 1);
     }
 
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm-range");
@@ -131,10 +129,10 @@ public class FileController {
   @ResponseStatus(NO_CONTENT)
   public void deleteFile(@PathVariable("repoName") String repoName,
                          @PathVariable("arch") String arch,
-                         @PathVariable("filename") String filename, HttpServletResponse response) {
+                         @PathVariable("filename") String filename) {
     FileDescriptor descriptor = new FileDescriptor(repoName, arch, filename + RPM_EXTENSION);
     try {
-      gridFs.delete(descriptor);
+      fileStorageService.delete(descriptor);
     } catch (GridFSFileNotFoundException ex) {
       LOGGER.debug("ignoring delete of none existing resource '{}'", descriptor.getPath());
     }

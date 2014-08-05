@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
+import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
@@ -27,13 +28,22 @@ public class GridFsFileStorageServiceTest {
   private GridFsTemplate gridFsTemplate;
   private GridFsFileStorageService service;
   private MongoTemplate mongoTemplate;
+  private DBCollection filesCollection;
 
   @Before
   public void setUp() throws Exception {
     gridFs = mock(GridFS.class);
     gridFsTemplate = mock(GridFsTemplate.class);
     mongoTemplate = mock(MongoTemplate.class);
+    filesCollection = mock(DBCollection.class);
+    when(mongoTemplate.getCollection(eq("fs.files"))).thenReturn(filesCollection);
     service = new GridFsFileStorageService(gridFs, gridFsTemplate, mongoTemplate);
+  }
+
+  @Test
+  public void createIndices() throws Exception {
+    verify(filesCollection).ensureIndex("metadata.repo");
+    verify(filesCollection).ensureIndex("metadata.arch");
   }
 
   @Test
