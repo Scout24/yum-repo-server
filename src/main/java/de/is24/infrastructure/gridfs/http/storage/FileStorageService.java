@@ -14,9 +14,9 @@ import java.util.List;
 import static de.is24.infrastructure.gridfs.http.security.Permission.HAS_DESCRIPTOR_READ_PERMISSION;
 
 public interface FileStorageService {
-  public FileStorageItem findById(Object id);
+  FileStorageItem findById(Object id);
 
-  public FileStorageItem findBy(FileDescriptor descriptor);
+  FileStorageItem findBy(FileDescriptor descriptor);
 
   @TimeMeasurement
   FileStorageItem insecureFindBy(FileDescriptor descriptor);
@@ -25,33 +25,33 @@ public interface FileStorageService {
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   FileStorageItem getFileBy(FileDescriptor descriptor);
 
-  public void delete(FileStorageItem storageItem);
+  void delete(FileStorageItem storageItem);
 
-  public void delete(FileDescriptor descriptor);
+  void delete(FileDescriptor descriptor);
 
-  public void moveTo(FileStorageItem storageItem, String destinationRepo);
+  void moveTo(FileStorageItem storageItem, String destinationRepo);
 
-  public List<FileStorageItem> getAllRpms(String repo);
+  List<FileStorageItem> getAllRpms(String repo);
 
-  public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor);
+  FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor);
 
-  public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride);
+  FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride);
 
-  public UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException;
+  UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException;
 
-  public List<FileStorageItem> getAllRpms();
+  List<FileStorageItem> getAllRpms();
 
-  public void removeFilesMarkedAsDeletedBefore(final Date before);
+  void removeFilesMarkedAsDeletedBefore(final Date before);
 
-  public void markForDeletionByPath(final String path);
+  void markForDeletionByPath(final String path);
 
-  public void markForDeletionByFilenameRegex(final String regex);
+  void markForDeletionByFilenameRegex(final String regex);
 
-  public void deleteRepo(String reponame);
+  void deleteRepo(String reponame);
 
-  public List<FileStorageItem> findByPrefix(String prefix);
+  List<FileStorageItem> findByPrefix(String prefix);
 
-  public void setUploadDate(FileStorageItem file, Date date);
+  void setUploadDate(FileStorageItem file, Date date);
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   BoundedGridFsResource getResource(FileDescriptor descriptor) throws IOException;

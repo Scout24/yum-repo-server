@@ -4,25 +4,25 @@ import java.io.InputStream;
 import java.util.Date;
 
 public interface FileStorageItem {
-  public boolean isMarkedAsDeleted();
+  boolean isMarkedAsDeleted();
 
-  public String getRepo();
+  String getRepo();
 
-  public Object getId();
+  Object getId();
 
-  public String getFilename();
+  String getFilename();
 
-  public InputStream getInputStream();
+  InputStream getInputStream();
 
-  public long getSize();
+  long getSize();
 
-  public String getChecksumSha256();
+  String getChecksumSha256();
 
-  public Date getUploadDate();
+  Date getUploadDate();
 
-  public String getContentType();
+  String getContentType();
 
-  public Date getDateOfMarkAsDeleted();
+  Date getDateOfMarkAsDeleted();
 
-  public String getArch();
+  String getArch();
 }
