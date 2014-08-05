@@ -1,9 +1,7 @@
 package de.is24.infrastructure.gridfs.http.metadata;
 
-import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
@@ -27,10 +25,8 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.springframework.data.mongodb.core.query.Query.query;
-import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereFilename;
 
 
 @Category(LocalExecutionOnly.class)
@@ -125,12 +121,10 @@ public class MetadataServiceIT {
   }
 
   private void assertDbFile(String type) {
-    GridFSDBFile dbFile = context.gridFsTemplate()
-      .find(query(whereFilename().regex(reponame + "/repodata/.*" + type + ".*.sqlite.bz2")))
-      .get(0);
-    String sha256 = dbFile.getMetaData().get("sha256").toString();
+    FileStorageItem dbFile = context.fileStorageService().findByPrefix(reponame + "/repodata/" + type).get(0);
+    String sha256 = dbFile.getChecksumSha256();
     assertThat(dbFile.getFilename(), endsWith(type + "-" + sha256 + ".sqlite.bz2"));
-    assertThat(dbFile.getMetaData().get(DatabaseStructure.MARKED_AS_DELETED_KEY), is(nullValue()));
+    assertFalse(dbFile.isMarkedAsDeleted());
   }
 
 }
