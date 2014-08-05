@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.springframework.util.Assert;
@@ -35,6 +36,7 @@ public class GridFsFileStorageItem implements FileStorageItem {
     return dbFile.getId();
   }
 
+  @JsonIgnore
   @Override
   public String getFilename() {
     return dbFile.getFilename();
@@ -75,6 +77,7 @@ public class GridFsFileStorageItem implements FileStorageItem {
     return (String) dbFile.getMetaData().get(ARCH_KEY);
   }
 
+  @JsonIgnore
   public GridFSDBFile getDbFile() {
     return dbFile;
   }

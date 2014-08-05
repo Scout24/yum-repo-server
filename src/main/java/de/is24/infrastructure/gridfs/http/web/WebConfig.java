@@ -1,7 +1,5 @@
 package de.is24.infrastructure.gridfs.http.web;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.web.exception.MessageAwareResponseStatusExceptionResolver;
 import de.is24.infrastructure.gridfs.http.web.logging.LoggingHandlerInterceptor;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +20,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import java.io.InputStream;
 import java.util.List;
 
 
@@ -57,7 +54,6 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
     converter.setPrettyPrint(true);
     converters.add(converter);
-    converter.getObjectMapper().addMixInAnnotations(GridFSDBFile.class, GridFsDBFileMixin.class);
   }
 
   @Override
@@ -77,9 +73,4 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     configurer.favorParameter(false).favorPathExtension(true);
   }
 
-  abstract class GridFsDBFileMixin {
-    @JsonIgnore
-    public abstract InputStream getInputStream();
-
-  }
 }
