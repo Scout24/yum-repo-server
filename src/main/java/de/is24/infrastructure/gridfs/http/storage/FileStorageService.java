@@ -1,18 +1,15 @@
 package de.is24.infrastructure.gridfs.http.storage;
 
-
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
 import de.is24.util.monitoring.spring.TimeMeasurement;
-import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.security.access.prepost.PreAuthorize;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-
 import static de.is24.infrastructure.gridfs.http.security.Permission.HAS_DESCRIPTOR_READ_PERMISSION;
+
 
 public interface FileStorageService {
   FileStorageItem findById(Object id);
@@ -22,8 +19,8 @@ public interface FileStorageService {
   @TimeMeasurement
   FileStorageItem insecureFindBy(FileDescriptor descriptor);
 
-  @TimeMeasurement
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
+  @TimeMeasurement
   FileStorageItem getFileBy(FileDescriptor descriptor);
 
   void delete(FileStorageItem storageItem);
@@ -34,13 +31,12 @@ public interface FileStorageService {
 
   List<FileStorageItem> getAllRpms(String repo);
 
-  @MongoTx
   FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor);
 
-  @MongoTx
   FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride);
 
-  UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException;
+  UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name)
+                                                  throws IOException;
 
   List<FileStorageItem> getAllRpms();
 
@@ -63,6 +59,5 @@ public interface FileStorageService {
   BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos) throws IOException;
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
-  BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size)
-      throws IOException;
+  BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size) throws IOException;
 }
