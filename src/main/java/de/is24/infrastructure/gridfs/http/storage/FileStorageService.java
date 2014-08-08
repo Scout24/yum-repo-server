@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.storage;
 
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
 import de.is24.util.monitoring.spring.TimeMeasurement;
+import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.io.File;
@@ -33,8 +34,10 @@ public interface FileStorageService {
 
   List<FileStorageItem> getAllRpms(String repo);
 
+  @MongoTx
   FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor);
 
+  @MongoTx
   FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride);
 
   UploadResult storeSqliteFileCompressedWithChecksumName(String reponame, File metadataFile, String name) throws IOException;
