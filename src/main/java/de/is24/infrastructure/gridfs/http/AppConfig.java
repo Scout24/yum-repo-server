@@ -36,11 +36,13 @@ import org.springframework.data.mongodb.tx.MongoTxProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
+
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import static com.mongodb.WriteConcern.NORMAL;
 import static com.mongodb.WriteConcern.REPLICAS_SAFE;
 
@@ -134,7 +136,8 @@ public class AppConfig extends AbstractMongoConfiguration {
       .socketKeepAlive(true)
       .readPreference(new FastestPingTimeReadPreference())
       .writeConcern(getWriteConcern())
-      .connectionsPerHost(20)
+      .connectionsPerHost(100)
+      .threadsAllowedToBlockForConnectionMultiplier(10)
       .socketTimeout(mongoDBSocketTimeoutInSec * 1000)
       .build();
   }
