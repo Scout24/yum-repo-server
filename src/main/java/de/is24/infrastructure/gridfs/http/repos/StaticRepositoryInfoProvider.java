@@ -46,6 +46,7 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.FILENAM
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_ARCH_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADATA_REPO_KEY;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.groupBy;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.match;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.sort;
@@ -121,10 +122,11 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
 
   @Override
   public Iterable<DBObject> getReposAggregation(SortField sortBy, SortOrder sortOrder) {
-    AggregationOutput aggregation = getFilesCollection().aggregate(match(where(METADATA_REPO_KEY).ne(null)),
-      groupBy(METADATA_REPO_KEY) //
-      .sum("length").max("uploadDate").build(),
-      sort(sortBy, sortOrder));
+    List<DBObject> pipeline = new ArrayList<>();
+    pipeline.add(match(where(METADATA_REPO_KEY).ne(null)));
+    pipeline.add(groupBy(METADATA_REPO_KEY).sum("length").max("uploadDate").build());
+    pipeline.add(sort(sortBy, sortOrder));
+    AggregationOutput aggregation = getFilesCollection().aggregate(pipeline);
     return aggregation.results();
   }
 
@@ -132,12 +134,11 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   @TimeMeasurement
   public Container<FolderInfo> getArchs(String reponame, SortField sortBy, SortOrder sortOrder) {
     verifyRepositoryExists(reponame);
-
-    AggregationOutput aggregation = getFilesCollection().aggregate(match(
-      whereMetaData(DatabaseStructure.REPO_KEY) //
-      .is(reponame)),
-      groupBy(DatabaseStructure.METADATA_ARCH_KEY).sum("length").max("uploadDate").build(),
-      sort(sortBy, sortOrder));
+    List<DBObject> pipeline = new ArrayList<>();
+    pipeline.add(match(whereMetaData(REPO_KEY).is(reponame)));
+    pipeline.add(groupBy(METADATA_ARCH_KEY).sum("length").max("uploadDate").build());
+    pipeline.add(sort(sortBy, sortOrder));
+    AggregationOutput aggregation = getFilesCollection().aggregate(pipeline);
     return new Container<>(reponame, adaptFolders(aggregation.results()));
   }
 
@@ -153,7 +154,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
     verifyRepositoryExists(reponame);
 
     DBCursor cursor = getFilesCollection().find(query(
-      whereMetaData(DatabaseStructure.REPO_KEY) //
+      whereMetaData(REPO_KEY) //
       .is(reponame).andOperator(whereMetaData(DatabaseStructure.ARCH_KEY).is(arch))).getQueryObject())
       .sort(sortBy.sortFile(sortOrder));
     return new Container<>(reponame + "/" + arch, adaptFiles(cursor.iterator()));
