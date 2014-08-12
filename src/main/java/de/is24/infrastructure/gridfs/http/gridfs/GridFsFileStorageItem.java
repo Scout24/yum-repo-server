@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.mongodb.BasicDBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import org.springframework.util.Assert;
@@ -19,6 +20,13 @@ public class GridFsFileStorageItem implements FileStorageItem {
   public GridFsFileStorageItem(GridFSDBFile dbFile) {
     Assert.notNull(dbFile);
     this.dbFile = dbFile;
+    ensureMetaData();
+  }
+
+  private void ensureMetaData() {
+    if (dbFile.getMetaData() == null) {
+      dbFile.setMetaData(new BasicDBObject());
+    }
   }
 
   @Override
