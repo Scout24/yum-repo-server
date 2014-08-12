@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.http.MediaType;
@@ -120,8 +121,7 @@ public class GridFsFileStorageService implements FileStorageService {
   }
 
   @TimeMeasurement
-  @Override
-  public FileStorageItem insecureFindBy(FileDescriptor descriptor) {
+  private FileStorageItem insecureFindBy(FileDescriptor descriptor) {
     GridFSDBFile gridFSDBFile = gridFsTemplate.findOne(query(whereFilename().is(descriptor.getPath())));
     return gridFSDBFile != null ? new GridFsFileStorageItem(gridFSDBFile) : null;
   }
@@ -348,6 +348,13 @@ public class GridFsFileStorageService implements FileStorageService {
   public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size)
       throws IOException {
     return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos, size);
+  }
+
+  @Override
+  @MongoTx
+  public List<FileStorageItem> getCorruptFiles() {
+    Query query = query(new Criteria().orOperator(whereFilename().is(null), whereMetaData().is(null)));
+    return convert(gridFsTemplate.find(query), GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
   }
 
   @Override

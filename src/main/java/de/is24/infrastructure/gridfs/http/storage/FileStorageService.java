@@ -3,11 +3,13 @@ package de.is24.infrastructure.gridfs.http.storage;
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
+
 import static de.is24.infrastructure.gridfs.http.security.Permission.HAS_DESCRIPTOR_READ_PERMISSION;
 
 
@@ -15,9 +17,6 @@ public interface FileStorageService {
   FileStorageItem findById(Object id);
 
   FileStorageItem findBy(FileDescriptor descriptor);
-
-  @TimeMeasurement
-  FileStorageItem insecureFindBy(FileDescriptor descriptor);
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   @TimeMeasurement
@@ -60,4 +59,6 @@ public interface FileStorageService {
 
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size) throws IOException;
+
+  List<FileStorageItem> getCorruptFiles();
 }

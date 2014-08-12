@@ -18,6 +18,7 @@ import java.util.List;
 
 import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
 import static de.is24.infrastructure.gridfs.http.gridfs.StorageServiceIT.TESTING_ARCH;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
@@ -25,7 +26,10 @@ import static org.apache.commons.lang.time.DateUtils.addDays;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
+import static org.springframework.data.mongodb.core.query.Update.update;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
 
 @Category(LocalExecutionOnly.class)
@@ -64,6 +68,32 @@ public class GridFsFileStorageServiceIT {
     final FileStorageItem storageItem = context.fileStorageService().findBy(descriptor);
 
     assertThat(storageItem.getDateOfMarkAsDeleted(), is(equalTo(yesterday)));
+  }
+
+  @Test
+  public void getCorruptFiles() throws Exception {
+    setFilenameToNull(context.storageTestUtils().givenFullRepository());
+    setMetadataToNull(context.storageTestUtils().givenFullRepository());
+
+    List<FileStorageItem> corruptFiles = context.fileStorageService().getCorruptFiles();
+
+    assertThat(corruptFiles.size(), is(2));
+    for (FileStorageItem file : corruptFiles) {
+      if (file.getFilename() != null && file.getRepo() != null)
+        throw new AssertionError("Found item that is not corrupt.");
+    }
+  }
+
+  private void setMetadataToNull(String reponame) {
+    GridFsFileStorageItem fileStorageItem = (GridFsFileStorageItem) context.fileStorageService().getAllRpms(reponame).get(0);
+    context.mongoTemplate().updateFirst(query(where("_id").is(fileStorageItem.getId())), update("metadata", null), GRIDFS_FILES_COLLECTION);
+    assertThat(context.fileStorageService().findById(fileStorageItem.getId()).getRepo(), nullValue());
+  }
+
+  private void setFilenameToNull(String reponame) {
+    GridFsFileStorageItem fileStorageItem = (GridFsFileStorageItem) context.fileStorageService().getAllRpms(reponame).get(0);
+    context.mongoTemplate().updateFirst(query(where("_id").is(fileStorageItem.getId())), update("filename", null), GRIDFS_FILES_COLLECTION);
+    assertThat(context.fileStorageService().findById(fileStorageItem.getId()).getFilename(), nullValue());
   }
 
   private void givenTowOfThreeFilesToBeDeleted(final Date now) throws IOException {

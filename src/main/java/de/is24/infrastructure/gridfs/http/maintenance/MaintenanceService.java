@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.DocumentCallbackHandler;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -189,6 +190,7 @@ public class MaintenanceService {
     return result;
   }
 
+  @MongoTx
   public Map<ObjectId, YumPackageReducedView> deleteYumEntriesWithoutAssociatedFiles() {
     Map<ObjectId, YumPackageReducedView> result = getYumEntriesWithoutAssociatedFiles();
     for (ObjectId id : result.keySet()) {
@@ -196,7 +198,6 @@ public class MaintenanceService {
     }
     return result;
   }
-
 
   private interface Filter {
     boolean select(YumPackage newestTargetPackage, YumPackage sourcePackage);
