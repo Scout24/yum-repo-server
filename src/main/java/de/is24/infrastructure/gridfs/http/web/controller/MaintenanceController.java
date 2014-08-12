@@ -157,6 +157,16 @@ public class MaintenanceController {
   }
 
   @RequestMapping(
+      value = "/consistency/entries", method = DELETE, produces = APPLICATION_JSON_VALUE,
+      headers = "Accept=application/json"
+  )
+  @ResponseBody
+  @TimeMeasurement
+  public Map<ObjectId, YumPackageReducedView> deleteYumEntriesWithoutGridFsFile() {
+    return maintenanceService.deleteYumEntriesWithoutAssociatedFiles();
+  }
+
+  @RequestMapping(
     value = "/consistency/files", method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
   )
   @ResponseBody

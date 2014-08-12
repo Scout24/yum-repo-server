@@ -189,6 +189,14 @@ public class MaintenanceService {
     return result;
   }
 
+  public Map<ObjectId, YumPackageReducedView> deleteYumEntriesWithoutAssociatedFiles() {
+    Map<ObjectId, YumPackageReducedView> result = getYumEntriesWithoutAssociatedFiles();
+    for (ObjectId id : result.keySet()) {
+      yumEntriesRepository.delete(id);
+    }
+    return result;
+  }
+
 
   private interface Filter {
     boolean select(YumPackage newestTargetPackage, YumPackage sourcePackage);
