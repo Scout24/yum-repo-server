@@ -77,8 +77,8 @@ public class MaintenanceService {
     return filterRPMsFromPropagationChain(obsoleteRpmFiler, targetRepo, sourceRepo);
   }
 
-  public void triggerDeletionOfObsoleteRPMs(String initiatorDescription, String targetRepo, String sourceRepo) {
-    DeleteObsoleteRPMsJob job = new DeleteObsoleteRPMsJob(initiatorDescription, sourceRepo,
+  public void triggerDeletionOfObsoleteRPMs(String targetRepo, String sourceRepo) {
+    DeleteObsoleteRPMsJob job = new DeleteObsoleteRPMsJob(sourceRepo,
       targetRepo);
     taskScheduler.schedule(job, new Date());
     LOGGER.info("triggered delete obsolete RPMs in propagation chain from {} to {}", sourceRepo, targetRepo);
@@ -92,7 +92,7 @@ public class MaintenanceService {
     CheckForMissingFsFilesCallbackHandler callbackHandler = new CheckForMissingFsFilesCallbackHandler();
     mongoTemplate.executeQuery(query, YUM_ENTRY_COLLECTION, callbackHandler);
 
-    Map<ObjectId, YumPackageReducedView> result = new HashMap<ObjectId, YumPackageReducedView>();
+    Map<ObjectId, YumPackageReducedView> result = new HashMap<>();
     for (ObjectId id : callbackHandler.getEntriesWithMissingFile()) {
       YumEntry yumEntry = yumEntriesRepository.findOne(id);
       result.put(yumEntry.getId(), new YumPackageReducedView(yumEntry.getYumPackage()));
@@ -140,7 +140,7 @@ public class MaintenanceService {
   private Set<YumPackageReducedView> filterRPMs(Filter filter,
                                                 Map<String, Map<String, YumPackage>> newestTargetPackagesByNameAndArch,
                                                 List<YumEntry> sourceRepoEntries) {
-    Set<YumPackageReducedView> result = new TreeSet<YumPackageReducedView>();
+    Set<YumPackageReducedView> result = new TreeSet<>();
     for (YumEntry entry : sourceRepoEntries) {
       YumPackage yumPackage = entry.getYumPackage();
       YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,
@@ -169,14 +169,14 @@ public class MaintenanceService {
   * @return a map of maps, first map key is rpm name, second maps key is arch
   */
   private Map<String, Map<String, YumPackage>> findNewestPackages(List<YumEntry> inputList) {
-    Map<String, Map<String, YumPackage>> result = new HashMap<String, Map<String, YumPackage>>();
+    Map<String, Map<String, YumPackage>> result = new HashMap<>();
     for (YumEntry entry : inputList) {
       YumPackage yumPackage = entry.getYumPackage();
 
       Map<String, YumPackage> packageMap = result.get(yumPackage.getName());
       YumPackage packageForArchInMap = null;
       if (packageMap == null) {
-        packageMap = new HashMap<String, YumPackage>();
+        packageMap = new HashMap<>();
         result.put(yumPackage.getName(), packageMap);
       } else {
         packageForArchInMap = packageMap.get(yumPackage.getArch());
@@ -236,7 +236,7 @@ public class MaintenanceService {
     private final String sourceRepo;
     private final String propagationTargetRepo;
 
-    public DeleteObsoleteRPMsJob(String initiatorDescription, String sourceRepo,
+    public DeleteObsoleteRPMsJob(String sourceRepo,
                                  String propagationTargetRepo) {
       this.sourceRepo = sourceRepo;
       this.propagationTargetRepo = propagationTargetRepo;
@@ -258,7 +258,7 @@ public class MaintenanceService {
 
 
   private class CheckForMissingFsFilesCallbackHandler implements DocumentCallbackHandler {
-    private List<ObjectId> entriesWithMissingFile = new ArrayList<ObjectId>();
+    private List<ObjectId> entriesWithMissingFile = new ArrayList<>();
 
     @Override
     public void processDocument(DBObject dbObject) {
@@ -279,7 +279,7 @@ public class MaintenanceService {
   }
 
   private class CheckForMissingEntriesCallbackHandler implements DocumentCallbackHandler {
-    private List<ObjectId> filesWithMissingEntry = new ArrayList<ObjectId>();
+    private List<ObjectId> filesWithMissingEntry = new ArrayList<>();
 
     @Override
     public void processDocument(DBObject dbObject) {
