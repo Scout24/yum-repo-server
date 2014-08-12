@@ -19,6 +19,8 @@ import de.is24.util.monitoring.InApplicationMonitor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.core.convert.DbRefResolver;
+import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
@@ -142,7 +144,8 @@ public class IntegrationTestContext extends MongoTestContext {
 
   public static GridFsTemplate gridFsTemplate(Mongo mongo) {
     SimpleMongoDbFactory dbFactory = new SimpleMongoDbFactory(mongo, RPM_DB);
-    return new GridFsTemplate(dbFactory, new MappingMongoConverter(dbFactory, new MongoMappingContext()));
+    DbRefResolver dbRefResolver = new DefaultDbRefResolver(dbFactory);
+    return new GridFsTemplate(dbFactory, new MappingMongoConverter(dbRefResolver, new MongoMappingContext()));
   }
 
   public static MongoTemplate mongoTemplate(Mongo mongo) {

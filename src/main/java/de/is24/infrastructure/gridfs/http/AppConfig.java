@@ -132,7 +132,6 @@ public class AppConfig extends AbstractMongoConfiguration {
 
   private MongoClientOptions mongoOptions() {
     return new MongoClientOptions.Builder() //
-      .autoConnectRetry(true)
       .socketKeepAlive(true)
       .readPreference(new FastestPingTimeReadPreference())
       .writeConcern(getWriteConcern())

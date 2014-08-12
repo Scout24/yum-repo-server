@@ -2,7 +2,6 @@ package de.is24.infrastructure.gridfs.http.repos;
 
 import ch.lambdaj.function.compare.ArgumentComparator;
 import com.mongodb.AggregationOutput;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
@@ -18,6 +17,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static ch.lambdaj.Lambda.on;
@@ -107,17 +107,18 @@ public class RepoCleaner {
   }
 
   private AggregationOutput aggregateAllRpmNamesInRepoThatHaveMoreThanMaxKeepEntries(String reponame, int maxKeepRpm) {
-    BasicDBObject repoMatch = match(where(REPO_KEY).is(reponame));
-    BasicDBObject groupArtifactNames = groupBy(field("name", "yumPackage.name"), field("arch", "yumPackage.arch")).push(
+    List<DBObject> pipeline = new ArrayList<>();
+    pipeline.add(match(where(REPO_KEY).is(reponame)));
+    pipeline.add(groupBy(field("name", "yumPackage.name"), field("arch", "yumPackage.arch")).push(
       ITEMS_KEY,
       field(VERSION_KEY, "yumPackage.version"),
       field(FILE_KEY, "_id"),
       field(FILENAME_KEY, "yumPackage.location.href"))
       .count()
-      .build();
-    BasicDBObject toManyArtifacts = match(where("count").gt(maxKeepRpm));
+      .build());
+    pipeline.add(match(where("count").gt(maxKeepRpm)));
 
-    return mongo.getCollection("yum.entries").aggregate(repoMatch, groupArtifactNames, toManyArtifacts);
+    return mongo.getCollection("yum.entries").aggregate(pipeline);
   }
 
   private List<DBObject> oldestItemsToDelete(int maxKeepRpm, List<DBObject> items) {
