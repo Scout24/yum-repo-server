@@ -7,16 +7,19 @@ import de.flapdoodle.embed.process.distribution.BitSize;
 import de.flapdoodle.embed.process.distribution.Distribution;
 import de.flapdoodle.embed.process.distribution.Platform;
 import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+
 import static de.flapdoodle.embed.mongo.Command.MongoD;
+import static de.flapdoodle.embed.mongo.distribution.Version.V2_4_8;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 
 public class LocalMongoFactoryTest {
-  private static final Version VERSION = Version.V2_4_3;
+  private static final Version VERSION = V2_4_8;
 
   @Test
   public void shouldHaveCorrectPath() {
