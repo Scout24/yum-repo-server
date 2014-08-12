@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+
 import java.net.UnknownHostException;
 
 
@@ -26,7 +27,6 @@ public class MongoTxTextContext {
 
   private MongoClientOptions mongoOptions() {
     return new MongoClientOptions.Builder() //
-      .autoConnectRetry(true)
       .socketKeepAlive(true)
       .readPreference(new FastestPingTimeReadPreference())
       .writeConcern(WriteConcern.JOURNALED)
