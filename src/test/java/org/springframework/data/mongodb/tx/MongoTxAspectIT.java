@@ -14,36 +14,42 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class MongoTxAspectIT {
   @Autowired
-  private MongoTxTestComponent testComponent;
-
+  private MongoTxTestInterface mongoTxTestInterface;
+  @Autowired
+  private MongoTxTestComponent txTestComponent;
 
   @Test
   public void doInMongoTxForNativeMongo() throws Exception {
-    testComponent.txMethodNativeMongo(WriteConcern.REPLICAS_SAFE, ReadPreference.nearest());
+    txTestComponent.txMethodNativeMongo(WriteConcern.REPLICAS_SAFE, ReadPreference.nearest());
+  }
+
+  @Test
+  public void outermostConfigRules() throws Exception {
+    mongoTxTestInterface.txMethodNativeMongo(WriteConcern.REPLICAS_SAFE, ReadPreference.primary());
   }
 
   @Test
   public void doInMongoTxForNativeMongoWithDefaults() throws Exception {
-    testComponent.txMethodNativeMongoWithDefaults(WriteConcern.JOURNALED, ReadPreference.primary());
+    mongoTxTestInterface.txMethodNativeMongoWithDefaults(WriteConcern.JOURNALED, ReadPreference.primary());
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void doInMongoTxForNativeMongoWithUnknownWriteConcern() throws Exception {
-    testComponent.txMethodNativeMongoWithUnknownWriteConcern(WriteConcern.JOURNALED, ReadPreference.primary());
+    mongoTxTestInterface.txMethodNativeMongoWithUnknownWriteConcern(WriteConcern.JOURNALED, ReadPreference.primary());
   }
 
   @Test
   public void doInMongoTxForMongoFactory() throws Exception {
-    testComponent.txMethodMongoFactory(WriteConcern.REPLICAS_SAFE, ReadPreference.nearest());
+    mongoTxTestInterface.txMethodMongoFactory(WriteConcern.REPLICAS_SAFE, ReadPreference.nearest());
   }
 
   @Test
   public void doWithoutMongoTxForNativeMongo() throws Exception {
-    testComponent.nonTxMethodNativeMongo(WriteConcern.JOURNALED, new FastestPingTimeReadPreference());
+    mongoTxTestInterface.nonTxMethodNativeMongo(WriteConcern.JOURNALED, new FastestPingTimeReadPreference());
   }
 
   @Test
   public void doWithoutMongoTxForMongoFactory() throws Exception {
-    testComponent.nonTxMethodMongoFactory(WriteConcern.JOURNALED, new FastestPingTimeReadPreference());
+    mongoTxTestInterface.nonTxMethodMongoFactory(WriteConcern.JOURNALED, new FastestPingTimeReadPreference());
   }
 }
