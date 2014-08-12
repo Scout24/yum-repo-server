@@ -87,7 +87,7 @@ public class FastestPingTimeReadPreferenceTest {
         .address(new ServerAddress(hostname, new Random()
         .nextInt(5000) + 1024))
         .setName("name")
-        .averagePingTime(round(pingTime * 1000), NANOSECONDS)
+        .averageLatency(round(pingTime * 1000), NANOSECONDS)
         .ok(true)
         .state(Connected)
         .type(type);

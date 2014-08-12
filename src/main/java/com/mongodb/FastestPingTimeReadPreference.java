@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Set;
 
+import static java.lang.Float.compare;
 import static java.util.Arrays.asList;
 
 public class FastestPingTimeReadPreference extends ReadPreference {
@@ -43,12 +44,12 @@ public class FastestPingTimeReadPreference extends ReadPreference {
           buffer.append("[");
           buffer.append(node.getAddress().getHost());
           buffer.append("/");
-          buffer.append(node.getAveragePingTimeNanos());
+          buffer.append(node.getAverageLatencyNanos());
           buffer.append("] ");
         }
       }
 
-      String choosenNode = nearestNode.getAddress().getHost() + "/" + nearestNode.getAveragePingTimeNanos();
+      String choosenNode = nearestNode.getAddress().getHost() + "/" + nearestNode.getAverageLatencyNanos();
       LOGGER.trace("take {} as mongodb host. other {}", choosenNode, buffer.toString());
     } else {
       if (LOGGER.isDebugEnabled()) {
@@ -74,7 +75,7 @@ public class FastestPingTimeReadPreference extends ReadPreference {
     if (nodeA == null) {
       return nodeB;
     }
-    if (Float.compare(nodeA.getAveragePingTimeNanos(), nodeB.getAveragePingTimeNanos()) > 0) {
+    if (compare(nodeA.getAverageLatencyNanos(), nodeB.getAverageLatencyNanos()) > 0) {
       return nodeB;
     }
     return nodeA;
