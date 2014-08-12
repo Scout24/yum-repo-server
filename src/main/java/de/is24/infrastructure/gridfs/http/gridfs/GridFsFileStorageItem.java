@@ -54,7 +54,7 @@ public class GridFsFileStorageItem implements FileStorageItem {
 
   @Override
   public String getChecksumSha256() {
-    return dbFile.getMetaData().get(SHA256_KEY).toString();
+    return (String) dbFile.getMetaData().get(SHA256_KEY);
   }
 
   @Override
