@@ -353,8 +353,13 @@ public class GridFsFileStorageService implements FileStorageService {
   @Override
   @MongoTx
   public List<FileStorageItem> getCorruptFiles() {
-    Query query = query(new Criteria().orOperator(whereFilename().is(null), whereMetaData().is(null)));
+    Query query = getCorruptFileQuery();
     return convert(gridFsTemplate.find(query), GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
+  }
+
+  @Override
+  public void deleteCorruptFiles() {
+    gridFsTemplate.delete(getCorruptFileQuery());
   }
 
   @Override
@@ -373,6 +378,10 @@ public class GridFsFileStorageService implements FileStorageService {
               "\tlength: %s\n", descriptor.getPath(), startPos, storageItem.getSize()));
     }
     return storageItem;
+  }
+
+  private Query getCorruptFileQuery() {
+    return query(new Criteria().orOperator(whereFilename().is(null), whereMetaData().is(null)));
   }
 
   private void markForDeletion(final Criteria criteria) {

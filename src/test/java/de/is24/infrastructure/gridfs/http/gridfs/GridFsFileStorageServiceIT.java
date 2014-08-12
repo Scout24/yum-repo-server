@@ -25,6 +25,7 @@ import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRep
 import static org.apache.commons.lang.time.DateUtils.addDays;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -77,7 +78,20 @@ public class GridFsFileStorageServiceIT {
 
     List<FileStorageItem> corruptFiles = context.fileStorageService().getCorruptFiles();
 
-    assertThat(corruptFiles.size(), is(2));
+    assertThat(corruptFiles.size(), greaterThanOrEqualTo(2));
+    assertAllFilesAreCorrupt(corruptFiles);
+  }
+
+  @Test
+  public void deleteCorruptFiles() throws Exception {
+    setFilenameToNull(context.storageTestUtils().givenFullRepository());
+    setMetadataToNull(context.storageTestUtils().givenFullRepository());
+
+    context.fileStorageService().deleteCorruptFiles();
+    assertThat(context.fileStorageService().getCorruptFiles().size(), is(0));
+  }
+
+  private void assertAllFilesAreCorrupt(List<FileStorageItem> corruptFiles) {
     for (FileStorageItem file : corruptFiles) {
       if (file.getFilename() != null && file.getRepo() != null)
         throw new AssertionError("Found item that is not corrupt.");

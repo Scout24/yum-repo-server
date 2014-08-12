@@ -4,6 +4,7 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
 import de.is24.infrastructure.gridfs.http.maintenance.MaintenanceService;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
+import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +16,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.springframework.http.HttpStatus.ACCEPTED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -30,19 +33,24 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @TimeMeasurement
 public class MaintenanceController {
 
-  private MaintenanceService maintenanceService;
-  private RepoService repoService;
+  private final MaintenanceService maintenanceService;
+  private final RepoService repoService;
+  private final FileStorageService fileStorageService;
 
 
   /* for AOP autoproxying */
   protected MaintenanceController() {
+    maintenanceService = null;
+    repoService = null;
+    fileStorageService = null;
   }
 
 
   @Autowired
-  public MaintenanceController(MaintenanceService maintenanceService, RepoService repoService) {
+  public MaintenanceController(MaintenanceService maintenanceService, RepoService repoService, FileStorageService fileStorageService) {
     this.maintenanceService = maintenanceService;
     this.repoService = repoService;
+    this.fileStorageService = fileStorageService;
   }
 
 
@@ -169,6 +177,25 @@ public class MaintenanceController {
   public Set<FileStorageItem> getFilesWithoutYumEntries() {
     return maintenanceService.getFilesWithoutYumEntry();
   }
+
+  @RequestMapping(
+      value = "/corrupt-data/files", method = GET, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
+  )
+  @ResponseBody
+  @TimeMeasurement
+  public List<FileStorageItem> getCorruptFiles() {
+    return fileStorageService.getCorruptFiles();
+  }
+
+  @RequestMapping(
+      value = "/corrupt-data/files", method = DELETE, produces = APPLICATION_JSON_VALUE, headers = "Accept=application/json"
+  )
+  @ResponseStatus(NO_CONTENT)
+  @TimeMeasurement
+  public void deleteCorruptFiles() {
+    fileStorageService.deleteCorruptFiles();
+  }
+
 
   private boolean validateRepos(Map<String, Object> model, String prefix, String sourceRepo,
                                 String targetRepo) {

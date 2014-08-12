@@ -61,4 +61,6 @@ public interface FileStorageService {
   BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos, long size) throws IOException;
 
   List<FileStorageItem> getCorruptFiles();
+
+  void deleteCorruptFiles();
 }
