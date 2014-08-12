@@ -5,10 +5,13 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.scheduling.TaskScheduler;
+
 import java.util.concurrent.ScheduledFuture;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,7 +37,7 @@ public class RepoMetadataGeneratorJobTest {
     detector = mock(MongoPrimaryDetector.class);
     scheduledFuture = mock(ScheduledFuture.class);
     taskScheduler = mock(TaskScheduler.class);
-    when(taskScheduler.scheduleWithFixedDelay(any(Runnable.class), anyLong())).thenReturn(scheduledFuture);
+    doReturn(scheduledFuture).when(taskScheduler).scheduleWithFixedDelay(any(Runnable.class), anyLong());
     job = new RepoMetadataGeneratorJob(REPO_NAME, service, detector, taskScheduler, DELAY);
   }
 

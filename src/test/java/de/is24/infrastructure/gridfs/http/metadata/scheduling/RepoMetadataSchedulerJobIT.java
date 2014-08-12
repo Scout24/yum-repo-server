@@ -8,8 +8,10 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.scheduling.TaskScheduler;
+
 import java.net.UnknownHostException;
 import java.util.concurrent.ScheduledFuture;
+
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -19,8 +21,8 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 public class RepoMetadataSchedulerJobIT {
@@ -38,7 +40,7 @@ public class RepoMetadataSchedulerJobIT {
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
     ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
     TaskScheduler taskScheduler = mock(TaskScheduler.class);
-    when(taskScheduler.scheduleWithFixedDelay(any(Runnable.class), anyLong())).thenReturn(scheduledFuture);
+    doReturn(scheduledFuture).when(taskScheduler).scheduleWithFixedDelay(any(Runnable.class), anyLong());
     metadataScheduler = new RepoMetadataScheduler(context.repoEntriesRepository(), metadataService, primaryDetector,
       taskScheduler,
       DELAY);
