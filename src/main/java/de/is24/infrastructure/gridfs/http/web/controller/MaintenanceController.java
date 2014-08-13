@@ -210,10 +210,4 @@ public class MaintenanceController {
     }
     return okay;
   }
-
-
-  public void onError() {
-  }
-
-
 }
