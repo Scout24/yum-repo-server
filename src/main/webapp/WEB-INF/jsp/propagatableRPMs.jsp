@@ -3,8 +3,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib prefix="util" uri="http://immobilienscout24.de/jsp-util" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <tags:header title="Propagatable RPMs in ${sourceRepo} if ${targetRepo} is propagation target" />
 <body>
 	<div id="content">
@@ -32,11 +32,11 @@
       </li>
       <c:forEach var="fileInfo" items="${propagatableRPMs}" varStatus="status">
         <li id="rpm${status.index}">
-          <span class="icon"><img src="<c:url value="/static/images/icons/rpm.gif"/>"></span>
+          <span class="icon"><img alt="RPM" src="<c:url value="/static/images/icons/rpm.gif"/>"></span>
           <span class="filename">
             ${fileInfo.location.href}
               <c:if test="${fn:endsWith(fileInfo.location.href, '.rpm')}">
-                  <img src="<c:url value="/static/images/icons/info.png"/>" rel="<c:url value="/repo/${sourceRepo}/${fileInfo.location.href}/info.html"/>" onclick="return false;" title="RPM Info" class="rpmInfo">
+                  <img alt="Info" src="<c:url value="/static/images/icons/info.png"/>" rel="<c:url value="/repo/${sourceRepo}/${fileInfo.location.href}/info.html"/>" onclick="return false;" title="RPM Info" class="rpmInfo">
               </c:if>
           </span>
           <span class="size">${fileInfo.formattedLength}</span>
