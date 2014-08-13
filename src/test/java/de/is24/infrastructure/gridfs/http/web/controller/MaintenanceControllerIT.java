@@ -10,22 +10,24 @@ import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+
+import static ch.lambdaj.Lambda.extract;
+import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter {
-  private String sourceRepoUrl;
-  private String targetRepoUrl;
   private String sourceReponame;
   private String targetReponame;
   private static final File MAINTENANCE_RPM_DIR = new File("src/test/maintenancerpms");
@@ -35,8 +37,8 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     String reponame = uniqueRepoName();
     sourceReponame = "source" + reponame;
     targetReponame = "target" + reponame;
-    sourceRepoUrl = deploymentURL + "/repo/" + sourceReponame;
-    targetRepoUrl = deploymentURL + "/repo/" + targetReponame;
+    String sourceRepoUrl = deploymentURL + "/repo/" + sourceReponame;
+    String targetRepoUrl = deploymentURL + "/repo/" + targetReponame;
 
     uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57034-2.noarch.rpm");
     uploadRpm(sourceRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-57035-4.noarch.rpm");
@@ -52,33 +54,18 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-1-2.src.rpm");
     uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-3-2.src.rpm");
     uploadRpm(targetRepoUrl, MAINTENANCE_RPM_DIR.getPath() + "/is24-dummyRpmForTesting-4-3.src.rpm");
-
-
   }
-
 
   @Test
   public void findRPMsThatWillNeverBeInstalledFromSourceIfTargetAlsoRegisterdInClient() throws Exception {
     HttpGet get = new HttpGet(deploymentURL + "/maintenance/obsolete?sourceRepo=" + sourceReponame + "&targetRepo=" +
       targetReponame);
-    HttpResponse response = httpClient.execute(get);
-
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
-
-    final Set<YumPackage> removableYumPackages = readJson(response, new TypeReference<Set<YumPackage>>() {
-      });
-    assertThat(removableYumPackages.size(), is(4));
-
-    HashSet<String> hrefs = new HashSet<String>();
-    Iterator<YumPackage> yumPackageIterator = removableYumPackages.iterator();
-    while (yumPackageIterator.hasNext()) {
-      hrefs.add(yumPackageIterator.next().getLocation().getHref());
-    }
-    assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57034-2.noarch.rpm"), is(true));
-    assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57035-4.noarch.rpm"), is(true));
-    assertThat(hrefs.contains("src/is24-dummyRpmForTesting-1-1.src.rpm"), is(true));
-    assertThat(hrefs.contains("src/is24-dummyRpmForTesting-2-2.src.rpm"), is(true));
-
+    List<String> hrefs = getResultingHrefs(get);
+    assertThat(hrefs.size(), is(4));
+    assertThat(hrefs, hasItem("noarch/is24-dummyRpmForTesting-57034-2.noarch.rpm"));
+    assertThat(hrefs, hasItem("noarch/is24-dummyRpmForTesting-57035-4.noarch.rpm"));
+    assertThat(hrefs, hasItem("src/is24-dummyRpmForTesting-1-1.src.rpm"));
+    assertThat(hrefs, hasItem("src/is24-dummyRpmForTesting-2-2.src.rpm"));
   }
 
   @Test
@@ -86,27 +73,22 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     HttpGet get = new HttpGet(deploymentURL + "/maintenance/propagatable?sourceRepo=" + sourceReponame +
       "&targetRepo=" +
       targetReponame);
+    List<String> hrefs = getResultingHrefs(get);
+    assertThat(hrefs.size(), is(2));
+    assertThat(hrefs, hasItem("noarch/is24-dummyRpmForTesting-57037-6.noarch.rpm"));
+    assertThat(hrefs, hasItem("src/is24-dummyRpmForTesting-5-3.src.rpm"));
+  }
+
+  private List<String> getResultingHrefs(HttpGet get) throws IOException {
     HttpResponse response = httpClient.execute(get);
-
     assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
-
-    final Set<YumPackage> removableYumPackages = readJson(response, new TypeReference<Set<YumPackage>>() {
-      });
-    assertThat(removableYumPackages.size(), is(2));
-
-    HashSet<String> hrefs = new HashSet<String>();
-    Iterator<YumPackage> yumPackageIterator = removableYumPackages.iterator();
-    while (yumPackageIterator.hasNext()) {
-      hrefs.add(yumPackageIterator.next().getLocation().getHref());
-    }
-    assertThat(hrefs.contains("noarch/is24-dummyRpmForTesting-57037-6.noarch.rpm"), is(true));
-    assertThat(hrefs.contains("src/is24-dummyRpmForTesting-5-3.src.rpm"), is(true));
-
+    return extract(readJson(response), on(YumPackage.class).getLocation().getHref());
   }
 
 
-  protected <T> T readJson(HttpResponse response, TypeReference<T> typeReference) throws IOException {
-    return new ObjectMapper().readValue(response.getEntity().getContent(), typeReference);
+  protected <T> T readJson(HttpResponse response) throws IOException {
+    return new ObjectMapper().readValue(response.getEntity().getContent(), new TypeReference<Set<YumPackage>>() {
+    });
   }
 
 }
