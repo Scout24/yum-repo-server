@@ -104,8 +104,9 @@ public class PrimaryDbGenerator extends DbGenerator {
   }
 
   private static int fillStatementForYumPackageFormatEntry(final PreparedStatement ps,
-                                                           final YumPackageFormatEntry dependency, int counter)
+                                                           final YumPackageFormatEntry dependency, int startCount)
                                                     throws SQLException {
+    int counter = startCount;
     ps.setString(counter++, dependency.getName());
     if (dependency.getFlags() == null) {
       ps.setString(counter++, null);
