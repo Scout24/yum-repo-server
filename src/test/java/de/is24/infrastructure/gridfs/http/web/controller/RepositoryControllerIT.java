@@ -19,7 +19,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
+
 import java.io.IOException;
+
 import static ch.lambdaj.Lambda.on;
 import static ch.lambdaj.function.matcher.HasArgumentWithValue.havingValue;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
@@ -62,7 +64,7 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
 
   @Test(expected = RuntimeException.class)
   public void shouldNotBeAbleToUploadToRootRepo() throws IOException {
-    HttpResponse response = uploadRpm(deploymentURL + "/repo/", RPM_FILE.getPath());
+    uploadRpm(deploymentURL + "/repo/", RPM_FILE.getPath());
   }
 
   @Test
