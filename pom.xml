@@ -532,7 +532,7 @@
       </activation>
       <properties>
           <sonar.sources>src/main/java,src/main/webapp</sonar.sources>
-          <sonar.exclusions>**/jquery*.js</sonar.exclusions>
+          <sonar.exclusions>**/jquery*.js,**/jquery*.css,**/token-input*.css</sonar.exclusions>
           <sonar.jacoco.reportPath>${project.build.directory}/jacoco-ut.exec</sonar.jacoco.reportPath>
           <sonar.jacoco.itReportPath>${project.build.directory}/jacoco.exec</sonar.jacoco.itReportPath>
           <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>

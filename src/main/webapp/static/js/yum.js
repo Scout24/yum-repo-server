@@ -14,7 +14,7 @@ $(function() {
     arrows: true,
     width: 750,
     ajaxCache: false,
-    onShow: function (ct, ci) {
+    onShow: function () {
       window.yum.repoName = $('#yumRepoName').attr("name");
       yum.renderScheduledSwitch();
       yum.renderTags();
@@ -34,7 +34,7 @@ $(function() {
         yum.loadStaticRepos();
       }
     },
-    onShow: function (ct, ci) {
+    onShow: function () {
       $('#externalSwitch').switchbutton().change(function () {
         if ($(this).prop('checked')) {
           $('#targetRepos').hide();
@@ -52,16 +52,16 @@ $(function() {
       for (var i = 0; i < yum.repos.length; i++) {
         var entry = yum.repos[i];
         var option = new Option(entry.name, 'static/' + entry.name);
-        if (entry.name == currentTarget) {
+        if (entry.name === currentTarget) {
           option.selected = true;
           currentIsInList = true;
         }
         targetSelect.options[i] = option;
       }
       if (!currentIsInList) {
-        var option = new Option(currentTarget + ' (not existing)', 'static/' + currentTarget);
-        option.selected = true;
-        targetSelect.options[targetSelect.options.length] = option;  
+        var defaultOption = new Option(currentTarget + ' (not existing)', 'static/' + currentTarget);
+        defaultOption.selected = true;
+        targetSelect.options[targetSelect.options.length] = defaultOption;
       }
     }
   });
@@ -72,7 +72,7 @@ window.yum = {
   setContextBase : function(contextBase) {
     yum.contextBase = contextBase;
   },
-  
+
   setStaticRepoType : function(reponame, type) {
     yum.setRepoProperty(reponame, 'type', type);
   },
@@ -90,7 +90,7 @@ window.yum = {
       data : JSON.stringify(value),
       success: function () {
       },
-      error: function (xhr, status, error) {
+      error: function (xhr, status) {
         alert('Saving failed : ' + status);
       }
     });
@@ -100,12 +100,12 @@ window.yum = {
     $.ajax('../', {
       dataType: 'json',
       async : false,
-      success: function (data, status, xhr) {
+      success: function (data) {
         yum.repos = data.items;
       }
     });
   },
-  
+
   renderScheduledSwitch: function() {
       $('.scheduledSwitch').switchbutton().change(function () {
           var value = $(this).prop("checked") ? 'SCHEDULED' : 'STATIC';
@@ -123,18 +123,18 @@ window.yum = {
         value: keepRpmsValue.text(),
         slide: function( event, ui ) {
             var value = ui.value;
-            if ( value == 0){
+            if ( value === 0){
                 value = "ALL";
             }
             keepRpmsValue.text(value);
           yum.setMaxKeepRpms(keepRpmsValue.attr('name'), ui.value);
         }
       });
-      if ( keepRpmsValue.text() == 0){
+      if ( keepRpmsValue.text() === 0){
           keepRpmsValue.text("ALL");
       }
   },
-  
+
   renderTags: function() {
 	  var tags = [];
 	  $(".tag").each(function() {
@@ -144,14 +144,14 @@ window.yum = {
     $("#tagsInput").tokenInput([], {
       allowCreation: true,
       createTokenText: "Create new tag",
-      onAdd: function(value) {},
-      onDelete: function(value) {},
+      onAdd: function() {},
+      onDelete: function() {},
       theme: "facebook",
       prePopulate: tags,
       hintText: "add a tag"
     });
   },
-  
+
   resetTags: function() {
     var tags = $("#tagsInput").tokenInput("get");
     yum.deleteAllTags();
@@ -165,24 +165,10 @@ window.yum = {
 	    async: false,
 	    cache : false,
 	    url : yum.repoName + '/tags',
-	    error: function (xhr, status, error) {
+	    error: function (xhr, status) {
 	      alert('Resetting tags failed : ' + status);
 	    }
 	});
-  },
-
-  deleteRepoTag : function(repoName, tagToDelete) {
-    $.ajax({
-        type : 'POST',
-        cache : false,
-        url : repoName + '/tags/' + tagToDelete,
-        success: function () {
-          yum.removeTag(tagToDelete);
-        },
-        error: function (xhr, status, error) {
-          alert('Failed to remove tag: ' + status);
-        }
-    });
   },
 
   deleteRPM: function(target,repoPath,rpmHref) {
@@ -194,7 +180,7 @@ window.yum = {
           success: function () {
               $('#'+target).remove();
           },
-          error: function (xhr, status, error) {
+          error: function (xhr, status) {
               alert('deleting file failed : ' + status);
           }
       });
@@ -208,7 +194,7 @@ window.yum = {
       success: function () {
         alert('Asynchronous deleting of obsolete RPMs successfully triggered. Deletion may take some time due to delete volume limits to prevent mongodb replica locks. Reload page to see progress.');
       },
-      error: function (xhr, status, error) {
+      error: function (xhr, status) {
         alert('deleting file failed : ' + status);
       }
     });
@@ -224,7 +210,7 @@ window.yum = {
         success: function () {
             $('#'+target).remove();
         },
-        error: function (xhr, status, error) {
+        error: function (xhr, status) {
             alert('propagating RPM failed : ' + status);
         }
     });
@@ -240,19 +226,14 @@ window.yum = {
 		    cache : false,
 		    url : yum.repoName + '/tags',
 		    data : {tag: newTag},
-		    success: function () {
-		      // spinner.hide();
-		      //yum.displayNewTag(newTag);
-		    },
-		    error: function (xhr, status, error) {
-		      // spinner.hide();
+		    success: function () {},
+		    error: function (xhr, status) {
 		      alert('Saving failed : ' + status);
-		      // button.show();
 		    }
 		});
 	});
   },
-  
+
   saveVirtualRepo : function(name) {
     var external = $('#externalSwitch').prop('checked');
     var target;
@@ -273,7 +254,7 @@ window.yum = {
       success: function () {
         $('#saveSpinner').hide();
       },
-      error: function (xhr, status, error) {
+      error: function (xhr, status) {
         $('#saveSpinner').hide();
         alert('Saving failed : ' + status);
         $('#saveButton').show();
