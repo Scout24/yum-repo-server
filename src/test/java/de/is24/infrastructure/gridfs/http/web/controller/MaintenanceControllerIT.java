@@ -2,10 +2,12 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
 import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,16 +20,22 @@ import java.util.Set;
 
 import static ch.lambdaj.Lambda.extract;
 import static ch.lambdaj.Lambda.on;
+import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter {
+  public static final TypeReference<Set<YumPackage>> YUM_PACKAGE_TYPE = new TypeReference<Set<YumPackage>>() {
+  };
   private String sourceReponame;
   private String targetReponame;
   private static final File MAINTENANCE_RPM_DIR = new File("src/test/maintenancerpms");
@@ -79,16 +87,26 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
     assertThat(hrefs, hasItem("src/is24-dummyRpmForTesting-5-3.src.rpm"));
   }
 
+  @Test
+  public void findFilesWithoutYumEntries() throws Exception {
+    mongoTemplate(mongo).remove(query(where("repo").is(sourceReponame)), YumEntry.class);
+
+    HttpGet get = new HttpGet(deploymentURL + "/maintenance/consistency/files");
+    HttpResponse response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
+    String jsonString = EntityUtils.toString(response.getEntity());
+    assertThat(jsonString, containsString("is24-dummyRpmForTesting-57034-2.noarch.rpm"));
+  }
+
   private List<String> getResultingHrefs(HttpGet get) throws IOException {
     HttpResponse response = httpClient.execute(get);
     assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
-    return extract(readJson(response), on(YumPackage.class).getLocation().getHref());
+    return extract(readJsonToSet(response), on(YumPackage.class).getLocation().getHref());
   }
 
 
-  protected <T> T readJson(HttpResponse response) throws IOException {
-    return new ObjectMapper().readValue(response.getEntity().getContent(), new TypeReference<Set<YumPackage>>() {
-    });
+  protected Set<YumPackage> readJsonToSet(HttpResponse response) throws IOException {
+    return new ObjectMapper().readValue(response.getEntity().getContent(), YUM_PACKAGE_TYPE);
   }
 
 }

@@ -44,12 +44,12 @@ public class GridFsFileStorageItem implements FileStorageItem {
     return dbFile.getId();
   }
 
-  @JsonIgnore
   @Override
   public String getFilename() {
     return dbFile.getFilename();
   }
 
+  @JsonIgnore
   @Override
   public InputStream getInputStream() {
     return dbFile.getInputStream();
