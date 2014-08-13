@@ -178,7 +178,7 @@ public class AppConfig extends AbstractMongoConfiguration {
 
 
   @Bean(initMethod = "register", destroyMethod = "afterRemovalNotification")
-  public StatsdPlugin appmon4jStatsdPlugin() throws UnknownHostException, SocketException {
+  public StatsdPlugin appmon4jStatsdPlugin() {
     if (statsdHost != null) {
       try {
         return new StatsdPlugin(statsdHost, statsdPort, typ);
