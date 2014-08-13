@@ -271,7 +271,7 @@ public class MaintenanceService {
     }
 
     private ObjectId getId(DBObject dbObject) {
-      return ((ObjectId) dbObject.get("_id"));
+      return (ObjectId) dbObject.get("_id");
     }
 
     private List<ObjectId> getEntriesWithMissingFile() {
@@ -292,7 +292,7 @@ public class MaintenanceService {
     }
 
     private ObjectId getId(DBObject dbObject) {
-      return ((ObjectId) dbObject.get("_id"));
+      return (ObjectId) dbObject.get("_id");
     }
 
     private List<ObjectId> getFilesWithMissingEntry() {

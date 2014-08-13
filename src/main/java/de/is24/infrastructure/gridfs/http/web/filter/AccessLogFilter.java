@@ -14,7 +14,7 @@ import java.io.IOException;
 
 public class AccessLogFilter implements Filter {
 
-  public static final Logger LOG = LoggerFactory.getLogger(AccessLogFilter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AccessLogFilter.class);
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {

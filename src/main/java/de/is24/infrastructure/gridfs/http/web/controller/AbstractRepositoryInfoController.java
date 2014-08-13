@@ -239,7 +239,7 @@ public abstract class AbstractRepositoryInfoController {
   }
 
   protected Map<String, Object> sorting(SortField sortBy, SortOrder sortOrder) {
-    HashMap<String, Object> sorting = newHashMap();
+    Map<String, Object> sorting = newHashMap();
     for (SortField field : SortField.values()) {
       sorting.put("sortOrder" + capitalize(field.name()), asc);
       sorting.put("sortOrderDirection" + capitalize(field.name()), none);

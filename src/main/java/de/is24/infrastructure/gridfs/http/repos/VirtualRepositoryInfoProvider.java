@@ -132,12 +132,12 @@ public class VirtualRepositoryInfoProvider implements RepositoryInfoProvider {
 
   @Override
   public List<RepoEntry> find(String repoNameRegex, String tag, Date newer, Date older) {
-    return null;
+    return new ArrayList<>();
   }
 
   @Override
   public List<RepoEntry> find(String repoNameRegex, Date newer, Date older) {
-    return null;
+    return new ArrayList<>();
   }
 
   @Override
