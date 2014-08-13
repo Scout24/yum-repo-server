@@ -3,8 +3,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib prefix="util" uri="http://immobilienscout24.de/jsp-util" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <tags:header title="Obsolete RPMs in ${sourceRepo} if ${targetRepo} is propagation target" />
 <body>
 	<div id="content">
@@ -27,7 +27,7 @@
       <c:if test="${obsoleteRPMs.size() > 0}">
         <li>
           <a href="#" onclick="yum.deleteObsoleteRPMs('${targetRepo}','${sourceRepo}')">
-            <span class="icon"><img src="<c:url value="/static/images/icons/trash.png"/>"></span>
+            <span class="icon"><img alt="Trash" src="<c:url value="/static/images/icons/trash.png"/>"></span>
             <span class="filename">Trigger deletion of all obsolete RPMs </span>
             <span class="size">&nbsp;</span>
             <span class="action">&nbsp;</span>
@@ -42,16 +42,16 @@
       </li>
       <c:forEach var="fileInfo" items="${obsoleteRPMs}" varStatus="status">
         <li id="rpm${status.index}">
-          <span class="icon"><img src="<c:url value="/static/images/icons/rpm.gif"/>"></span>
+          <span class="icon"><img alt="RPM" src="<c:url value="/static/images/icons/rpm.gif"/>"></span>
           <span class="filename">
             ${fileInfo.location.href}
               <c:if test="${fn:endsWith(fileInfo.location.href, '.rpm')}">
-                  <img src="<c:url value="/static/images/icons/info.png"/>" rel="<c:url value="/repo/${sourceRepo}/${fileInfo.location.href}/info.html"/>" onclick="return false;" title="RPM Info" class="rpmInfo">
+                  <img alt="Info" src="<c:url value="/static/images/icons/info.png"/>" rel="<c:url value="/repo/${sourceRepo}/${fileInfo.location.href}/info.html"/>" onclick="return false;" title="RPM Info" class="rpmInfo">
               </c:if>
           </span>
           <span class="size">${fileInfo.formattedLength}</span>
           <span class="action">
-            <a href="#" onclick="yum.deleteRPM('rpm${status.index}','<c:url value="/repo/${sourceRepo}"/>','${fileInfo.location.href}')" title="delete"><img src="<c:url value="/static/images/icons/trash.png"/>"></a>
+            <a href="#" onclick="yum.deleteRPM('rpm${status.index}','<c:url value="/repo/${sourceRepo}"/>','${fileInfo.location.href}')" title="delete"><img alt="Trash" src="<c:url value="/static/images/icons/trash.png"/>"></a>
           </span>
         </li>
       </c:forEach>

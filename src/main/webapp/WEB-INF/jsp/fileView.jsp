@@ -2,8 +2,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <tags:header title="Index of ${model.path}/" />
 <body>
 	<div id="content">

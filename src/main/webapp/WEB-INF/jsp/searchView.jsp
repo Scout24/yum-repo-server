@@ -3,8 +3,8 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <%@ taglib prefix="util" uri="http://immobilienscout24.de/jsp-util" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <tags:header title="Search in ${model.path}/" />
 <body>
 	<div id="content">
