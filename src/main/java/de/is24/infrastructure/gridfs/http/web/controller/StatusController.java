@@ -2,7 +2,6 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
-import com.mongodb.BasicDBObject;
 import com.mongodb.CommandResult;
 import com.mongodb.DBCollection;
 import com.mongodb.Mongo;
@@ -84,7 +83,7 @@ public class StatusController {
 
 
   private String getStatusJson(HttpServletResponse response, final boolean showExtendedInformation) {
-    boolean isOK = false;
+    boolean isOK;
 
     final StringBuilder detailedInfo = new StringBuilder();
     try {
@@ -116,18 +115,9 @@ public class StatusController {
   }
 
   private String createJSONContent(final boolean ok, final StringBuilder detailedInfo) {
-    return new StringBuilder("{mainInfo:{mongoDBStatus: \"") //
-      .append(ok ? OK_STATUS : NOT_RESPONDING_STATUS)
-      .append("\"},detailedInfo: {")
-      .append(detailedInfo)
-      .append("}}")
-      .toString();
+    return "{mainInfo:{mongoDBStatus: \"" + (ok ? OK_STATUS : NOT_RESPONDING_STATUS) + "\"},"
+        + "detailedInfo: {" + detailedInfo + "}}";
   }
-
-  private boolean checkPingTheNode() {
-    return mongoTemplate.executeCommand(new BasicDBObject("ping", 1)).ok();
-  }
-
 
   private void appendCollectionInfo(final Iterable<String> collectionNames, final StringBuilder content) {
     content.append(",collections: [");

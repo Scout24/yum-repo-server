@@ -3,12 +3,13 @@ package de.is24.infrastructure.gridfs.http.web.logging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
 public class LoggingHandlerInterceptor extends HandlerInterceptorAdapter {
-  public static final Logger LOG = LoggerFactory.getLogger(LoggingHandlerInterceptor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LoggingHandlerInterceptor.class);
 
   @Override
   public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
