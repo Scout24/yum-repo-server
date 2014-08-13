@@ -10,11 +10,11 @@ public enum SortField {
   repo("metadata.repo"),
   target("target");
 
+  private String alt;
+
   private SortField(String alt) {
     this.alt = alt;
   }
-
-  private String alt;
 
   public BasicDBObject sortFolder(SortOrder sortOrder) {
     String field = (this == name) ? "_id" : this.alt;

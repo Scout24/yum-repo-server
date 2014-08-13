@@ -1,7 +1,9 @@
 package de.is24.infrastructure.gridfs.http.rpm;
 
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
+
 import java.util.regex.Pattern;
+
 import static java.lang.Integer.parseInt;
 
 
@@ -34,8 +36,8 @@ public final class RpmPROTagVersionToYumConverter {
     final int epochIndex = version.indexOf(EPOCH_SEPARATOR);
     final int versionIndex = version.indexOf(VERSION_SEPARATOR);
 
-    final int versionStart = (epochIndex != -1) ? (epochIndex + 1) : 0;
-    final int versionEnd = (versionIndex != -1) ? versionIndex : version.length();
+    final int versionStart = epochIndex != -1 ? epochIndex + 1 : 0;
+    final int versionEnd = versionIndex != -1 ? versionIndex : version.length();
 
     return version.substring(versionStart, versionEnd);
   }

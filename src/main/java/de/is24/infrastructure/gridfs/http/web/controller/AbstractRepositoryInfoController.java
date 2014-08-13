@@ -39,6 +39,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 public abstract class AbstractRepositoryInfoController {
   private static final int DEFAULT_OFFSET_STARTING_POINT = 5000;
   private static final int DEFAULT_OFFSET_END_POINT = -1;
+  private static final String MODEL = "model";
+  public static final String SEARCH_BY = "searchBy";
   protected final RepositoryInfoProvider infoProvider;
   protected final RepoService repoService;
   protected final boolean isStatic;
@@ -61,11 +63,11 @@ public abstract class AbstractRepositoryInfoController {
     if (isNullOrEmpty(searchBy)) {
       Container<FolderInfo> repos = infoProvider.getRepos(sortBy, sortOrder);
       repos.setShowInfo(true);
-      model.put("model", repos);
+      model.put(MODEL, repos);
       return new ModelAndView("folderView", model);
     } else {
-      model.put("model", infoProvider.find(searchBy, sortBy, sortOrder));
-      model.put("searchBy", searchBy);
+      model.put(MODEL, infoProvider.find(searchBy, sortBy, sortOrder));
+      model.put(SEARCH_BY, searchBy);
       return new ModelAndView("searchView", model);
     }
   }
@@ -102,11 +104,11 @@ public abstract class AbstractRepositoryInfoController {
       return new ModelAndView("redirect:" + infoProvider.getRedirectUrl(repoName));
     }
     if (isNullOrEmpty(searchBy)) {
-      model.put("model", infoProvider.getArchs(repoName, sortBy, sortOrder));
+      model.put(MODEL, infoProvider.getArchs(repoName, sortBy, sortOrder));
       return new ModelAndView("folderView", model);
     } else {
-      model.put("model", infoProvider.find(searchBy, repoName, sortBy, sortOrder));
-      model.put("searchBy", searchBy);
+      model.put(MODEL, infoProvider.find(searchBy, repoName, sortBy, sortOrder));
+      model.put(SEARCH_BY, searchBy);
       return new ModelAndView("searchView", model);
     }
   }
@@ -148,11 +150,11 @@ public abstract class AbstractRepositoryInfoController {
       return new ModelAndView("redirect:" + infoProvider.getRedirectUrl(repoName, arch));
     }
     if (isNullOrEmpty(searchBy)) {
-      model.put("model", infoProvider.getFileInfo(repoName, arch, sortBy, sortOrder));
+      model.put(MODEL, infoProvider.getFileInfo(repoName, arch, sortBy, sortOrder));
       return new ModelAndView("fileView", model);
     } else {
-      model.put("model", infoProvider.find(searchBy, repoName, arch, sortBy, sortOrder));
-      model.put("searchBy", searchBy);
+      model.put(MODEL, infoProvider.find(searchBy, repoName, arch, sortBy, sortOrder));
+      model.put(SEARCH_BY, searchBy);
       return new ModelAndView("searchView", model);
     }
   }

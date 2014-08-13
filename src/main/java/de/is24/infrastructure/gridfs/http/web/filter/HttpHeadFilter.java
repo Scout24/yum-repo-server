@@ -90,7 +90,7 @@ public class HttpHeadFilter implements Filter {
       contentLength++;
     }
 
-    public void write(byte buf[], int offset, int len) throws IOException {
+    public void write(byte[] buf, int offset, int len) throws IOException {
       contentLength += len;
     }
   }

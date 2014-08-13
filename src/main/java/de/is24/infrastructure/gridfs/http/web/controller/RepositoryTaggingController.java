@@ -1,10 +1,8 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoTaggingService;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
 import java.io.IOException;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -29,7 +29,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @RequestMapping("/repo")
 @TimeMeasurement
 public class RepositoryTaggingController {
-  private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryTaggingController.class);
 
   private final RepoTaggingService taggingService;
 

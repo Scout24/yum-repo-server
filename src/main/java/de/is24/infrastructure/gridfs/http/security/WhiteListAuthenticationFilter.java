@@ -3,8 +3,6 @@ package de.is24.infrastructure.gridfs.http.security;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import de.is24.infrastructure.gridfs.http.utils.WildcardToRegexConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,7 +19,6 @@ import static org.springframework.util.StringUtils.trimAllWhitespace;
 
 @ManagedResource
 public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(WhiteListAuthenticationFilter.class);
   public static final String WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY = "security.whitelist.modification.enabled";
 
   private String whiteListedHosts;

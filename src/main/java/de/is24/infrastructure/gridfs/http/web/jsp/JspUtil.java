@@ -5,7 +5,8 @@ import java.net.URLEncoder;
 
 public final class JspUtil {
 
-  private JspUtil() {}
+  private JspUtil() {
+  }
 
   public static String urlEncode(String value, String charset) throws UnsupportedEncodingException {
     return URLEncoder.encode(value, charset);

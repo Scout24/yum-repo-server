@@ -2,8 +2,8 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
-import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
+import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
 import java.io.IOException;
 import java.sql.SQLException;
+
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -20,6 +22,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @Controller
 @TimeMeasurement
 public class MetadataController {
+  private static final Logger LOG = LoggerFactory.getLogger(MetadataController.class);
+
   private final MetadataService metadataService;
   private final RepoService repoService;
 
@@ -33,8 +37,6 @@ public class MetadataController {
     this.metadataService = null;
     this.repoService = null;
   }
-
-  private static final Logger LOG = LoggerFactory.getLogger(MetadataController.class);
 
   @RequestMapping(value = "/repo/{reponame}/repodata", method = POST)
   @ResponseStatus(CREATED)
