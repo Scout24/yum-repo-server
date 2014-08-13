@@ -112,10 +112,9 @@ public class AppConfig extends AbstractMongoConfiguration {
     int tries = 0;
     while (tries < 3) {
       try {
-        MongoTemplate mongoTemplate = new MongoTemplate(mongoDbFactory(), mappingMongoConverter());
-        return mongoTemplate;
+        return new MongoTemplate(mongoDbFactory(), mappingMongoConverter());
       } catch (MongoException e) {
-        if (e.getMessage().indexOf("can't find a master") >= 0) {
+        if (e.getMessage().contains("can't find a master")) {
           tries++;
           LOGGER.warn("when creatig MongoTemplate: could not find a master, will retry in 10 seconds");
 
@@ -203,7 +202,7 @@ public class AppConfig extends AbstractMongoConfiguration {
   }
 
   private List<ServerAddress> getReplicatSet() throws UnknownHostException {
-    List<ServerAddress> hosts = new ArrayList<ServerAddress>(CLUSTER_SIZE);
+    List<ServerAddress> hosts = new ArrayList<>(CLUSTER_SIZE);
 
 
     for (String curServer : SEPARATOR_PATTERN.split(mongoDBServerList)) {
