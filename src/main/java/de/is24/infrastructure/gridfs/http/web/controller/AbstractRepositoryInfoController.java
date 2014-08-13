@@ -23,11 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static ch.lambdaj.Lambda.joinFrom;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Maps.newHashMap;
 import static de.is24.infrastructure.gridfs.http.domain.SortOrder.asc;
 import static de.is24.infrastructure.gridfs.http.domain.SortOrder.none;
+import static java.lang.String.join;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.WordUtils.capitalize;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
@@ -230,14 +231,10 @@ public abstract class AbstractRepositoryInfoController {
 
 
   private String handleTargetAndJoinResultString(Set<RepoEntry> repoEntries, boolean showDestination) {
-    StringBuilder result = new StringBuilder();
     if (showDestination) {
-      for (RepoEntry repoEntry : repoEntries) {
-        result.append(repoEntry.getName() + " : " + repoEntry.getTarget() + "\n");
-      }
-      return result.toString();
+      return join("\n", repoEntries.stream().map((entry) -> entry.getName() + " : " + entry.getTarget()).collect(toList()));
     } else {
-      return joinFrom(repoEntries, "\n").getName();
+      return join("\n", repoEntries.stream().map(RepoEntry::getName).collect(toList()));
     }
   }
 

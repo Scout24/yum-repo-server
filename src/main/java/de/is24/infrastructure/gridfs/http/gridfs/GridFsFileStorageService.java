@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
-import ch.lambdaj.function.convert.Converter;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -46,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static ch.lambdaj.Lambda.convert;
 import static com.mongodb.gridfs.GridFSUtil.mergeMetaData;
 import static com.mongodb.gridfs.GridFSUtil.remove;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.ARCH_KEY;
@@ -63,6 +61,7 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.SHA256_
 import static de.is24.infrastructure.gridfs.http.security.Permission.HAS_DESCRIPTOR_READ_PERMISSION;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.quote;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.codec.binary.Hex.encodeHexString;
 import static org.apache.commons.codec.digest.DigestUtils.getSha256Digest;
 import static org.apache.commons.io.IOUtils.closeQuietly;
@@ -84,12 +83,6 @@ public class GridFsFileStorageService implements FileStorageService {
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   private static final int MB = 1024 * 1024;
   private static final int FIVE_MB = 5 * MB;
-  public static final Converter<GridFSDBFile, FileStorageItem> GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER = new Converter<GridFSDBFile, FileStorageItem>() {
-    @Override
-    public FileStorageItem convert(GridFSDBFile from) {
-      return new GridFsFileStorageItem(from);
-    }
-  };
 
   private final GridFS gridFs;
   private final GridFsOperations gridFsTemplate;
@@ -162,20 +155,18 @@ public class GridFsFileStorageService implements FileStorageService {
 
   @Override
   public List<FileStorageItem> getAllRpms() {
-    List<GridFSDBFile> rpms = gridFs.find(query(
+    return convert(gridFs.find(query(
         whereFilename().regex(ENDS_WITH_RPM_REGEX)
-        .and(METADATA_MARKED_AS_DELETED_KEY).is(null)).getQueryObject());
-    return convert(rpms, GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
+        .and(METADATA_MARKED_AS_DELETED_KEY).is(null)).getQueryObject()));
   }
 
   @Override
   public List<FileStorageItem> getAllRpms(String repo) {
-    List<GridFSDBFile> rpms = gridFsTemplate.find(query(
+    return convert(gridFsTemplate.find(query(
         whereMetaData(REPO_KEY).is(repo)
             .and(METADATA_MARKED_AS_DELETED_KEY)
             .is(null)
-            .andOperator(whereFilename().regex(ENDS_WITH_RPM_REGEX))));
-    return convert(rpms, GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
+            .andOperator(whereFilename().regex(ENDS_WITH_RPM_REGEX)))));
   }
 
   @Override
@@ -324,8 +315,7 @@ public class GridFsFileStorageService implements FileStorageService {
 
   @Override
   public List<FileStorageItem> findByPrefix(String prefix) {
-    List<GridFSDBFile> gridFSDBFiles = gridFsTemplate.find(query(whereFilename().regex("^" + quote(prefix))));
-    return convert(gridFSDBFiles, GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
+    return convert(gridFsTemplate.find(query(whereFilename().regex("^" + quote(prefix)))));
   }
 
   @Override
@@ -353,8 +343,7 @@ public class GridFsFileStorageService implements FileStorageService {
   @Override
   @MongoTx
   public List<FileStorageItem> getCorruptFiles() {
-    Query query = getCorruptFileQuery();
-    return convert(gridFsTemplate.find(query), GRIDFS_FILE_TO_STORAGE_ITEM_CONVERTER);
+    return convert(gridFsTemplate.find(getCorruptFileQuery()));
   }
 
   @Override
@@ -366,6 +355,10 @@ public class GridFsFileStorageService implements FileStorageService {
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos) throws IOException {
     return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos);
+  }
+
+  private List<FileStorageItem> convert(List<GridFSDBFile> rpms) {
+    return rpms.stream().map(GridFsFileStorageItem::new).collect(toList());
   }
 
   private FileStorageItem getFileStorageItemWithCheckedStartPos(FileDescriptor descriptor, long startPos) {

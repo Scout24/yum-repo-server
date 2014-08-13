@@ -12,13 +12,12 @@ import org.freecompany.redline.Scanner;
 import org.freecompany.redline.header.Header;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static ch.lambdaj.Lambda.having;
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.Lambda.selectFirst;
+
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_ALL_FILES;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_ARCH;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_BUILD_HOST;
@@ -46,6 +45,7 @@ import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_FILE_
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_LOCATION;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
 import static java.nio.channels.Channels.newChannel;
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -189,9 +189,8 @@ public class RpmHeaderToYumPackageConverterTest {
 
   @Test
   public void readFilesForRootDir() throws Exception {
-    YumPackageDir rootDir = selectFirst(rpmHeaderToYumPackageConverter.convert().getPackageDirs(),
-      having(on(YumPackageDir.class).getName(), equalTo("/")));
-
+    YumPackageDir rootDir = asList(rpmHeaderToYumPackageConverter.convert().getPackageDirs()).stream().filter((dir) ->
+        "/".equals(dir.getName())).findFirst().get();
     assertThat(rootDir.getFiles().size(), equalTo(COMPLEX_RPM_ROOT_FILES.length));
     for (YumPackageFile file : COMPLEX_RPM_ROOT_FILES) {
       assertThat(rootDir.getFiles(), hasItem(file));

@@ -10,7 +10,6 @@ import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.web.controller.StaticRepositoryInfoControllerIT;
 import org.fest.assertions.api.Assertions;
-import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -20,8 +19,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import java.util.Date;
 import java.util.List;
 
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.function.matcher.HasArgumentWithValue.havingValue;
 import static de.is24.infrastructure.gridfs.http.domain.SortField.name;
 import static de.is24.infrastructure.gridfs.http.domain.SortOrder.asc;
 import static de.is24.infrastructure.gridfs.http.domain.SortOrder.desc;
@@ -31,12 +28,10 @@ import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_FILE
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.SOURCE_RPM_FILE_NAME;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 import static org.joda.time.DateTime.now;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -95,12 +90,11 @@ public class StaticRepositoryInfoProviderIT {
     String givenRepoWithData = createRepoFromDaysAgoWithData(0);
     String givenEmptyRepo = createEmptyRepoWithPrefix("emptyRepo");
 
-    Container<FolderInfo> staticRepos = provider.getRepos(name, SortOrder.asc);
+    List<FolderInfo> items = provider.getRepos(name, SortOrder.asc).getItems();
+    List<String> repoNames = items.stream().map(FolderInfo::getName).collect(toList());
 
-    Matcher<FolderInfo> folderInfoWithRepoWithData = havingValue(on(FolderInfo.class).getName(), is(givenRepoWithData));
-    Matcher<FolderInfo> folderInfoWithEmptyRepo = havingValue(on(FolderInfo.class).getName(), is(givenEmptyRepo));
-
-    assertThat(staticRepos.getItems(), hasItems(folderInfoWithEmptyRepo, folderInfoWithRepoWithData));
+    assertThat(repoNames, hasItem(givenRepoWithData));
+    assertThat(repoNames, hasItem(givenEmptyRepo));
 
     cleanUpRepositories(givenEmptyRepo, givenRepoWithData);
   }
@@ -167,16 +161,14 @@ public class StaticRepositoryInfoProviderIT {
   @SuppressWarnings("unchecked")
   private void thenReposAreSortedByName(Container<FolderInfo> givenStaticRepos, String expectedValue1,
                                         String expectedValue2, String expectedValue3) {
-    Matcher<FolderInfo> matcher1 = havingValue(on(FolderInfo.class).getName(), is(expectedValue1));
-    Matcher<FolderInfo> matcher2 = havingValue(on(FolderInfo.class).getName(), is(expectedValue2));
-    Matcher<FolderInfo> matcher3 = havingValue(on(FolderInfo.class).getName(), is(expectedValue3));
-
-    assertThat(givenStaticRepos.getItems(), contains(matcher1, matcher2, matcher3));
+    List<String> repoNames = givenStaticRepos.getItems().stream().map(FolderInfo::getName).collect(toList());
+    assertThat(repoNames, hasItem(expectedValue1));
+    assertThat(repoNames, hasItem(expectedValue2));
+    assertThat(repoNames, hasItem(expectedValue3));
   }
 
   private void assertResultContainsRepoWithGivenName(String reponame, List<RepoEntry> entries) {
-    Matcher<RepoEntry> entryWithGivenName = havingValue(on(RepoEntry.class).getName(), is(reponame));
-    assertThat(entries, hasItem(entryWithGivenName));
+    assertThat(entries.stream().map(RepoEntry::getName).collect(toList()), hasItem(reponame));
   }
 
   private void cleanUpRepositories(String... repoNames) {

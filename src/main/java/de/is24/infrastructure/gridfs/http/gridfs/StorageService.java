@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
-import ch.lambdaj.function.compare.ArgumentComparator;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChecksum;
@@ -38,7 +37,6 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.metadata.generation.DbGenerator.DB_VERSION;
@@ -116,9 +114,7 @@ public class StorageService {
 
   @TimeMeasurement
   public void delete(List<FileStorageItem> storageItems) {
-    for (FileStorageItem storageItem : storageItems) {
-      delete(storageItem);
-    }
+    storageItems.forEach(this::delete);
   }
 
   private FileStorageItem findRpmByPathDirectlyOrFindNewestRpmMatchingNameAndArch(FileDescriptor descriptor) {
@@ -143,7 +139,9 @@ public class StorageService {
       return null;
     }
 
-    sort(entries, new ArgumentComparator<>(on(YumEntry.class).getYumPackage().getVersion(), comparator));
+    sort(entries, (YumEntry entry1, YumEntry entry2) -> comparator.compare(
+        entry1.getYumPackage().getVersion(),
+        entry2.getYumPackage().getVersion()));
 
     YumEntry lastEntry = entries.get(entries.size() - 1);
     return fileStorageService.findById(lastEntry.getId());
@@ -183,11 +181,8 @@ public class StorageService {
     validateDestinationRepo(sourceRepo, destinationRepo);
 
     List<FileStorageItem> sourceStorageItems = fileStorageService.getAllRpms(sourceRepo);
-    for (FileStorageItem storageItem : sourceStorageItems) {
-      if (!storageItem.isMarkedAsDeleted()) {
-        move(storageItem, destinationRepo);
-      }
-    }
+    sourceStorageItems.stream().filter(storageItem -> !storageItem.isMarkedAsDeleted()).
+        forEach(storageItem -> move(storageItem, destinationRepo));
 
     repoService.createOrUpdate(sourceRepo);
     repoService.createOrUpdate(destinationRepo);

@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.repos;
 
-import ch.lambdaj.function.compare.ArgumentComparator;
 import com.google.common.collect.Lists;
 import com.mongodb.AggregationOutput;
 import com.mongodb.DBCollection;
@@ -34,8 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static ch.lambdaj.Lambda.index;
-import static ch.lambdaj.Lambda.on;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static de.is24.infrastructure.gridfs.http.domain.FolderInfo.fromRepoEntry;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
@@ -50,6 +47,8 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KE
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.groupBy;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.match;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.sort;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 import static org.springframework.data.mongodb.gridfs.GridFsCriteria.whereMetaData;
@@ -107,15 +106,15 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   private Comparator<FolderInfo> getComparator(SortField sortBy) {
     switch (sortBy) {
       case uploadDate: {
-        return new ArgumentComparator<>(on(FolderInfo.class).getLastModified());
+        return (folder1, folder2) -> folder1.getLastModified().compareTo(folder2.getLastModified());
       }
 
       case size: {
-        return new ArgumentComparator<>(on(FolderInfo.class).getSize());
+        return (folder1, folder2) -> Long.compare(folder1.getSize(), folder2.getSize());
       }
 
       default: {
-        return new ArgumentComparator<>(on(FolderInfo.class).getName());
+        return (folder1, folder2) -> folder1.getName().compareTo(folder2.getName());
       }
     }
   }
@@ -191,12 +190,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   private List<FileInfo> eventuallySortByFilename(List<FileInfo> fileInfos, SortField sortBy, SortOrder sortOrder) {
     if (name.equals(sortBy)) {
       final int direction = asc.equals(sortOrder) ? 1 : -1;
-      Collections.sort(fileInfos, new Comparator<FileInfo>() {
-        @Override
-        public int compare(FileInfo f1, FileInfo f2) {
-          return f1.getFilename().compareTo(f2.getFilename()) * direction;
-        }
-      });
+      Collections.sort(fileInfos, (f1, f2) -> f1.getFilename().compareTo(f2.getFilename()) * direction);
     }
 
     return fileInfos;
@@ -238,9 +232,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   }
 
   private Map<String, RepoEntry> getRepoEntriesByRepoName() {
-    final List<RepoEntry> repoEntries = entriesRepository.findByTypeIn(STATIC, SCHEDULED);
-
-    return index(repoEntries, on(RepoEntry.class).getName());
+    return entriesRepository.findByTypeIn(STATIC, SCHEDULED).stream().collect(toMap(RepoEntry::getName, identity()));
   }
 
   @Override

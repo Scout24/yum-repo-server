@@ -4,24 +4,20 @@ import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageDir;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFile;
-import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileTypeComparator;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static ch.lambdaj.Lambda.extract;
-import static ch.lambdaj.Lambda.join;
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.Lambda.sort;
+
+import static java.lang.String.join;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.EMPTY;
 
 
 public class FileListsGenerator extends DbGenerator {
-  private static final YumPackageFileTypeComparator YUM_PACKAGE_FILE_TYPE_COMPARATOR =
-    new YumPackageFileTypeComparator();
   private static final String FILE_NAMES_SEPARATOR = "/";
 
   public FileListsGenerator() {
@@ -48,11 +44,11 @@ public class FileListsGenerator extends DbGenerator {
                             throws SQLException {
     for (YumPackageDir dir : yumPackage.getPackageDirs()) {
       List<YumPackageFile> filesForDirectory = getSortedListOfFiles(dir);
-      int c = 1;
-      ps.setInt(c++, index);
-      ps.setString(c++, dir.getName());
-      ps.setString(c++, join(getFilenames(filesForDirectory), FILE_NAMES_SEPARATOR));
-      ps.setString(c++, join(extractFileTypeChars(filesForDirectory), EMPTY));
+      int c = 0;
+      ps.setInt(++c, index);
+      ps.setString(++c, dir.getName());
+      ps.setString(++c, join(FILE_NAMES_SEPARATOR, getFilenames(filesForDirectory)));
+      ps.setString(++c, join(EMPTY, extractFileTypeChars(filesForDirectory)));
       ps.addBatch();
     }
 
@@ -69,18 +65,15 @@ public class FileListsGenerator extends DbGenerator {
   }
 
   private List<String> extractFileTypeChars(final List<YumPackageFile> files) {
-    List<String> fileTypeChars = new ArrayList<String>();
-    for (YumPackageFile file : files) {
-      fileTypeChars.add(file.getType().getTypeChar());
-    }
-    return fileTypeChars;
+    return files.stream().map(file -> file.getType().getTypeChar()).collect(toList());
   }
 
   private List<String> getFilenames(final List<YumPackageFile> filesForDirectory) {
-    return extract(filesForDirectory, on(YumPackageFile.class).getName());
+    return filesForDirectory.stream().map(YumPackageFile::getName).collect(toList());
   }
 
   private List<YumPackageFile> getSortedListOfFiles(final YumPackageDir dir) {
-    return sort(dir.getFiles(), on(YumPackageFile.class).getType(), YUM_PACKAGE_FILE_TYPE_COMPARATOR);
+    return dir.getFiles().stream().sorted((file1, file2) ->
+        file1.getType().getFilelistsOrder().compareTo(file2.getType().getFilelistsOrder())).collect(toList());
   }
 }

@@ -17,11 +17,10 @@ import org.junit.experimental.categories.Category;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
-import static ch.lambdaj.Lambda.extract;
-import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static java.lang.System.currentTimeMillis;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -141,8 +140,7 @@ public class RepoCleanerIT {
 
   private List<YumPackageVersion> findVersionsFor(String artifactName) {
     List<YumEntry> entries = context.yumEntriesRepository().findByRepoAndYumPackageName(reponame, artifactName);
-    List<YumPackage> yumPackages = extract(entries, on(YumEntry.class).getYumPackage());
-    return extract(yumPackages, on(YumPackage.class).getVersion());
+    return entries.stream().map(YumEntry::getYumPackage).map(YumPackage::getVersion).collect(toList());
   }
 
   private void givenRepoEntryWithMaxKeep(int maxKeepRpms) {

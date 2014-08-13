@@ -6,23 +6,20 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageDir;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFormatEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageRequirement;
-import org.hamcrest.Matcher;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static ch.lambdaj.Lambda.having;
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.Lambda.select;
+import java.util.function.Predicate;
+
 import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.DIR;
 import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.FILE;
 import static de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType.GHOST;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.defaultIfBlank;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.startsWith;
-
 
 public class PrimaryDbGenerator extends DbGenerator {
   public static final String OBSOLETES = "obsoletes";
@@ -58,9 +55,9 @@ public class PrimaryDbGenerator extends DbGenerator {
     writeRequires(ps.get(REQUIRES), pkgKey, filterRequires(p.getPackageFormat().getRequires()));
 
     PreparedStatement filesStatement = ps.get(FILES);
-    writePrimaryFiles(filesStatement, p, pkgKey, new PrimaryFileNameMatcher(FILE));
-    writePrimaryFiles(filesStatement, p, pkgKey, new PrimaryDirNameMatcher(DIR));
-    writePrimaryFiles(filesStatement, p, pkgKey, new PrimaryFileNameMatcher(GHOST));
+    writePrimaryFiles(filesStatement, p, pkgKey, (YumPackageFile file) -> FILE.equals(file.getType()) && isPrimaryFileName(file));
+    writePrimaryFiles(filesStatement, p, pkgKey, (YumPackageFile file) -> DIR.equals(file.getType()) && isPrimaryDirName(file.getDir()));
+    writePrimaryFiles(filesStatement, p, pkgKey, (YumPackageFile file) -> GHOST.equals(file.getType()) && isPrimaryFileName(file));
   }
 
   private void writePrimaryPackage(PreparedStatement ps, int pkgKey, YumPackage p) throws SQLException {
@@ -138,14 +135,14 @@ public class PrimaryDbGenerator extends DbGenerator {
   }
 
   private List<YumPackageRequirement> filterRequires(List<YumPackageRequirement> requires) {
-    return select(requires, not(having(on(YumPackageRequirement.class).getName(), startsWith("rpmlib("))));
+    return requires.stream().filter((YumPackageRequirement requirement) -> !requirement.getName().startsWith("rpmlib(")).collect(toList());
   }
 
   private void writePrimaryFiles(PreparedStatement ps, YumPackage yumPackage, int pkgKey,
-                                 Matcher<YumPackageFile> matcher) throws SQLException {
+                                 Predicate<YumPackageFile> predicate) throws SQLException {
     int counter = 0;
     for (YumPackageDir dir : yumPackage.getPackageDirs()) {
-      for (YumPackageFile file : select(dir.getFiles(), matcher)) {
+      for (YumPackageFile file : dir.getFiles().stream().filter(predicate).collect(toList())) {
         ps.setString(1, file.getDir() + file.getName());
         ps.setString(2, file.getType().toString().toLowerCase());
         ps.setInt(3, pkgKey);
@@ -156,5 +153,13 @@ public class PrimaryDbGenerator extends DbGenerator {
     if (counter > 0) {
       ps.executeBatch();
     }
+  }
+
+  public static boolean isPrimaryDirName(String dir) {
+    return dir.contains("bin/") || dir.startsWith("/etc/");
+  }
+
+  private static boolean isPrimaryFileName(YumPackageFile file) {
+    return isPrimaryDirName(file.getDir()) || "/usr/lib/sendmail".equals(file.getDir() + file.getName());
   }
 }

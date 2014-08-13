@@ -13,7 +13,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.hamcrest.Matcher;
 import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +21,7 @@ import org.springframework.data.mongodb.repository.support.MongoRepositoryFactor
 
 import java.io.IOException;
 
-import static ch.lambdaj.Lambda.on;
-import static ch.lambdaj.function.matcher.HasArgumentWithValue.havingValue;
+import static de.is24.infrastructure.gridfs.http.domain.RepoEntry.DEFAULT_MAX_KEEP_RPMS;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
@@ -42,7 +40,6 @@ import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertFalse;
 
 
@@ -138,9 +135,7 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
   }
 
   private void thenMaxKeepRpmsHasDefaultValue(String reponame) {
-    Matcher<RepoEntry> maxKeepRpms = havingValue(on(RepoEntry.class).getMaxKeepRpms(),
-      is(RepoEntry.DEFAULT_MAX_KEEP_RPMS));
-    assertThat(repoEntriesRepository.findByName(reponame), hasItem(maxKeepRpms));
+    assertThat(repoEntriesRepository.findByName(reponame).get(0).getMaxKeepRpms(), is(DEFAULT_MAX_KEEP_RPMS));
   }
 
 

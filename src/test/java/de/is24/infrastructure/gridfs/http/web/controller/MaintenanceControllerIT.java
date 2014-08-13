@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageLocation;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -18,11 +19,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import static ch.lambdaj.Lambda.extract;
-import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static java.util.stream.Collectors.toList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -101,7 +101,7 @@ public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter 
   private List<String> getResultingHrefs(HttpGet get) throws IOException {
     HttpResponse response = httpClient.execute(get);
     assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
-    return extract(readJsonToSet(response), on(YumPackage.class).getLocation().getHref());
+    return readJsonToSet(response).stream().map(YumPackage::getLocation).map(YumPackageLocation::getHref).collect(toList());
   }
 
 

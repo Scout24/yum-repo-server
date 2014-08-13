@@ -1,6 +1,5 @@
 package de.is24.infrastructure.gridfs.http.repos;
 
-import ch.lambdaj.function.compare.ArgumentComparator;
 import com.mongodb.AggregationOutput;
 import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ch.lambdaj.Lambda.on;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.field;
@@ -122,7 +120,7 @@ public class RepoCleaner {
   }
 
   private List<DBObject> oldestItemsToDelete(int maxKeepRpm, List<DBObject> items) {
-    sort(items, new ArgumentComparator<>(on(DBObject.class).get(VERSION_KEY), comparator));
+    sort(items, (DBObject obj1, DBObject obj2) -> comparator.compare(obj1.get(VERSION_KEY), obj2.get(VERSION_KEY)));
     return items.subList(0, items.size() - maxKeepRpm);
   }
 }

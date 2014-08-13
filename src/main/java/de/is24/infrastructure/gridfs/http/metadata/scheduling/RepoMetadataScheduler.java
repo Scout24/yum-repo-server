@@ -13,13 +13,14 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import static ch.lambdaj.Lambda.extract;
-import static ch.lambdaj.Lambda.on;
+
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
+import static java.util.stream.Collectors.toSet;
 
 
 @ManagedResource
@@ -52,11 +53,8 @@ public class RepoMetadataScheduler {
   public void update() {
     LOG.debug("Checking for updates in scheduled repository definitions.");
     try {
-      Set<String> repoNamesToSchedule = new HashSet<>(extract(repo.findByType(SCHEDULED),
-          on(RepoEntry.class).getName()));
-      for (String repoToSchedule : repoNamesToSchedule) {
-        createRepoJob(repoToSchedule);
-      }
+      Set<String> repoNamesToSchedule = repo.findByType(SCHEDULED).stream().map(RepoEntry::getName).collect(toSet());
+      repoNamesToSchedule.forEach(this::createRepoJob);
       removeJobsNotFoundInDb(repoNamesToSchedule);
     } catch (Exception e) {
       LOG.error(e.getMessage());
