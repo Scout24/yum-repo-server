@@ -243,11 +243,7 @@ a.button {
 	background-color: #ccc;
 	border: 1px solid #333;
 	color: black;
-	-moz-border-radius: 15px;
-	-webkit-border-radius: 15px;
 	border-radius: 15px;
-	-moz-box-shadow: 3px 3px 4px #000;
-	-webkit-box-shadow: 3px 3px 4px #000;
     box-shadow: 3px 3px 4px #000;
 }
 
