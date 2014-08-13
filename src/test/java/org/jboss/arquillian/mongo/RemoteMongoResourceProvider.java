@@ -33,8 +33,7 @@ public class RemoteMongoResourceProvider implements RemoteResourceProvider {
           mongoCredentials.db(),
           mongoCredentials.password().toCharArray()
       ));
-      Mongo mongo = new MongoClient(serverAddressList, credentials);
-      return mongo;
+      return new MongoClient(serverAddressList, credentials);
     } catch (UnknownHostException e) {
       throw new RuntimeException("Could not find host " + remoteUrl.getHost(), e);
     }
