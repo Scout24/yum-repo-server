@@ -1,13 +1,15 @@
 package de.is24.infrastructure.gridfs.http.rpm.version;
 
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.Test;
 
 
 public class RpmVersionSegmentComparatorTest {
@@ -34,7 +36,7 @@ public class RpmVersionSegmentComparatorTest {
     assertCompare(0, asList("0", "0", "0"), asList("0", "0", "0"));
     assertCompare(0, asList("a", "0", "0a"), asList("a", "0", "0a"));
     assertCompare(0, null, null);
-    assertCompare(0, null, new ArrayList<String>());
+    assertCompare(0, null, new ArrayList<>());
   }
 
   @Test
@@ -52,7 +54,7 @@ public class RpmVersionSegmentComparatorTest {
   @Test
   public void lessSegmentsAreSmaller() throws Exception {
     assertCompare(-1, null, asList("1"));
-    assertCompare(-1, new ArrayList<String>(), asList("1"));
+    assertCompare(-1, new ArrayList<>(), asList("1"));
     assertCompare(-1, asList("1", ""), asList("1", "1"));
     assertCompare(-1, asList("0", "0"), asList("0", "0", "0"));
   }

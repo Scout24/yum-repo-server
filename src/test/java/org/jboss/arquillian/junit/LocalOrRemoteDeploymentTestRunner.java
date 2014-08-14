@@ -6,11 +6,13 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
+
 import java.lang.annotation.Annotation;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 
@@ -34,14 +36,11 @@ public class LocalOrRemoteDeploymentTestRunner extends BlockJUnit4ClassRunner {
       return arquillianDelegator.getChildren();
     }
 
-    List<FrameworkMethod> filteredTestMethods = new ArrayList<>();
-    for (FrameworkMethod testMethod : super.getChildren()) {
-      if (testMethod.getAnnotation(LocalOnly.class) == null) {
-        filteredTestMethods.add(testMethod);
-      }
-    }
+    return super.getChildren().stream().filter(this::isNotLocalOnly).collect(toList());
+  }
 
-    return filteredTestMethods;
+  private boolean isNotLocalOnly(FrameworkMethod testMethod) {
+    return testMethod.getAnnotation(LocalOnly.class) == null;
   }
 
   private boolean arquillianActive() {

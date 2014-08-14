@@ -46,7 +46,7 @@ public class MaintenanceServiceTest {
 
   @Before
   public void setup() {
-    targetList = new ArrayList<YumEntry>();
+    targetList = new ArrayList<>();
     targetList.add(createYumEntry("target", "dummy", "noarch", 3, 2));
     targetList.add(createYumEntry("target", "dummy", "noarch", 2, 1));
     targetList.add(createYumEntry("target", "dummy", "src", 11, 1));
@@ -58,7 +58,7 @@ public class MaintenanceServiceTest {
     shouldBeObsoleteSrc1 = createYumEntry("target", "dummy", "src", 10, 1);
 
 
-    sourceList = new ArrayList<YumEntry>();
+    sourceList = new ArrayList<>();
     sourceList.add(shouldBeObsolete1);
     sourceList.add(shouldBeObsolete2);
     sourceList.add(shouldBePropagatable1);

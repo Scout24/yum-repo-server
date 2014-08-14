@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Collections.synchronizedSet;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
@@ -33,12 +35,14 @@ public class ProtectedRepoAccessEvaluator {
   public ProtectedRepoAccessEvaluator(
       @Value("${security.protectedRepos:}") String protectedRepos,
       @Value("${security.protectedRepoWhiteListedIpRanges:}") String protectedRepoWhiteListedIpRanges) {
-    this.protectedRepos = Collections.synchronizedSet(commaDelimitedListToSet(trimAllWhitespace(protectedRepos)));
+    this.protectedRepos = synchronizedSet(ipRanges(protectedRepos));
     if (isNotBlank(protectedRepoWhiteListedIpRanges)) {
-      for (String ipRange : commaDelimitedListToSet(trimAllWhitespace(protectedRepoWhiteListedIpRanges))) {
-        whiteListedIpRanges.add(new IpRange(ipRange));
-      }
+      whiteListedIpRanges.addAll(ipRanges(protectedRepoWhiteListedIpRanges).stream().map(IpRange::new).collect(toList()));
     }
+  }
+
+  private Set<String> ipRanges(String protectedRepoWhiteListedIpRanges) {
+    return commaDelimitedListToSet(trimAllWhitespace(protectedRepoWhiteListedIpRanges));
   }
 
   public boolean isAllowedPropagationRepo(String repo) {

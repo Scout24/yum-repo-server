@@ -97,7 +97,7 @@ public abstract class AbstractRepositoryInfoController {
     @RequestParam(value = "search", required = false) String searchBy,
     @RequestParam(value = "sortBy", required = false, defaultValue = "name") SortField sortBy,
     @RequestParam(value = "order", required = false, defaultValue = "asc") SortOrder sortOrder) {
-    Map<String, Object> model = new HashMap<String, Object>();
+    Map<String, Object> model = new HashMap<>();
     model.putAll(sorting(sortBy, sortOrder));
     setView(model);
     if (infoProvider.isExternalRepo(repoName)) {

@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +33,7 @@ import java.util.TreeSet;
 
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 
@@ -108,11 +108,7 @@ public class MaintenanceService {
     CheckForMissingEntriesCallbackHandler callbackHandler = new CheckForMissingEntriesCallbackHandler();
     mongoTemplate.executeQuery(query, GRIDFS_FILES_COLLECTION, callbackHandler);
 
-    Set<FileStorageItem> result = new HashSet<>();
-    for (ObjectId id : callbackHandler.getFilesWithMissingEntry()) {
-      result.add(fileStorageService.findById(id));
-    }
-    return result;
+    return callbackHandler.getFilesWithMissingEntry().stream().map(fileStorageService::findById).collect(toSet());
   }
 
 
@@ -193,9 +189,7 @@ public class MaintenanceService {
   @MongoTx
   public Map<ObjectId, YumPackageReducedView> deleteYumEntriesWithoutAssociatedFiles() {
     Map<ObjectId, YumPackageReducedView> result = getYumEntriesWithoutAssociatedFiles();
-    for (ObjectId id : result.keySet()) {
-      yumEntriesRepository.delete(id);
-    }
+    result.keySet().forEach(yumEntriesRepository::delete);
     return result;
   }
 

@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -132,12 +131,7 @@ public class FileControllerTest extends AbstractControllerTest {
   }
 
   private ResultMatcher contentLengthIs(final int length) {
-    return new ResultMatcher() {
-      @Override
-      public void match(MvcResult result) throws Exception {
-        assertEquals("Response Content-Length", length, result.getResponse().getContentLength());
-      }
-    };
+    return result -> assertEquals("Response Content-Length", length, result.getResponse().getContentLength());
   }
 
 

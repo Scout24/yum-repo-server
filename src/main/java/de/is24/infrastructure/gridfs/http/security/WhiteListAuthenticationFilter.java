@@ -9,10 +9,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
@@ -72,9 +72,7 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
 
   protected void setWhiteListedHostsInternal(String whiteListedHosts) {
     this.whiteListedHosts = whiteListedHosts;
-    this.whiteListedHostPatterns = new HashSet<Pattern>();
-    for (String pattern : commaDelimitedListToSet(trimAllWhitespace(whiteListedHosts))) {
-      this.whiteListedHostPatterns.add(wildcardToRegexConverter.convert(pattern));
-    }
+    Set<String> whiteListedHostsStrings = commaDelimitedListToSet(trimAllWhitespace(whiteListedHosts));
+    this.whiteListedHostPatterns = whiteListedHostsStrings.stream().map(wildcardToRegexConverter::convert).collect(toSet());
   }
 }

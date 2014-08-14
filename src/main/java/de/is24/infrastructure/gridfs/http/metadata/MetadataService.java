@@ -145,7 +145,7 @@ public class MetadataService {
       System.currentTimeMillis());
 
 
-    List<Data> dbData = new ArrayList<Data>();
+    List<Data> dbData = new ArrayList<>();
     for (DbGenerator dbGenerator : asList(new PrimaryDbGenerator(), new FileListsGenerator(), new OtherDbGenerator())) {
       LOG.info("Generate {}-DB for {}", dbGenerator.getName(), reponame);
 

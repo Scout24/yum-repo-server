@@ -49,15 +49,17 @@ public class HttpHeadFilterIT extends AbstractContainerAndMongoDBStarter {
 
   @Test
   public void shouldDeliverHeadRequests() throws Exception {
-    for (String url : urlsToTest) {
-      assertCorrectHeadRequest(url);
-    }
+    urlsToTest.forEach(this::assertCorrectHeadRequest);
   }
 
-  private void assertCorrectHeadRequest(String url) throws IOException {
+  private void assertCorrectHeadRequest(String url) {
     HttpHead head = new HttpHead(url);
-    CloseableHttpResponse response = httpClient.execute(head);
-    assertThat(url + " has not responded with 200", response.getStatusLine().getStatusCode(), is(SC_OK));
-    assertThat(url + " did send a response body", response.getEntity(), nullValue());
+    try {
+      CloseableHttpResponse response = httpClient.execute(head);
+      assertThat(url + " has not responded with 200", response.getStatusLine().getStatusCode(), is(SC_OK));
+      assertThat(url + " did send a response body", response.getEntity(), nullValue());
+    } catch (IOException e) {
+      throw new AssertionError("Got an IOException", e);
+    }
   }
 }

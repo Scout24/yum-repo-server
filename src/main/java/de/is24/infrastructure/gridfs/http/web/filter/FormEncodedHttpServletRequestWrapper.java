@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.web.filter;
 import de.is24.infrastructure.gridfs.http.exception.BadRequestException;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static java.util.Arrays.asList;
 import static java.util.Collections.enumeration;
 import static java.util.Collections.list;
@@ -42,7 +44,7 @@ public class FormEncodedHttpServletRequestWrapper extends HttpServletRequestWrap
 
   @Override
   public Enumeration<String> getHeaderNames() {
-    Set<String> headerNames = new LinkedHashSet<String>(list(super.getHeaderNames()));
+    Set<String> headerNames = new LinkedHashSet<>(list(super.getHeaderNames()));
     headerNames.add(CONTENT_TYPE);
     return enumeration(headerNames);
   }
@@ -81,7 +83,7 @@ public class FormEncodedHttpServletRequestWrapper extends HttpServletRequestWrap
   }
 
   private Map<String, String[]> mergeParameters(FormHttpMessageConverter messageConverter) {
-    Map<String, String[]> mergedParameterMap = new HashMap<String, String[]>(super.getParameterMap());
+    Map<String, String[]> mergedParameterMap = new HashMap<>(super.getParameterMap());
 
     mergeParameters(mergedParameterMap, parseRequestBody(messageConverter));
 
@@ -92,10 +94,11 @@ public class FormEncodedHttpServletRequestWrapper extends HttpServletRequestWrap
                                Set<Map.Entry<String, List<String>>> requestBodyParameters) {
     for (Map.Entry<String, List<String>> entry : requestBodyParameters) {
       String[] existingParameterValue = mergedParameterMap.get(entry.getKey());
+      List<String> value = entry.getValue();
       if (existingParameterValue == null) {
-        mergedParameterMap.put(entry.getKey(), entry.getValue().toArray(new String[0]));
+        mergedParameterMap.put(entry.getKey(), value.toArray(new String[value.size()]));
       } else {
-        String[] newParameterValue = (String[]) addAll(existingParameterValue, entry.getValue().toArray(new String[0]));
+        String[] newParameterValue = (String[]) addAll(existingParameterValue, entry.getValue().toArray(new String[value.size()]));
         mergedParameterMap.put(entry.getKey(), newParameterValue);
       }
     }

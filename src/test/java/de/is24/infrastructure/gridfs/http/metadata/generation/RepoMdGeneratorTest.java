@@ -4,14 +4,11 @@ import de.is24.infrastructure.gridfs.http.jaxb.Data;
 import de.is24.infrastructure.gridfs.http.jaxb.RepoMd;
 import de.is24.infrastructure.gridfs.http.security.PGPSigner;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
-import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -51,7 +48,7 @@ public class RepoMdGeneratorTest {
     String reponame = "any-reponame";
     when(pgpSigner.isActive()).thenReturn(false);
 
-    repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<Data>());
+    repoMdGenerator.generateRepoMdXml(reponame, new ArrayList<>());
 
     verify(fileStorageService).storeFile(any(InputStream.class), eq(new FileDescriptor(createFilename(reponame))), eq(true));
   }
@@ -63,13 +60,10 @@ public class RepoMdGeneratorTest {
     Data data = createData();
 
     when(pgpSigner.isActive()).thenReturn(false);
-    when(fileStorageService.storeFile(any(InputStream.class), any(FileDescriptor.class), eq(true))).then(new Answer<FileStorageItem>() {
-      @Override
-      public FileStorageItem answer(InvocationOnMock invocation) throws Throwable {
-        InputStream inputStream = (InputStream) invocation.getArguments()[0];
-        IOUtils.copy(inputStream, os);
-        return null;
-      }
+    when(fileStorageService.storeFile(any(InputStream.class), any(FileDescriptor.class), eq(true))).then(invocation -> {
+      InputStream inputStream = (InputStream) invocation.getArguments()[0];
+      IOUtils.copy(inputStream, os);
+      return null;
     });
 
     repoMdGenerator.generateRepoMdXml("any-reponame", asList(data));

@@ -1,11 +1,11 @@
 package de.is24.infrastructure.gridfs.http.utils.retry;
 
-import de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.Retryable;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+
 import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
 
 
@@ -19,13 +19,7 @@ public class RetryAspect {
 
     return execute().maxTries(retryAnnotation.maxTries())
       .wait(retryAnnotation.secondsToWait())
-      .command(new Retryable<Object>() {
-          @Override
-          public Object run() throws Throwable {
-            return pjp.proceed();
-          }
-
-        });
+      .command(pjp::proceed);
   }
 
 }

@@ -4,13 +4,14 @@ import com.mongodb.BasicDBObject;
 import de.is24.infrastructure.gridfs.http.domain.SortField;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
 import org.springframework.data.mongodb.core.query.Criteria;
+
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class MongoAggregationBuilder {
   private BasicDBObject groupBy;
-  private Map<String, BasicDBObject> aggregationFields = new HashMap<String, BasicDBObject>();
+  private Map<String, BasicDBObject> aggregationFields = new HashMap<>();
 
   public static MongoAggregationBuilder groupBy(String id) {
     MongoAggregationBuilder builder = new MongoAggregationBuilder();

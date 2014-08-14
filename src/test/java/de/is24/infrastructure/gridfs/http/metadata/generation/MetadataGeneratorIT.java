@@ -14,11 +14,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -184,7 +181,7 @@ public class MetadataGeneratorIT {
   private void assertRecords(ResultSet resultSetToTest, ResultSet expectedResultSet, Integer[] ignoredColumns) throws SQLException {
     boolean nextToTest = resultSetToTest.next();
     boolean expectedNext = expectedResultSet.next();
-    Set<Integer> ignored = ignoredColumns != null ? new HashSet<>(asList(ignoredColumns)) : new HashSet<Integer>();
+    Set<Integer> ignored = ignoredColumns != null ? new HashSet<>(asList(ignoredColumns)) : new HashSet<>();
     while (nextToTest && expectedNext) {
       for (int column = 1; column <= resultSetToTest.getMetaData().getColumnCount(); column++) {
         if (!ignored.contains(column)) {

@@ -1,21 +1,9 @@
 package de.is24.infrastructure.gridfs.http.metadata.scheduling;
 
-import static com.jayway.awaitility.Awaitility.await;
-import static com.jayway.awaitility.Duration.TEN_SECONDS;
-import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
-import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_ENTRY_COLLECTION;
-import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
-import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
-import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static org.apache.http.util.EntityUtils.consume;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.concurrent.Callable;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.WriteConcern;
+import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.jboss.arquillian.junit.LocalOnly;
@@ -26,10 +14,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.WriteConcern;
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.net.UnknownHostException;
+
+import static com.jayway.awaitility.Awaitility.await;
+import static com.jayway.awaitility.Duration.TEN_SECONDS;
+import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
+import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_ENTRY_COLLECTION;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
+import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
+import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static org.apache.http.util.EntityUtils.consume;
 
 
 @RunWith(LocalOrRemoteDeploymentTestRunner.class)
@@ -66,13 +67,10 @@ public class MetadataSchedulerIT extends AbstractContainerAndMongoDBStarter {
     final String someRevision = getRepoMdXmlRevision();
     uploadRpm(repoUrl, "src/test/resources/rpms/valid.headertoyumpackage.noarch.rpm");
 
-    await("repoMdXml revision changes").atMost(TEN_SECONDS).until(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          String laterRevision = getRepoMdXmlRevision();
-          return !someRevision.equals(laterRevision);
-        }
-      });
+    await("repoMdXml revision changes").atMost(TEN_SECONDS).until(() -> {
+      String laterRevision = getRepoMdXmlRevision();
+      return !someRevision.equals(laterRevision);
+    });
   }
 
   private String getRepoMdXmlRevision() throws ParserConfigurationException, SAXException, IOException {
@@ -82,13 +80,7 @@ public class MetadataSchedulerIT extends AbstractContainerAndMongoDBStarter {
   }
 
   private void assertGetRepoMdXmlReturns(final int statusCode) throws Exception {
-    await("responseCode for repomd.xml").atMost(TEN_SECONDS).until(new Callable<Boolean>() {
-        @Override
-        public Boolean call() throws Exception {
-          int responseCode = downloadFile("repomd.xml");
-          return responseCode == statusCode;
-        }
-      });
+    await("responseCode for repomd.xml").atMost(TEN_SECONDS).until(() -> downloadFile("repomd.xml") == statusCode);
   }
 
   private void insertScheduledRepoEntryIntoMongoDb() throws UnknownHostException {

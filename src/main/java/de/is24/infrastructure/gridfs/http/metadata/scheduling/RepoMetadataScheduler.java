@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,11 +61,7 @@ public class RepoMetadataScheduler {
   }
 
   private void removeJobsNotFoundInDb(Set<String> repoNamesToSchedule) {
-    for (String repoName : new HashSet<>(repoJobs.keySet())) {
-      if (!repoNamesToSchedule.contains(repoName)) {
-        removeRepoJob(repoName);
-      }
-    }
+    repoJobs.keySet().stream().filter(repoName -> !repoNamesToSchedule.contains(repoName)).forEach(this::removeRepoJob);
   }
 
   @ManagedOperation

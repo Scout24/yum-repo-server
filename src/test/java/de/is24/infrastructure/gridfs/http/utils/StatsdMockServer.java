@@ -1,6 +1,10 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
-import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
+import de.flapdoodle.embed.process.runtime.Network;
+import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -9,11 +13,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import org.junit.rules.ExternalResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import de.flapdoodle.embed.process.runtime.Network;
-import de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils;
+
+import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
 
 
 /**
@@ -31,14 +32,12 @@ public class StatsdMockServer extends ExternalResource implements Runnable {
   public void before() throws Throwable {
     server = ServerSocketChannel.open();
     server.configureBlocking(false);
-    execute().maxTries(3).wait(2).command(new RetryUtils.Retryable<Void>() {
-        public Void run() throws Throwable {
-          port = Network.getFreeServerPort();
-          LOG.info("StatsdMockServer starting : port={}", port);
-          server.socket().bind(new InetSocketAddress(port));
-          return null;
-        }
-      });
+    execute().maxTries(3).wait(2).command(() -> {
+      port = Network.getFreeServerPort();
+      LOG.info("StatsdMockServer starting : port={}", port);
+      server.socket().bind(new InetSocketAddress(port));
+      return null;
+    });
     selector = Selector.open();
     server.register(selector, SelectionKey.OP_ACCEPT);
 

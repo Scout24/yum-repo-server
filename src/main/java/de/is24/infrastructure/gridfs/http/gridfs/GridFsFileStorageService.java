@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.DigestInputStream;
 import java.security.DigestOutputStream;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -258,11 +257,7 @@ public class GridFsFileStorageService implements FileStorageService {
   @ManagedOperation
   public List<String> listFilesMarkedAsDeleted() {
     final List<GridFSDBFile> gridFSDBFiles = gridFsTemplate.find(query(whereMetaData(MARKED_AS_DELETED_KEY).ne(null)));
-    final List<String> filenames = new ArrayList<>(gridFSDBFiles.size());
-    for (GridFSDBFile file : gridFSDBFiles) {
-      filenames.add(file.getFilename() + " " + file.getMetaData().get(MARKED_AS_DELETED_KEY).toString());
-    }
-    return filenames;
+    return gridFSDBFiles.stream().map(file -> file.getFilename() + " " + file.getMetaData().get(MARKED_AS_DELETED_KEY)).collect(toList());
   }
 
   @ManagedOperation

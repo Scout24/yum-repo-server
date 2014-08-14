@@ -67,7 +67,7 @@ public class FileController {
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentLength(resource.contentLength());
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm");
-    return new ResponseEntity<InputStreamResource>(resource, withContentType(httpHeaders, resource), OK);
+    return new ResponseEntity<>(resource, withContentType(httpHeaders, resource), OK);
   }
 
   @RequestMapping(value = "/{repo}/{arch}/{filename:.+}", method = GET, headers = { "Range" })
@@ -97,7 +97,7 @@ public class FileController {
     }
 
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm-range");
-    return new ResponseEntity<InputStreamResource>(resource, withContentType(rangeHeaders(resource), resource),
+    return new ResponseEntity<>(resource, withContentType(rangeHeaders(resource), resource),
       PARTIAL_CONTENT);
   }
 
