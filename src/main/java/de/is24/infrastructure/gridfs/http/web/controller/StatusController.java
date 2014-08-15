@@ -44,7 +44,6 @@ public class StatusController {
     "fs.chunks",
     "fs.files",
     "system.indexes",
-    "system.users",
     "yum.entries",
     "yum.repos");
 

@@ -23,7 +23,7 @@
     <arquillian.version>1.0.3.Final</arquillian.version>
     <shrinkwrap.resolver.version>2.0.0-beta-3</shrinkwrap.resolver.version>
     <jackson.version>2.3.1</jackson.version>
-    <embedded.mongodb.version>2.4.8</embedded.mongodb.version>
+    <embedded.mongodb.version>2.6.1</embedded.mongodb.version>
     <httpclient.version>4.3.1</httpclient.version>
     <aspectj.version>1.7.4</aspectj.version>
     <java.util.logging.config>de/is24/infrastructure/gridfs/http/log.properties</java.util.logging.config>
@@ -361,7 +361,7 @@
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
-      <version>1.41</version>
+      <version>1.46.0</version>
       <scope>test</scope>
         <exclusions>
             <exclusion>
