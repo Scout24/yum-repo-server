@@ -3,7 +3,7 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%--@elvariable id="repo" type="de.is24.infrastructure.gridfs.http.domain.RepoEntry"--%>
 <div>
-    <ul class="tableList name-value-pairs">
+    <ul class="tablelist name-value-pairs">
         <li>
             <span class="label">Name</span>
             <span class="value" id="yumRepoName" name="${repo.name}">${repo.name}</span>

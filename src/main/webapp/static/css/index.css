@@ -125,7 +125,7 @@ button.submit {
   float: left;
 }
 
-ul.tableList li {
+ul.tablelist li {
     box-sizing: border-box;
 	display: block;
 	height: 34px;
@@ -147,7 +147,7 @@ li a {
 	vertical-align: -20%;
 }
 
-.tableList li span {
+.tablelist li span {
 	display: block;
 	float: left;
 	line-height: 30px;
@@ -253,7 +253,7 @@ a.button {
     padding-bottom: 15px;
 }
 
-.tableList.name-value-pairs li {
+.tablelist.name-value-pairs li {
 	display: block;
 	float: left;
 	clear: none;
@@ -292,7 +292,7 @@ span.value.big {
     border: 0 solid black;
 }
 
-.tableList .ui-switchbutton span {
+.tablelist .ui-switchbutton span {
     line-height: 120%;
     float: none;
 }

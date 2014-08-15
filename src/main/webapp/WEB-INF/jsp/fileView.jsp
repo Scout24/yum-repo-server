@@ -15,7 +15,7 @@
       <tags:logo />
       <tags:searchBox path="${model.path}" />
     </div>
-		<ul class="tableList">
+		<ul class="tablelist">
 			<li class="head">
 				<span class="icon">&nbsp;</span>
 				<span class="filename"><a href="?sortBy=name&order=${sortOrderName}">Name&nbsp;<img class="sortIcon" src="<c:url value="/static/images/icons/sort-${sortOrderDirectionName}.png"/>"></a></span>

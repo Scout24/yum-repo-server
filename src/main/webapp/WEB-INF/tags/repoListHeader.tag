@@ -1,7 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ attribute name="model" required="true" type="de.is24.infrastructure.gridfs.http.domain.Container" %>
 
-<ul class="tableList">
+<ul class="tablelist">
   <li class="head">
     <span class="icon">&nbsp;</span>
       <span class="filename"><a href="?sortBy=name&order=${sortOrderName}">Name&nbsp;
@@ -20,7 +20,7 @@
     </c:choose>
   </li>
 </ul>
-<ul class="tableList">
+<ul class="tablelist">
   <li>
     <a href="../">
       <span class="icon"><img src="<c:url value="/static/images/icons/up.gif"/>"></span>

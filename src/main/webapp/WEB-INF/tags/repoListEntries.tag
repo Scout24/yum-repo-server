@@ -2,7 +2,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ attribute name="model" required="true" type="de.is24.infrastructure.gridfs.http.domain.Container" %>
 
-<ul class="tableList">
+<ul class="tablelist">
   <c:forEach var="item" items="${model.items}">
     <li>
       <a href="${item.href}/">

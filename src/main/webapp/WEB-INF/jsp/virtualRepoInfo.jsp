@@ -2,7 +2,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <div>
-  <ul class="tableList name-value-pairs">
+  <ul class="tablelist name-value-pairs">
     <li>
       <span class="label">Name</span>
       <span class="value">${repo.name}</span>

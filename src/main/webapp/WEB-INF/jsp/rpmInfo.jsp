@@ -2,7 +2,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <div>
-    <ul class="tableList name-value-pairs">
+    <ul class="tablelist name-value-pairs">
         <li>
             <span class="label">Name</span><span class="value">${model.name}</span>
         </li>
