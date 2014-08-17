@@ -404,10 +404,14 @@ public class GridFsFileStorageService implements FileStorageService {
   }
 
   private void setupIndices() {
+    createIndex(METADATA_REPO_KEY);
+    createIndex(METADATA_ARCH_KEY);
+    createIndex(METADATA_UPLOAD_DATE_KEY);
+    createIndex(METADATA_MARKED_AS_DELETED_KEY);
+  }
+
+  private void createIndex(String key) {
     DBCollection filesCollection = mongoTemplate.getCollection(GRIDFS_FILES_COLLECTION);
-    filesCollection.ensureIndex(METADATA_REPO_KEY);
-    filesCollection.ensureIndex(METADATA_ARCH_KEY);
-    filesCollection.ensureIndex(METADATA_UPLOAD_DATE_KEY);
-    filesCollection.ensureIndex(METADATA_MARKED_AS_DELETED_KEY);
+    filesCollection.createIndex(new BasicDBObject(key, 1));
   }
 }

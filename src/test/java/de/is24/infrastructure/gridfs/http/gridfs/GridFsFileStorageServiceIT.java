@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSFile;
 import de.is24.infrastructure.gridfs.http.category.LocalExecutionOnly;
@@ -89,6 +90,14 @@ public class GridFsFileStorageServiceIT {
 
     context.fileStorageService().deleteCorruptFiles();
     assertThat(context.fileStorageService().getCorruptFiles().size(), is(0));
+  }
+
+  @Test
+  public void ensureIndex() throws Exception {
+    new GridFsFileStorageService(context.gridFs(), context.gridFsTemplate(), context.mongoTemplate());
+    new GridFsFileStorageService(context.gridFs(), context.gridFsTemplate(), context.mongoTemplate());
+    List<DBObject> indexInfos = context.mongoTemplate().getCollection(GRIDFS_FILES_COLLECTION).getIndexInfo();
+    assertThat(indexInfos.size(), is(6));
   }
 
   private void assertAllFilesAreCorrupt(List<FileStorageItem> corruptFiles) {
