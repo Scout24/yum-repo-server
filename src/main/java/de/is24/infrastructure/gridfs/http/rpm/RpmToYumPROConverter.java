@@ -4,23 +4,25 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFormatEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageRequirement;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import static de.is24.infrastructure.gridfs.http.rpm.RpmPROTagFlagsToYumConverter.convert;
 import static de.is24.infrastructure.gridfs.http.rpm.RpmPROTagFlagsToYumConverter.isPre;
 import static de.is24.infrastructure.gridfs.http.rpm.RpmPROTagVersionToYumConverter.convert;
-import static org.freecompany.redline.header.Header.HeaderTag.CONFLICTFLAGS;
-import static org.freecompany.redline.header.Header.HeaderTag.CONFLICTNAME;
-import static org.freecompany.redline.header.Header.HeaderTag.CONFLICTVERSION;
-import static org.freecompany.redline.header.Header.HeaderTag.OBSOLETEFLAGS;
-import static org.freecompany.redline.header.Header.HeaderTag.OBSOLETENAME;
-import static org.freecompany.redline.header.Header.HeaderTag.OBSOLETEVERSION;
-import static org.freecompany.redline.header.Header.HeaderTag.PROVIDEFLAGS;
-import static org.freecompany.redline.header.Header.HeaderTag.PROVIDENAME;
-import static org.freecompany.redline.header.Header.HeaderTag.PROVIDEVERSION;
-import static org.freecompany.redline.header.Header.HeaderTag.REQUIREFLAGS;
-import static org.freecompany.redline.header.Header.HeaderTag.REQUIRENAME;
-import static org.freecompany.redline.header.Header.HeaderTag.REQUIREVERSION;
+import static org.redline_rpm.header.Header.HeaderTag.CONFLICTFLAGS;
+import static org.redline_rpm.header.Header.HeaderTag.CONFLICTNAME;
+import static org.redline_rpm.header.Header.HeaderTag.CONFLICTVERSION;
+import static org.redline_rpm.header.Header.HeaderTag.OBSOLETEFLAGS;
+import static org.redline_rpm.header.Header.HeaderTag.OBSOLETENAME;
+import static org.redline_rpm.header.Header.HeaderTag.OBSOLETEVERSION;
+import static org.redline_rpm.header.Header.HeaderTag.PROVIDEFLAGS;
+import static org.redline_rpm.header.Header.HeaderTag.PROVIDENAME;
+import static org.redline_rpm.header.Header.HeaderTag.PROVIDEVERSION;
+import static org.redline_rpm.header.Header.HeaderTag.REQUIREFLAGS;
+import static org.redline_rpm.header.Header.HeaderTag.REQUIRENAME;
+import static org.redline_rpm.header.Header.HeaderTag.REQUIREVERSION;
 
 
 public class RpmToYumPROConverter {

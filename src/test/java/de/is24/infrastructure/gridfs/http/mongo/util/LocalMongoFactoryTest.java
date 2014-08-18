@@ -14,12 +14,12 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import static de.flapdoodle.embed.mongo.Command.MongoD;
-import static de.flapdoodle.embed.mongo.distribution.Version.V2_4_8;
+import static de.flapdoodle.embed.mongo.distribution.Version.V2_6_1;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 
 public class LocalMongoFactoryTest {
-  private static final Version VERSION = V2_4_8;
+  private static final Version VERSION = V2_6_1;
 
   @Test
   public void shouldHaveCorrectPath() {

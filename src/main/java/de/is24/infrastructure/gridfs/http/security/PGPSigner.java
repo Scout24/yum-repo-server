@@ -11,6 +11,7 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureGenerator;
 import org.bouncycastle.openpgp.PGPUtil;
+import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
@@ -89,12 +90,12 @@ public class PGPSigner {
     throw new IllegalArgumentException("Can't find signing key in key rings.");
   }
 
-  private PGPSecretKeyRingCollection readKeyRings(Resource resource) {
+  private BcPGPSecretKeyRingCollection readKeyRings(Resource resource) {
     try {
       InputStream keyInputStream = new BufferedInputStream(resource.getInputStream());
       InputStream decoderStream = PGPUtil.getDecoderStream(keyInputStream);
       try {
-        return new PGPSecretKeyRingCollection(decoderStream);
+        return new BcPGPSecretKeyRingCollection(decoderStream);
 
       } finally {
         closeQuietly(decoderStream);

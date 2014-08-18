@@ -5,7 +5,7 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFileType;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
 import org.apache.commons.lang.StringUtils;
-import org.freecompany.redline.header.Header;
+import org.redline_rpm.header.Header;
 
 import static de.is24.infrastructure.gridfs.http.rpm.RpmFileTypeTagToYumConverter.convert;
 

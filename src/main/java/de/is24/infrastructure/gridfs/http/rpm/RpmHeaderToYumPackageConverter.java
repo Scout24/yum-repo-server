@@ -7,7 +7,8 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageSize;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageTime;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
-import org.freecompany.redline.header.Header;
+import org.redline_rpm.header.Header;
+
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 

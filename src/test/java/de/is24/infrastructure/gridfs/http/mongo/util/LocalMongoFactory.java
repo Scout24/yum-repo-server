@@ -1,24 +1,31 @@
 package de.is24.infrastructure.gridfs.http.mongo.util;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.BasicDBList;
 import com.mongodb.DB;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.Paths;
-import de.flapdoodle.embed.mongo.config.*;
+import de.flapdoodle.embed.mongo.config.ArtifactStoreBuilder;
+import de.flapdoodle.embed.mongo.config.DownloadConfigBuilder;
+import de.flapdoodle.embed.mongo.config.IMongodConfig;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import de.flapdoodle.embed.process.io.directories.FixedPath;
 import de.flapdoodle.embed.process.io.directories.PlatformTempDir;
 import de.flapdoodle.embed.process.io.progress.LoggingProgressListener;
 import de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils;
+
 import java.io.File;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.mongodb.BasicDBObjectBuilder.start;
 import static de.flapdoodle.embed.mongo.Command.MongoD;
 import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
 import static de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter.MONGO_PASSWORD;
@@ -72,10 +79,17 @@ public class LocalMongoFactory {
 
         private void prepareDatabase(final int mongoPort) throws UnknownHostException {
           Mongo mongo = new MongoClient("localhost", mongoPort);
-          DB db = mongo.getDB("rpm_db");
-          db.addUser(MONGO_USERNAME, MONGO_PASSWORD.toCharArray());
+          createDBUser(mongo.getDB("rpm_db"));
         }
-      });
+
+        private void createDBUser(DB db) {
+          BasicDBList roles = new BasicDBList();
+          roles.add("dbAdmin");
+          db.command(start("createUser", MONGO_USERNAME)
+              .add("pwd", MONGO_PASSWORD)
+              .add("roles", roles).get());
+        }
+    });
 
   }
 }

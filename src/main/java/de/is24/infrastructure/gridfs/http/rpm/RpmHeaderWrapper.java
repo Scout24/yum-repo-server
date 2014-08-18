@@ -1,8 +1,8 @@
 package de.is24.infrastructure.gridfs.http.rpm;
 
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
-import org.freecompany.redline.header.AbstractHeader;
-import org.freecompany.redline.header.Header;
+import org.redline_rpm.header.AbstractHeader;
+import org.redline_rpm.header.Header;
 
 public class RpmHeaderWrapper {
 

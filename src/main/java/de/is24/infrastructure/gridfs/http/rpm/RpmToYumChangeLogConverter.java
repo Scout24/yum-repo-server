@@ -2,7 +2,8 @@ package de.is24.infrastructure.gridfs.http.rpm;
 
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageChangeLog;
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
-import org.freecompany.redline.header.Header;
+import org.redline_rpm.header.Header;
+
 import java.util.ArrayList;
 import java.util.List;
 

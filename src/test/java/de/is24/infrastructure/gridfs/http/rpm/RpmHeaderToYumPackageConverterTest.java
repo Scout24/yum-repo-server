@@ -7,11 +7,11 @@ import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFile;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFormat;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageFormatEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageRequirement;
-import org.freecompany.redline.ReadableChannelWrapper;
-import org.freecompany.redline.Scanner;
-import org.freecompany.redline.header.Header;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.redline_rpm.ReadableChannelWrapper;
+import org.redline_rpm.Scanner;
+import org.redline_rpm.header.Header;
 
 import java.io.InputStream;
 import java.util.HashMap;

@@ -1,11 +1,13 @@
 package de.is24.infrastructure.gridfs.http.rpm;
 
 import de.is24.infrastructure.gridfs.http.exception.InvalidRpmHeaderException;
+
 import java.util.HashMap;
 import java.util.Map;
-import static org.freecompany.redline.header.Flags.PREREQ;
-import static org.freecompany.redline.header.Flags.SCRIPT_POST;
-import static org.freecompany.redline.header.Flags.SCRIPT_PRE;
+
+import static org.redline_rpm.header.Flags.PREREQ;
+import static org.redline_rpm.header.Flags.SCRIPT_POST;
+import static org.redline_rpm.header.Flags.SCRIPT_PRE;
 
 
 public final class RpmPROTagFlagsToYumConverter {

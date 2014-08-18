@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.gridfs;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
@@ -42,8 +43,8 @@ public class GridFsFileStorageServiceTest {
 
   @Test
   public void createIndices() throws Exception {
-    verify(filesCollection).ensureIndex("metadata.repo");
-    verify(filesCollection).ensureIndex("metadata.arch");
+    verify(filesCollection).createIndex(eq(new BasicDBObject("metadata.repo", 1)));
+    verify(filesCollection).createIndex(eq(new BasicDBObject("metadata.arch", 1)));
   }
 
   @Test
