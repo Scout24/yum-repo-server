@@ -87,6 +87,13 @@ public class RepositoryController {
     repoService.setMaxKeepRpms(reponame, maxKeepRpms);
   }
 
+  @RequestMapping(value = "/{reponame}/maxDaysRpms", method = PUT)
+  @ResponseStatus(NO_CONTENT)
+  public void updateMaxDaysRpms(@PathVariable("reponame") String reponame, @RequestBody
+                               int maxDaysRpms) {
+    repoService.setMaxDaysRpms(reponame, maxDaysRpms);
+  }
+
   @RequestMapping(method = POST)
   @ResponseStatus(CREATED)
   public void createStaticRepository(@RequestParam("name") String reponame) {

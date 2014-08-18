@@ -331,8 +331,16 @@ span.value .ui-switchbutton.ui-state-active {
     margin-left: 20px;
 }
 
+#maxDaysRpmsValue {
+    margin-left: 20px;
+}
+
 #maxKeepRpmsSlider {
-    margin: 9px 0 0 50px;
+    margin: 9px 0 0 90px;
+}
+
+#maxDaysRpmsSlider {
+    margin: 9px 0 0 90px;
 }
 
 .versionInfo {

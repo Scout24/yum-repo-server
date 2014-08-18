@@ -6,9 +6,12 @@ import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageLocation;
+import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageTime;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageVersion;
 import de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -35,22 +38,34 @@ public class RepoCleanerIT {
   private static final String NAME2 = "artifactus-test";
   private static final String NOARCH = "noarch";
   private static final String SRC = "src";
+  private static final Integer CURRENT = getCurrent();
+  private static final Integer FIVE_DAYS_AGO = getFiveDaysAgo();
 
   private static final YumEntry[] YUM_ENTRIES_TO_KEEP = {
-    entry(NAME1, "1.0", "1", NOARCH),
-    entry(NAME1, "2.0", "1", NOARCH),
-    entry(NAME1, "0.1", "1", SRC),
-    entry(NAME1, "0.2", "1", SRC),
+    entry(NAME1, "1.0", "1", NOARCH, CURRENT, CURRENT),
+    entry(NAME1, "2.0", "1", NOARCH, CURRENT, CURRENT),
+    entry(NAME1, "0.1", "1", SRC, CURRENT, CURRENT),
+    entry(NAME1, "0.2", "1", SRC, CURRENT, CURRENT),
 
-    entry(NAME2, "1.1.1", "1", NOARCH),
-    entry(NAME2, "1.1", "2", NOARCH),
-    entry(NAME2, "1.1", "1", NOARCH)
+    entry(NAME2, "1.1.1", "1", NOARCH, CURRENT, CURRENT),
+    entry(NAME2, "1.1", "2", NOARCH, CURRENT, CURRENT),
+    entry(NAME2, "1.1", "1", NOARCH, CURRENT, CURRENT)
   };
 
   private static final YumEntry[] YUM_ENTRIES_TO_CLEAN_UP = {
-    entry(NAME2, "1.0", "1", NOARCH),
-    entry(NAME2, "0.9", "1", NOARCH)
+    entry(NAME2, "1.0", "1", NOARCH, CURRENT, FIVE_DAYS_AGO),
+    entry(NAME2, "0.9", "1", NOARCH, CURRENT, FIVE_DAYS_AGO)
   };
+
+  private static Integer getCurrent() {
+    long current = new DateTime().withZoneRetainFields(DateTimeZone.UTC).getMillis() / 1000L ;
+    return (int) current;
+  }
+
+  private static Integer getFiveDaysAgo() {
+    long fiveDaysAgo = new DateTime().minusDays(5).withZoneRetainFields(DateTimeZone.UTC).getMillis() / 1000L;
+    return (int) fiveDaysAgo;
+  }
 
   @ClassRule
   public static IntegrationTestContext context = new IntegrationTestContext();
@@ -66,22 +81,10 @@ public class RepoCleanerIT {
   }
 
   @Test
-  public void cleanupRepo() throws Exception {
+  public void cleanupRepoByMaxDaysRpms() throws Exception {
+    givenRepoEntryWithMaxKeep(0);
+    givenRepoEntryWithMaxDays(3);
     givenRepoWithFilesToClean();
-
-    long startTime = currentTimeMillis();
-
-    assertThat(service.cleanup(reponame, 3), is(true));
-
-    assertThatItemsHasBeenCleanedUp();
-    assertThatRepoEntryIsMarkedAsModified(startTime);
-    assertThatGridFsFileIsMarkedAsDeleted();
-  }
-
-  @Test
-  public void cleanupRepoDirectly() throws Exception {
-    givenRepoWithFilesToClean();
-    givenRepoEntryWithMaxKeep(3);
 
     long startTime = currentTimeMillis();
 
@@ -89,13 +92,30 @@ public class RepoCleanerIT {
 
     assertThatItemsHasBeenCleanedUp();
     assertThatRepoEntryIsMarkedAsModified(startTime);
+    assertThatGridFsFileIsMarkedAsDeleted();
   }
 
   @Test
-  public void doNothingIfMaxkeepRPMsIsZero() throws Exception {
+  public void cleanupRepoByMaxKeepRpms() throws Exception {
+    givenRepoEntryWithMaxDays(0);
+    givenRepoEntryWithMaxKeep(3);
     givenRepoWithFilesToClean();
 
-    assertThat(service.cleanup(reponame, 0), is(false));
+    long startTime = currentTimeMillis();
+
+    assertThat(service.cleanup(reponame), is(true));
+
+    assertThatItemsHasBeenCleanedUp();
+    assertThatRepoEntryIsMarkedAsModified(startTime);
+    assertThatGridFsFileIsMarkedAsDeleted();
+  }
+
+  @Test
+  public void doNothingIfMaxKeepRpmsAndMaxDaysRpmsIsZero() throws Exception {
+    givenRepoEntryWithMaxKeep(0);
+    givenRepoEntryWithMaxDays(0);
+    givenRepoWithFilesToClean();
+
     assertThat(service.cleanup(reponame), is(false));
 
     assertThatNoItemsHasBeenCleanedUp();
@@ -149,8 +169,13 @@ public class RepoCleanerIT {
     context.repoEntriesRepository().save(repoEntry);
   }
 
+  private void givenRepoEntryWithMaxDays(int maxDaysRpms) {
+    RepoEntry repoEntry = context.repoService().ensureEntry(reponame, (RepoType) null);
+    repoEntry.setMaxDaysRpms(maxDaysRpms);
+    context.repoEntriesRepository().save(repoEntry);
+  }
+
   private void givenRepoWithFilesToClean() {
-    context.repoService().setMaxKeepRpms(reponame, 0);
     for (YumEntry entry : YUM_ENTRIES_TO_KEEP) {
       entry.setRepo(reponame);
       context.yumEntriesRepository().save(entry);
@@ -168,16 +193,24 @@ public class RepoCleanerIT {
     return new ByteArrayInputStream("Content".getBytes());
   }
 
-  private static YumEntry entry(String name, String version, String release, String arch) {
+  private static YumEntry entry(String name, String version, String release, String arch, Integer file, Integer build) {
     YumPackage yumPackage = new YumPackage();
     yumPackage.setName(name);
     yumPackage.setArch(arch);
     yumPackage.setVersion(packageVersion(version, release));
+    yumPackage.setTime(packageTime(file, build));
 
     YumPackageLocation location = new YumPackageLocation();
     location.setHref(arch + "/" + name + "-" + version + "-" + release + "." + arch + ".rpm");
     yumPackage.setLocation(location);
     return new YumEntry(null, null, yumPackage);
+  }
+
+  private static YumPackageTime packageTime(Integer file, Integer build) {
+    YumPackageTime packageTime = new YumPackageTime();
+    packageTime.setFile(file);
+    packageTime.setBuild(build);
+    return packageTime;
   }
 
   private static YumPackageVersion packageVersion(String version, String release) {
