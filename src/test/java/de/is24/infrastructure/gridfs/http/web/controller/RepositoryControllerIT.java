@@ -13,10 +13,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
 
 import java.io.IOException;
@@ -43,7 +41,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
   private String repoUrl;
   private String reponame;

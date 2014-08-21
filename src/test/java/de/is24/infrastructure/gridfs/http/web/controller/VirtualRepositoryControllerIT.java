@@ -7,10 +7,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
 
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
@@ -35,7 +33,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class VirtualRepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
   private String repoUrl;
   private String reponame;

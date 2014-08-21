@@ -7,11 +7,9 @@ import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.jboss.arquillian.junit.LocalOnly;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -33,7 +31,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.http.util.EntityUtils.consume;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class MetadataSchedulerIT extends AbstractContainerAndMongoDBStarter {
   private String repoUrl;
   private String reponame;

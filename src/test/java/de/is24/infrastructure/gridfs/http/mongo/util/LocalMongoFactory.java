@@ -28,8 +28,6 @@ import java.util.logging.Logger;
 import static com.mongodb.BasicDBObjectBuilder.start;
 import static de.flapdoodle.embed.mongo.Command.MongoD;
 import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
-import static de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter.MONGO_PASSWORD;
-import static de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter.MONGO_USERNAME;
 
 
 public class LocalMongoFactory {
@@ -37,6 +35,8 @@ public class LocalMongoFactory {
   @VisibleForTesting
   static final FixedPath MONGO_DOWNLOAD_FOLDER = new FixedPath(TEMP_DIR + File.separator + ".embedded-mongo");
   private static final Logger LOGGER = Logger.getLogger(LocalMongoFactory.class.getCanonicalName());
+  private static final String MONGO_USERNAME = "reposerver";
+  private static final String MONGO_PASSWORD = "reposerver";
 
   @VisibleForTesting
   static MongodStarter createMongoStarter() {
@@ -68,6 +68,11 @@ public class LocalMongoFactory {
           MongodExecutable mongodExecutable = runtime.prepare(config);
           MongodProcess mongoProcess = mongodExecutable.start();
           prepareDatabase(config.net().getPort());
+
+          System.setProperty("mongodb.port", "" + config.net().getPort());
+          System.setProperty("mongodb.serverlist", "localhost");
+          System.setProperty("mongodb.db.user", MONGO_USERNAME);
+          System.setProperty("mongodb.db.pass", MONGO_PASSWORD);
 
           return new MongoProcessHolder(mongodExecutable, mongoProcess, config.net().getPort());
         }

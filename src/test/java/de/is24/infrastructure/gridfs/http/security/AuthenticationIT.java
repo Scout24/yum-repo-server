@@ -9,11 +9,9 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.arquillian.junit.LocalOnly;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.net.URL;
 
@@ -28,7 +26,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   private String deleteUrl;
 

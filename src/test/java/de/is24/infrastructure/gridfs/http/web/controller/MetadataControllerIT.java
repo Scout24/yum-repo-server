@@ -4,10 +4,8 @@ import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
@@ -18,7 +16,6 @@ import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class MetadataControllerIT extends AbstractContainerAndMongoDBStarter {
 
   private String repoUrl;

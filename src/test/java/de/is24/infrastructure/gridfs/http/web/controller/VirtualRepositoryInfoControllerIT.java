@@ -9,10 +9,8 @@ import org.apache.http.util.EntityUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.CustomMatcher;
 import org.hamcrest.Matcher;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -38,7 +36,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerIT {
   private String staticRepoUrl;
 

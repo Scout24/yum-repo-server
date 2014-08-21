@@ -3,12 +3,10 @@ package de.is24.infrastructure.gridfs.http.security;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.redline_rpm.Builder;
 import org.redline_rpm.header.Architecture;
 import org.redline_rpm.header.Os;
@@ -27,7 +25,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class SecurityIT extends AbstractContainerAndMongoDBStarter {
   public static final String RANDOM_STRING = "foobar";
   private String repoUrl;

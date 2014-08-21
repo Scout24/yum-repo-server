@@ -1,5 +1,22 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
+import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
+import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
+import org.hamcrest.collection.IsEmptyCollection;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
+
+import java.io.IOException;
+
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
@@ -12,30 +29,12 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasItem;
-import java.io.IOException;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
-import org.hamcrest.collection.IsEmptyCollection;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.data.mongodb.repository.support.MongoRepositoryFactory;
-import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
-import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 
 
 /**
  * @author twalter
  * @since 4/8/13
  */
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class RepositoryTaggingControllerIT extends AbstractContainerAndMongoDBStarter {
   private String reponame;
   private String repoUrl;

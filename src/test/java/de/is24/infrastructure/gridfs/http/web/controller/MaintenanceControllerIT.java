@@ -9,10 +9,8 @@ import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +30,6 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class MaintenanceControllerIT extends AbstractContainerAndMongoDBStarter {
   public static final TypeReference<Set<YumPackage>> YUM_PACKAGE_TYPE = new TypeReference<Set<YumPackage>>() {
   };

@@ -1,84 +1,55 @@
 package de.is24.infrastructure.gridfs.http.web;
 
 import com.mongodb.Mongo;
-import de.is24.infrastructure.gridfs.http.Profiles;
-import de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory;
-import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
-import de.is24.infrastructure.gridfs.http.utils.RepositoryUtils;
-import de.is24.infrastructure.gridfs.http.utils.StatsdMockServer;
+import de.is24.infrastructure.gridfs.http.SpringBootAppConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.OverProtocol;
-import org.jboss.arquillian.mongo.MongoCredentials;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+
 import java.net.URL;
-import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.RPM_DB;
+
+import static de.is24.infrastructure.gridfs.http.Profiles.DEV;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
-import static org.springframework.core.env.AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = SpringBootAppConfig.class, initializers = DeploymentUrlApplicationContextInitializer.class)
+@WebAppConfiguration
+@IntegrationTest("server.port=0")
+@ActiveProfiles(DEV)
+public class AbstractContainerAndMongoDBStarter {
 
-public abstract class AbstractContainerAndMongoDBStarter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractContainerAndMongoDBStarter.class);
+  @Value("${local.deployment.url}")
+  public URL deploymentURL;
 
-  @ArquillianResource
-  protected URL deploymentURL;
+  @Value("${local.server.port}")
+  protected int port;
 
-  public static final String MONGO_USERNAME = "reposerver";
-  public static final String MONGO_PASSWORD = "reposerver";
+  @Autowired
+  protected SpringBootAppConfig appConfig;
 
-  @ArquillianResource(AbstractContainerAndMongoDBStarter.class)
-  @MongoCredentials(db = RPM_DB, username = MONGO_USERNAME, password = MONGO_PASSWORD)
+  @Autowired
   protected Mongo mongo;
-
-  protected static MongoProcessHolder mongoProcessHolder;
-
-  public static StatsdMockServer statsdMockServer;
 
   protected CloseableHttpClient httpClient;
 
   @Before
-  public void setUpHttpClient() throws Exception {
+  public void setDeploymentUrl() {
     httpClient = getHttpClientBuilder().build();
   }
 
-  @Deployment(testable = false, managed = true)
-  @OverProtocol("Servlet 3.0")
-  public static WebArchive createDeployment() throws Throwable {
-    startMongo();
-    startStatsd();
-
-    WebArchive webArchive = WebApplicationTestFactory.createCompleteApplication();
-    System.setProperty(ACTIVE_PROFILES_PROPERTY_NAME, Profiles.DEV);
-    LOGGER.debug(webArchive.toString(true));
-    return webArchive;
+  public void startMongo() throws Throwable {
+    appConfig.startMongo();
   }
 
-  @AfterClass
-  public static void stopMongo() {
-    if (mongoProcessHolder != null) {
-      mongoProcessHolder.stopMongo();
-    }
-
-    if (statsdMockServer != null) {
-      statsdMockServer.after();
-    }
-  }
-
-  public static void startStatsd() throws Throwable {
-    statsdMockServer = new StatsdMockServer();
-    statsdMockServer.before();
-    System.setProperty("statsd.host", "localhost");
-    System.setProperty("statsd.port", Integer.toString(statsdMockServer.getPort()));
-  }
-
-  public static void startMongo() throws Throwable {
-    mongoProcessHolder = LocalMongoFactory.createMongoProcess();
-    System.setProperty("mongodb.port", "" + mongoProcessHolder.getMongoPort());
+  public void stopMongo() {
+    appConfig.stopMongo();
   }
 
 }

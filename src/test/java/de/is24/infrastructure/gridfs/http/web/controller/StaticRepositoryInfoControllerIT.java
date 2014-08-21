@@ -9,10 +9,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.fest.assertions.api.Assertions;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -35,7 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 /**
  * NOTE: Some finders are explicitly tested in {@link StaticRepositoryInfoProviderIT}.
  */
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class StaticRepositoryInfoControllerIT extends RepositoryInfoControllerIT {
 
   @Before

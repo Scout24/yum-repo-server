@@ -3,10 +3,8 @@ package de.is24.infrastructure.gridfs.http.web.filter;
 import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpHead;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +21,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class HttpHeadFilterIT extends AbstractContainerAndMongoDBStarter {
 
   private List<String> urlsToTest = new ArrayList<>();

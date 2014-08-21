@@ -7,10 +7,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicNameValuePair;
-import org.jboss.arquillian.junit.LocalOrRemoteDeploymentTestRunner;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 import static java.util.Arrays.asList;
@@ -19,7 +17,6 @@ import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(LocalOrRemoteDeploymentTestRunner.class)
 public class PropagationControllerIT extends AbstractContainerAndMongoDBStarter {
 
   private String rpmPropagationUrl;

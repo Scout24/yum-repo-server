@@ -42,6 +42,10 @@ public class AppInitializer implements WebApplicationInitializer {
   public void onStartup(ServletContext servletContext) throws ServletException {
     WebApplicationContext rootContext = createRootContext(servletContext);
     createSpringRootServlet(servletContext, rootContext);
+    addAllFilters(servletContext);
+  }
+
+  public void addAllFilters(ServletContext servletContext) {
     registerHeadRequestFilter(servletContext);
     registerUrlRewirteFilter(servletContext);
     registerSecurityFilter(servletContext);
