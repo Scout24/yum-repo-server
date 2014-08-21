@@ -19,7 +19,7 @@
     <spring.version>4.0.6.RELEASE</spring.version>
     <spring.security.version>3.2.0.RELEASE</spring.security.version>
     <failsafe.plugin.version>2.14.1</failsafe.plugin.version>
-    <tomcat7.version>7.0.47</tomcat7.version>
+    <tomcat7.version>7.0.55</tomcat7.version>
     <arquillian.version>1.0.3.Final</arquillian.version>
     <shrinkwrap.resolver.version>2.0.0-beta-3</shrinkwrap.resolver.version>
     <jackson.version>2.4.2</jackson.version>
