@@ -63,7 +63,7 @@ public class StatusController {
 
   @RequestMapping(value = "/status-full", method = GET, produces = {"application/json"})
   @ResponseBody
-  public String getStatus2(HttpServletResponse response) {
+  public String getStatusFull(HttpServletResponse response) {
     return prettyJson(getStatusJson(response, true));
   }
 

@@ -41,12 +41,4 @@ public class AbstractContainerAndMongoDBStarter {
     httpClient = getHttpClientBuilder().build();
   }
 
-  public void startMongo() throws Throwable {
-    // appConfig.startMongo();
-  }
-
-  public void stopMongo() {
-    // appConfig.stopMongo();
-  }
-
 }

@@ -25,15 +25,15 @@ import java.util.List;
 
 import static com.mongodb.MongoCredential.createMongoCRCredential;
 import static de.is24.infrastructure.gridfs.http.Profiles.REMOTE_TESTS;
-import static de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory.MONGO_DB_NAME;
-import static de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory.MONGO_PASSWORD;
-import static de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory.MONGO_USERNAME;
+import static de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder.MONGO_DB_NAME;
+import static de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder.MONGO_PASSWORD;
+import static de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder.MONGO_USERNAME;
 import static java.util.Arrays.asList;
 
 @Import(PropertyConfig.class)
 @Profile(REMOTE_TESTS)
 @EnableMongoRepositories(basePackageClasses=YumEntriesRepository.class)
-public class SpringBootRemoteAppConfig {
+public class SpringBootRemoteAppConfig implements MongoPasswordManager {
 
   @Value("${remote.container.url}")
   URL remoteContainerUrl;
@@ -67,5 +67,15 @@ public class SpringBootRemoteAppConfig {
     if (environment instanceof ConfigurableEnvironment) {
       EnvironmentTestUtils.addEnvironment((ConfigurableEnvironment) environment, propertyName + ":" + url);
     }
+  }
+
+  @Override
+  public void setWrongPassword() {
+    throw new UnsupportedOperationException("Setting remote password is not allowed");
+  }
+
+  @Override
+  public void setCorrectPassword() {
+    // do nothing
   }
 }

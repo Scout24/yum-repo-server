@@ -21,7 +21,7 @@ import static de.is24.infrastructure.gridfs.http.Profiles.LOCAL_TESTS;
 @Import({AppConfig.class, WebConfig.class})
 @Configuration
 @Profile(LOCAL_TESTS)
-public class SpringBootLocalAppConfig {
+public class SpringBootLocalAppConfig implements MongoPasswordManager {
 
   protected MongoProcessHolder mongoProcessHolder;
   public StatsdMockServer statsdMockServer;
@@ -38,7 +38,7 @@ public class SpringBootLocalAppConfig {
     System.setProperty("statsd.port", Integer.toString(statsdMockServer.getPort()));
   }
 
-  public void startMongo() throws Throwable {
+  private void startMongo() throws Throwable {
     mongoProcessHolder = LocalMongoFactory.createMongoProcess();
   }
 
@@ -59,9 +59,19 @@ public class SpringBootLocalAppConfig {
     }
   }
 
-  public void stopMongo() {
+  private void stopMongo() {
     if (mongoProcessHolder != null) {
       mongoProcessHolder.stopMongo();
     }
+  }
+
+  @Override
+  public void setWrongPassword() {
+    mongoProcessHolder.setWrongPasswordAndDropDatabase();
+  }
+
+  @Override
+  public void setCorrectPassword() {
+    mongoProcessHolder.setCorrectPassword();
   }
 }
