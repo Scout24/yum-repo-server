@@ -258,7 +258,7 @@
     <dependency>
       <groupId>org.tuckey</groupId>
       <artifactId>urlrewritefilter</artifactId>
-      <version>4.0.5.2</version>
+      <version>4.0.4</version>
     </dependency>
     <dependency>
       <groupId>joda-time</groupId>
@@ -377,23 +377,6 @@
       <version>7.0.54</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jstl</artifactId>
-      <version>1.2</version>
-      <scope>test</scope>
-    </dependency>
-
-    <!-- arquillian dependencies start -->
-    <!--
-    <dependency>
-      <groupId>org.eclipse.jdt.core.compiler</groupId>
-      <artifactId>ecj</artifactId>
-      <version>4.4</version>
-      <scope>test</scope>
-    </dependency>
-    -->
-    <!-- arquillian dependencies end -->
     <dependency>
     	<groupId>com.jayway.awaitility</groupId>
     	<artifactId>awaitility</artifactId>
