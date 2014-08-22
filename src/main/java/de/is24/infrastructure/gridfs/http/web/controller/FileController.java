@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 import de.is24.infrastructure.gridfs.http.exception.BadRangeRequestException;
 import de.is24.infrastructure.gridfs.http.exception.GridFSFileNotFoundException;
 import de.is24.infrastructure.gridfs.http.gridfs.BoundedGridFsResource;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.InApplicationMonitor;
@@ -48,14 +49,17 @@ public class FileController {
   public static final String RPM_EXTENSION = ".rpm";
 
   private final FileStorageService fileStorageService;
+  private final StorageService storageService;
 
   // just for cglib
   protected FileController() {
+    this.storageService = null;
     this.fileStorageService = null;
   }
 
   @Autowired
-  public FileController(FileStorageService fileStorageService) {
+  public FileController(StorageService storageService, FileStorageService fileStorageService) {
+    this.storageService = storageService;
     this.fileStorageService = fileStorageService;
   }
 
@@ -132,7 +136,7 @@ public class FileController {
                          @PathVariable("filename") String filename) {
     FileDescriptor descriptor = new FileDescriptor(repoName, arch, filename + RPM_EXTENSION);
     try {
-      fileStorageService.delete(descriptor);
+      storageService.delete(descriptor);
     } catch (GridFSFileNotFoundException ex) {
       LOGGER.debug("ignoring delete of none existing resource '{}'", descriptor.getPath());
     }

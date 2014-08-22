@@ -1,29 +1,40 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_PARTIAL_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE;
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.core.Is.is;
 
 
 public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
   private String repoUrl;
+  private String repoName;
+
+  @Autowired
+  YumEntriesRepository yumEntriesRepository;
 
   @Before
   public void setUp() throws Exception {
-    repoUrl = deploymentURL + "/repo/" + uniqueRepoName();
+    repoName = uniqueRepoName();
+    repoUrl = deploymentURL + "/repo/" + repoName;
 
     uploadRpm(repoUrl, RPM_FILE.getPath());
   }
@@ -38,6 +49,20 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getEntity().getContentLength(), is(1024L));
     assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is("1024"));
+  }
+
+  @Test
+  public void deleteRpmFileAndMetadata() throws Exception {
+    HttpDelete delete = new HttpDelete(repoUrl + "/noarch/test-artifact-1.2-1.noarch.rpm");
+    HttpResponse response = httpClient.execute(delete);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_NO_CONTENT));
+    consume(response.getEntity());
+
+    HttpGet get = new HttpGet(repoUrl + "/noarch/test-artifact-1.2-1.noarch.rpm");
+    response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_NOT_FOUND));
+
+    assertThat(yumEntriesRepository.findByRepoAndYumPackageName(repoName, "test-artifact"), empty());
   }
 
   /**

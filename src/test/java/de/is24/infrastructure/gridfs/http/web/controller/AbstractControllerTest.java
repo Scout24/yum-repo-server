@@ -34,7 +34,7 @@ public abstract class AbstractControllerTest {
   @Before
   public void setUp() throws Exception {
     mockMvc = standaloneSetup(
-                new FileController(fileStorageService),
+                new FileController(storageService, fileStorageService),
                 new MetadataController(metadataService, repoService),
                 new RepositoryController(storageService, repoService),
                 new PropagationController(storageService)

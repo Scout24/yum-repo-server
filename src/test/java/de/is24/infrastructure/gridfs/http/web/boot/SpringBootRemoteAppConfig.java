@@ -5,6 +5,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import de.is24.infrastructure.gridfs.http.PropertyConfig;
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
@@ -14,6 +15,9 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -28,6 +32,7 @@ import static java.util.Arrays.asList;
 
 @Import(PropertyConfig.class)
 @Profile(REMOTE_TESTS)
+@EnableMongoRepositories(basePackageClasses=YumEntriesRepository.class)
 public class SpringBootRemoteAppConfig {
 
   @Value("${remote.container.url}")
@@ -45,6 +50,11 @@ public class SpringBootRemoteAppConfig {
         MONGO_PASSWORD.toCharArray()
     ));
     return new MongoClient(serverAddressList, credentials);
+  }
+
+  @Bean
+  public MongoTemplate mongoTemplate() throws UnknownHostException {
+    return new MongoTemplate(new SimpleMongoDbFactory(mongo(), MONGO_DB_NAME));
   }
 
   @Bean
