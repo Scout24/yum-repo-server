@@ -1,14 +1,14 @@
 package de.is24.infrastructure.gridfs.http.security;
 
 
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.LocalOnly;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.jboss.arquillian.junit.LocalOnly;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 
+@LocalOnly
 public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   private String deleteUrl;
 
@@ -34,7 +35,6 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     deleteUrl = deploymentURL + "/repo/dev-repo/noarch/file.rpm";
   }
 
-  @LocalOnly
   @Test
   public void denyAccessForNotWhiteListedHost() throws Exception {
     final CloseableHttpClient httpClientWithoutCredentials = HttpClientBuilder.create().build();
@@ -45,7 +45,6 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getStatusLine().getStatusCode(), is(SC_UNAUTHORIZED));
   }
 
-  @LocalOnly
   @Test
   public void denyAccessForWrongCredentials() throws Exception {
     givenCredentials("user", "pass");
@@ -57,7 +56,6 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getStatusLine().getStatusCode(), is(SC_UNAUTHORIZED));
   }
 
-  @LocalOnly
   @Test
   public void allowAccessForForCorrectCredentials() throws Exception {
     givenCredentials("user", "user");
@@ -70,7 +68,6 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   }
 
   @Ignore
-  @LocalOnly
   @Test
   public void allowAccessForWhiteListedHost() throws Exception {
     URL url = new URL(deleteUrl);
@@ -84,7 +81,6 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getStatusLine().getStatusCode(), is(SC_NOT_FOUND));
   }
 
-  @LocalOnly
   @Test
   public void sendAuthenticateHeader() throws Exception {
     givenCredentials("user", "pass");

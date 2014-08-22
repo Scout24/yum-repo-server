@@ -35,8 +35,9 @@ public class LocalMongoFactory {
   @VisibleForTesting
   static final FixedPath MONGO_DOWNLOAD_FOLDER = new FixedPath(TEMP_DIR + File.separator + ".embedded-mongo");
   private static final Logger LOGGER = Logger.getLogger(LocalMongoFactory.class.getCanonicalName());
-  private static final String MONGO_USERNAME = "reposerver";
-  private static final String MONGO_PASSWORD = "reposerver";
+  public static final String MONGO_USERNAME = "reposerver";
+  public static final String MONGO_PASSWORD = "reposerver";
+  public static final String MONGO_DB_NAME = "rpm_db";
 
   @VisibleForTesting
   static MongodStarter createMongoStarter() {
@@ -84,7 +85,7 @@ public class LocalMongoFactory {
 
         private void prepareDatabase(final int mongoPort) throws UnknownHostException {
           Mongo mongo = new MongoClient("localhost", mongoPort);
-          createDBUser(mongo.getDB("rpm_db"));
+          createDBUser(mongo.getDB(MONGO_DB_NAME));
         }
 
         private void createDBUser(DB db) {

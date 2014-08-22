@@ -1,4 +1,4 @@
-package de.is24.infrastructure.gridfs.http.web;
+package de.is24.infrastructure.gridfs.http.web.boot;
 
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
 import org.springframework.boot.test.EnvironmentTestUtils;
@@ -22,7 +22,7 @@ public class DeploymentUrlApplicationContextInitializer implements
   }
 
   private void onApplicationEvent(EmbeddedServletContainerInitializedEvent event) {
-    setPortProperty(event.getApplicationContext(), "local.deployment.url", getUrl(event
+    setProperty(event.getApplicationContext(), "local.deployment.url", getUrl(event
         .getEmbeddedServletContainer().getPort()));
   }
 
@@ -30,13 +30,13 @@ public class DeploymentUrlApplicationContextInitializer implements
     return "http://localhost:" + port;
   }
 
-  private void setPortProperty(ApplicationContext context, String propertyName, String url) {
+  private void setProperty(ApplicationContext context, String propertyName, String url) {
     if (context instanceof ConfigurableApplicationContext) {
       EnvironmentTestUtils.addEnvironment((ConfigurableApplicationContext) context,
           propertyName + ":" + url);
     }
     if (context.getParent() != null) {
-      setPortProperty(context.getParent(), propertyName, url);
+      setProperty(context.getParent(), propertyName, url);
     }
   }
 }

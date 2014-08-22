@@ -2,7 +2,7 @@ package de.is24.infrastructure.gridfs.http.web.controller;
 
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpDelete;

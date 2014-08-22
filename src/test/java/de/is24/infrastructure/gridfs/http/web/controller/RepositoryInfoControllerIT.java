@@ -6,7 +6,7 @@ import com.mongodb.BasicDBObject;
 import de.is24.infrastructure.gridfs.http.domain.Container;
 import de.is24.infrastructure.gridfs.http.domain.FileInfo;
 import de.is24.infrastructure.gridfs.http.domain.FolderInfo;
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;

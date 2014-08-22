@@ -1,5 +1,7 @@
-package de.is24.infrastructure.gridfs.http;
+package de.is24.infrastructure.gridfs.http.web.boot;
 
+import de.is24.infrastructure.gridfs.http.AppConfig;
+import de.is24.infrastructure.gridfs.http.AppInitializer;
 import de.is24.infrastructure.gridfs.http.mongo.util.LocalMongoFactory;
 import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
 import de.is24.infrastructure.gridfs.http.utils.StatsdMockServer;
@@ -9,20 +11,23 @@ import org.springframework.boot.context.embedded.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 
 import javax.annotation.PreDestroy;
+
+import static de.is24.infrastructure.gridfs.http.Profiles.LOCAL_TESTS;
 
 @EnableAutoConfiguration
 @Import({AppConfig.class, WebConfig.class})
 @Configuration
-public class SpringBootAppConfig {
+@Profile(LOCAL_TESTS)
+public class SpringBootLocalAppConfig {
 
   protected MongoProcessHolder mongoProcessHolder;
   public StatsdMockServer statsdMockServer;
 
-  public SpringBootAppConfig() throws Throwable {
+  public SpringBootLocalAppConfig() throws Throwable {
     startMongo();
-
     startStatsd();
   }
 

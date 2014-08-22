@@ -1,6 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;

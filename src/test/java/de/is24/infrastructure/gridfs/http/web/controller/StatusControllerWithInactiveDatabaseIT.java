@@ -1,10 +1,10 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.LocalOnly;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.jboss.arquillian.junit.LocalOnly;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -15,8 +15,9 @@ import static org.hamcrest.Matchers.is;
 
 //TODO:
 @Ignore("Atm it doesn't work with Spring Boot because the application is not reloaded")
+@LocalOnly
 public class StatusControllerWithInactiveDatabaseIT extends AbstractContainerAndMongoDBStarter {
-  @LocalOnly
+
   @Test
   public void statusPageIsPresentWithInactiveDB() throws Throwable {
     stopMongo();

@@ -3,10 +3,10 @@ package de.is24.infrastructure.gridfs.http.metadata.scheduling;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.WriteConcern;
-import de.is24.infrastructure.gridfs.http.web.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
+import de.is24.infrastructure.gridfs.http.web.boot.LocalOnly;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.jboss.arquillian.junit.LocalOnly;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +30,7 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.http.util.EntityUtils.consume;
 
-
+@LocalOnly
 public class MetadataSchedulerIT extends AbstractContainerAndMongoDBStarter {
   private String repoUrl;
   private String reponame;
@@ -47,7 +47,6 @@ public class MetadataSchedulerIT extends AbstractContainerAndMongoDBStarter {
     getRepoEntryCollection().remove(mongoRepoEntry(), WriteConcern.FSYNC_SAFE);
   }
 
-  @LocalOnly
   @Test
   public void metaDataIsCreatedForScheduledRepositories() throws Exception {
     assertGetRepoMdXmlReturns(SC_NOT_FOUND);
@@ -55,7 +54,6 @@ public class MetadataSchedulerIT extends AbstractContainerAndMongoDBStarter {
     assertGetRepoMdXmlReturns(SC_OK);
   }
 
-  @LocalOnly
   @Test
   public void metaDataIsCreatedAtRegularInterval() throws Exception {
     insertScheduledRepoEntryIntoMongoDb();
