@@ -7,9 +7,9 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.test.annotation.ProfileValueSourceConfiguration;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -19,7 +19,7 @@ import static de.is24.infrastructure.gridfs.http.Profiles.DEV;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(loader = RemoteAwareSpringApplicationContextLoader.class,
+@SpringApplicationConfiguration(
     classes = {SpringBootLocalAppConfig.class, SpringBootRemoteAppConfig.class},
     initializers = DeploymentUrlApplicationContextInitializer.class)
 @WebAppConfiguration

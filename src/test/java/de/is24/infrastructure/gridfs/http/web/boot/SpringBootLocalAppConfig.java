@@ -7,20 +7,20 @@ import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
 import de.is24.infrastructure.gridfs.http.utils.StatsdMockServer;
 import de.is24.infrastructure.gridfs.http.web.WebConfig;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.embedded.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 
 import javax.annotation.PreDestroy;
 
-import static de.is24.infrastructure.gridfs.http.Profiles.LOCAL_TESTS;
+import static de.is24.infrastructure.gridfs.http.web.boot.LocalConfig.REMOTE_CONTAINER_URL_KEY;
 
 @EnableAutoConfiguration
 @Import({AppConfig.class, WebConfig.class})
 @Configuration
-@Profile(LOCAL_TESTS)
+@ConditionalOnExpression("'${" + REMOTE_CONTAINER_URL_KEY+ ":notSet}' == 'notSet'")
 public class SpringBootLocalAppConfig implements MongoPasswordManager {
 
   protected MongoProcessHolder mongoProcessHolder;

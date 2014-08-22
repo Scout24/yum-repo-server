@@ -8,11 +8,11 @@ import de.is24.infrastructure.gridfs.http.PropertyConfig;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.test.EnvironmentTestUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -24,18 +24,18 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 import static com.mongodb.MongoCredential.createMongoCRCredential;
-import static de.is24.infrastructure.gridfs.http.Profiles.REMOTE_TESTS;
 import static de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder.MONGO_DB_NAME;
 import static de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder.MONGO_PASSWORD;
 import static de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder.MONGO_USERNAME;
+import static de.is24.infrastructure.gridfs.http.web.boot.LocalConfig.REMOTE_CONTAINER_URL_KEY;
 import static java.util.Arrays.asList;
 
 @Import(PropertyConfig.class)
-@Profile(REMOTE_TESTS)
+@ConditionalOnExpression("'${" + REMOTE_CONTAINER_URL_KEY+ ":notSet}' != 'notSet'")
 @EnableMongoRepositories(basePackageClasses=YumEntriesRepository.class)
 public class SpringBootRemoteAppConfig implements MongoPasswordManager {
 
-  @Value("${remote.container.url}")
+  @Value("${"+ REMOTE_CONTAINER_URL_KEY + "}")
   URL remoteContainerUrl;
 
   @Autowired
