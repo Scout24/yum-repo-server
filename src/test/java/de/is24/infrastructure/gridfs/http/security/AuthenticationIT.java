@@ -10,13 +10,12 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URL;
 
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.getHttpClientBuilder;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.http.util.EntityUtils.consume;
@@ -30,9 +29,13 @@ import static org.hamcrest.Matchers.notNullValue;
 public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   private String deleteUrl;
 
+  @Autowired
+  WhiteListAuthenticationFilter whiteListAuthenticationFilter;
+
   @Before
   public void setUp() throws Exception {
     deleteUrl = deploymentURL + "/repo/dev-repo/noarch/file.rpm";
+    whiteListAuthenticationFilter.setWhiteListedHosts("");
   }
 
   @Test
@@ -67,9 +70,11 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getStatusLine().getStatusCode(), is(SC_NO_CONTENT));
   }
 
-  @Ignore
   @Test
   public void allowAccessForWhiteListedHost() throws Exception {
+    whiteListAuthenticationFilter.setWhiteListedHosts("localhost");
+    givenCredentials("user", "wrong-password");
+
     URL url = new URL(deleteUrl);
     HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());
     String newDeleteUrl = deleteUrl.replace("://" + url.getHost(), "://localhost");
@@ -78,7 +83,7 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
     HttpResponse response = httpClient.execute(httpHost, get);
     consume(response.getEntity());
 
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_NOT_FOUND));
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_NO_CONTENT));
   }
 
   @Test
