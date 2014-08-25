@@ -4,10 +4,12 @@ import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
+
 import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.UnknownHostException;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -17,11 +19,12 @@ import static org.hamcrest.Matchers.nullValue;
 public class WhiteListAuthenticationFilterTest {
   private static final String LOCAL_IP = "127.0.0.1";
   private static final String LOCAL_IPv6 = "0:0:0:0:0:0:0:1";
-  private static final String ARBITRARY_HOT_RESOLVABLE_IPv6 = "abc:def:123:456:789:aaaa:bbbb:cccc";
+  private static final String ARBITRARY_HOST_RESOLVABLE_IPv6 = "abc:def:123:456:789:aaaa:bbbb:cccc";
   private static final String LOADBALANCER_IP = "10.99.10.12";
   private static final String X_FORWARDED_FOR = "X-Forwarded-For";
   private static final String ARBITRARY_IP = "192.168.5.5";
   private static final String ANOTHER_IP = "192.168.6.6";
+  private static final String BASE64_AUTH_STRING = "Basic Zm9vOmJhcg==";
 
   private HostnameResolver hostnameResolver;
 
@@ -44,8 +47,8 @@ public class WhiteListAuthenticationFilterTest {
 
   @Test
   public void handleUnresolvableIPv6Addresses() throws Exception {
-    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_HOT_RESOLVABLE_IPv6);
-    assertThat(filter.getPreAuthenticatedPrincipal(request(ARBITRARY_HOT_RESOLVABLE_IPv6)), notNullValue());
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_HOST_RESOLVABLE_IPv6);
+    assertThat(filter.getPreAuthenticatedPrincipal(request(ARBITRARY_HOST_RESOLVABLE_IPv6)), notNullValue());
   }
 
 
@@ -98,6 +101,29 @@ public class WhiteListAuthenticationFilterTest {
     WhiteListAuthenticationFilter filter = createFilter("", true);
     filter.setWhiteListedHosts(ARBITRARY_IP);
     assertThat(filter.getWhiteListedHosts(), is(ARBITRARY_IP));
+  }
+
+  @Test
+  public void setBasicAuthUsernameAsPrincipalForWhitelistedHosts() throws Exception {
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
+    MockHttpServletRequest request = request(ARBITRARY_IP);
+    request.addHeader("Authorization", BASE64_AUTH_STRING);
+    assertThat(filter.getPreAuthenticatedPrincipal(request), is("foo"));
+  }
+
+  @Test
+  public void setUsernameHeaderAsPrincipalForWhitelistedHosts() throws Exception {
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
+    MockHttpServletRequest request = request(ARBITRARY_IP);
+    request.addHeader("Username", "foo");
+    assertThat(filter.getPreAuthenticatedPrincipal(request), is("foo"));
+  }
+
+  @Test
+  public void setHostnameAsPrincipalForWhitelistedHosts() throws Exception {
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
+    MockHttpServletRequest request = request(ARBITRARY_IP);
+    assertThat(filter.getPreAuthenticatedPrincipal(request), is(ARBITRARY_IP));
   }
 
   private WhiteListAuthenticationFilter createFilter(String whiteListedHosts) {

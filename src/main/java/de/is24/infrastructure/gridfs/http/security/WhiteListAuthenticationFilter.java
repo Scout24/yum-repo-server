@@ -44,7 +44,7 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
   @Override
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
     HostName hostName = hostnameResolver.remoteHost(request);
-    return isWhiteListedHost(hostName) ? getUsernameFrom(request, hostName) : null;
+    return isWhiteListedHost(hostName) ? getUsernameFrom(request, hostName.getName()) : null;
   }
 
   @Override
@@ -75,15 +75,22 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
     this.whiteListedHostPatterns = whiteListedHostsStrings.stream().map(wildcardToRegexConverter::convert).collect(toSet());
   }
 
-  protected String getUsernameFrom(HttpServletRequest request, HostName hostName) {
-    final String authorization = request.getHeader("Authorization");
-    if (authorization != null && authorization.startsWith(BASIC_AUTH_PREFIX)) {
-      String base64Credentials = authorization.substring(BASIC_AUTH_PREFIX.length());
-      String credentials = new String(Base64.getDecoder().decode(base64Credentials), forName("UTF-8"));
-      return substringBefore(credentials, ":");
+  protected String getUsernameFrom(HttpServletRequest request, String defaultUsername) {
+    String authorizationHeader = request.getHeader("Authorization");
+    String usernameHeader = request.getHeader("Username");
+    if (authorizationHeader != null && authorizationHeader.startsWith(BASIC_AUTH_PREFIX)) {
+      return getBasicAuthUser(authorizationHeader);
+    } else if (usernameHeader != null) {
+      return usernameHeader;
     }
 
-    return hostName.getName();
+    return defaultUsername;
+  }
+
+  private String getBasicAuthUser(String authorizationHeader) {
+    String base64Credentials = authorizationHeader.substring(BASIC_AUTH_PREFIX.length());
+    String credentials = new String(Base64.getDecoder().decode(base64Credentials), forName("UTF-8"));
+    return substringBefore(credentials, ":");
   }
 
   protected boolean isWhiteListedHost(HostName hostName) {
