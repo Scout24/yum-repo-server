@@ -1,13 +1,21 @@
 package de.is24.infrastructure.gridfs.http.utils;
 
+import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.AuthState;
+import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 
 import java.io.IOException;
 import java.net.URL;
@@ -17,7 +25,10 @@ import static java.lang.System.currentTimeMillis;
 import static javax.servlet.http.HttpServletResponse.SC_CREATED;
 import static org.apache.http.auth.AuthScope.ANY_HOST;
 import static org.apache.http.auth.AuthScope.ANY_PORT;
+import static org.apache.http.client.protocol.ClientContext.TARGET_AUTH_STATE;
+import static org.apache.http.client.protocol.HttpClientContext.CREDS_PROVIDER;
 import static org.apache.http.entity.ContentType.APPLICATION_FORM_URLENCODED;
+import static org.apache.http.protocol.HttpCoreContext.HTTP_TARGET_HOST;
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -59,7 +70,21 @@ public final class RepositoryUtils {
     BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
     credentialsProvider.setCredentials(new AuthScope(ANY_HOST, ANY_PORT), new UsernamePasswordCredentials(user, password));
 
-    return HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider);
+    return HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).addInterceptorFirst((HttpRequest request, HttpContext context) -> {
+      AuthState authState = (AuthState) context.getAttribute(TARGET_AUTH_STATE);
+
+      // If no auth scheme avaialble yet, try to initialize it
+      // preemptively
+      if (authState.getAuthScheme() == null) {
+        CredentialsProvider credsProvider = (CredentialsProvider) context.getAttribute(CREDS_PROVIDER);
+        HttpHost targetHost = (HttpHost) context.getAttribute(HTTP_TARGET_HOST);
+        Credentials credentials = credsProvider.getCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()));
+        if (credentials == null) {
+          throw new HttpException("No credentials for preemptive authentication");
+        }
+        authState.update(new BasicScheme(), credentials);
+      }
+    });
   }
 
   public static HttpClientBuilder getHttpClientBuilder() {
