@@ -8,14 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+
 import javax.servlet.http.HttpServletRequest;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.UnknownHostException;
 import java.util.Set;
+
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-import static org.apache.commons.lang.StringUtils.substringAfterLast;
-import static org.apache.commons.lang.StringUtils.trim;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
@@ -36,18 +36,16 @@ public class HostnameResolver implements AuthenticationDetailsSource<HttpServlet
 
   public HostName remoteHost(HttpServletRequest request) {
     if (loadBalancerIPs.contains(request.getRemoteAddr()) && isNotBlank(request.getHeader(X_FORWARDED_FOR))) {
-      return hostname(lastAddress(request.getHeader(X_FORWARDED_FOR)));
+      String[] ips = trimAllWhitespace(request.getHeader(X_FORWARDED_FOR)).split(ADDRESS_SEPERATOR);
+      for (int i = ips.length - 1; i >= 0; i--) {
+        String ip = ips[i];
+        if (i == 0 || !loadBalancerIPs.contains(ip)) {
+          return hostname(ip);
+        }
+      }
     }
 
     return hostname(request.getRemoteHost());
-  }
-
-  private String lastAddress(String header) {
-    if (isNotBlank(header) && header.contains(ADDRESS_SEPERATOR)) {
-      return trim(substringAfterLast(header, ADDRESS_SEPERATOR));
-    }
-
-    return header;
   }
 
   private HostName hostname(String hostnameOrIP) {
