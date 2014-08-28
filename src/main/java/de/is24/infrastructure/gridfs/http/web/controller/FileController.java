@@ -19,11 +19,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
@@ -137,11 +135,12 @@ public class FileController {
     FileDescriptor descriptor = new FileDescriptor(repoName, arch, filename + RPM_EXTENSION);
     try {
       storageService.delete(descriptor);
+      LOGGER.info("Deleted file {}.rpm", filename);
+      InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".delete.rpm");
     } catch (GridFSFileNotFoundException ex) {
-      LOGGER.debug("ignoring delete of none existing resource '{}'", descriptor.getPath());
+      LOGGER.info("ignoring delete of none existing resource '{}'", descriptor.getPath());
+      InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".delete.nonExistentRPM");
     }
-    LOGGER.info("Deleted file {}.rpm", filename);
-    InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".delete.rpm");
   }
 
   private HttpHeaders rangeHeaders(BoundedGridFsResource resource) throws IOException {
