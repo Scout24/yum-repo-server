@@ -22,6 +22,7 @@ import static de.is24.infrastructure.gridfs.http.gridfs.StorageServiceIT.TESTING
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.MARKED_AS_DELETED_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.simpleInputStream;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static org.apache.commons.lang.time.DateUtils.addDays;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -98,6 +99,16 @@ public class GridFsFileStorageServiceIT {
     new GridFsFileStorageService(context.gridFs(), context.gridFsTemplate(), context.mongoTemplate());
     List<DBObject> indexInfos = context.mongoTemplate().getCollection(GRIDFS_FILES_COLLECTION).getIndexInfo();
     assertThat(indexInfos.size(), is(6));
+  }
+
+  @Test
+  public void overwriteEvenMultipleFiles() throws Exception {
+    String filename = uniqueRepoName() + "/repodata/repomd.xml";
+    context.gridFs().createFile(simpleInputStream(), filename).save();
+    context.gridFs().createFile(simpleInputStream(), filename).save();
+    context.gridFs().createFile(simpleInputStream(), filename).save();
+    context.fileStorageService().storeFile(simpleInputStream(), new FileDescriptor(filename), true);
+    assertThat(context.fileStorageService().findByPrefix(filename).size(), is(1));
   }
 
   private void assertAllFilesAreCorrupt(List<FileStorageItem> corruptFiles) {

@@ -177,8 +177,8 @@ public class GridFsFileStorageService implements FileStorageService {
   @Override
   @MongoTx
   public FileStorageItem storeFile(InputStream inputStream, FileDescriptor descriptor, boolean allowOverride) {
-    FileStorageItem existingDbFile = findBy(descriptor);
-    if (existingDbFile != null && !allowOverride) {
+    List<GridFSDBFile> existingDbFiles = findAllBy(descriptor);
+    if (!existingDbFiles.isEmpty() && !allowOverride) {
       throw new GridFSFileAlreadyExistsException("Reupload of rpm is not possible.", descriptor.getPath());
     }
 
@@ -192,8 +192,8 @@ public class GridFsFileStorageService implements FileStorageService {
 
     inputFile.save();
 
-    if (existingDbFile != null) {
-      delete(existingDbFile);
+    if (!existingDbFiles.isEmpty()) {
+      existingDbFiles.forEach(e -> remove(e));
     }
 
     return findById(inputFile.getId());
@@ -350,6 +350,10 @@ public class GridFsFileStorageService implements FileStorageService {
   @PreAuthorize(HAS_DESCRIPTOR_READ_PERMISSION)
   public BoundedGridFsResource getResource(FileDescriptor descriptor, long startPos) throws IOException {
     return new BoundedGridFsResource(getFileStorageItemWithCheckedStartPos(descriptor, startPos), startPos);
+  }
+
+  private List<GridFSDBFile> findAllBy(FileDescriptor descriptor) {
+    return gridFsTemplate.find(query(whereFilename().is(descriptor.getPath())));
   }
 
   private List<FileStorageItem> convert(List<GridFSDBFile> rpms) {
