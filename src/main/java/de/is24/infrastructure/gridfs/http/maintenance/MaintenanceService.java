@@ -4,6 +4,7 @@ import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.YumEntry;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackage;
 import de.is24.infrastructure.gridfs.http.domain.yum.YumPackageReducedView;
+import de.is24.infrastructure.gridfs.http.gridfs.StorageService;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
 import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparator;
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
@@ -48,6 +49,8 @@ public class MaintenanceService {
 
   private YumEntriesRepository yumEntriesRepository;
   private FileStorageService fileStorageService;
+  private StorageService storageService;
+
   private MongoTemplate mongoTemplate;
   private GridFsOperations gridFsTemplate;
 
@@ -58,11 +61,13 @@ public class MaintenanceService {
 
   @Autowired
   public MaintenanceService(TaskScheduler taskScheduler, YumEntriesRepository yumEntriesRepository,
-                            FileStorageService fileStorageService, MongoTemplate mongoTemplate,
+                            FileStorageService fileStorageService, StorageService storageService,
+                            MongoTemplate mongoTemplate,
                             GridFsOperations gridFsTemplate) {
     this.taskScheduler = taskScheduler;
     this.yumEntriesRepository = yumEntriesRepository;
     this.fileStorageService = fileStorageService;
+    this.storageService = storageService;
     this.mongoTemplate = mongoTemplate;
     this.gridFsTemplate = gridFsTemplate;
   }
@@ -118,7 +123,7 @@ public class MaintenanceService {
       FileDescriptor descriptor = new FileDescriptor(sourceRepo, strings[0], strings[1]);
       LOGGER.info("delete obsolete RPM {} obsoleted by a RPM in {}", descriptor.getPath(), targetRepo);
 
-      fileStorageService.delete(descriptor);
+      storageService.delete(descriptor);
     }
   }
 
