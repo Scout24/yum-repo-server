@@ -14,10 +14,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
+import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.simpleInputStream;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static java.lang.System.currentTimeMillis;
 import static java.util.stream.Collectors.toList;
@@ -160,12 +160,8 @@ public class RepoCleanerIT {
       entry.setRepo(reponame);
       context.yumEntriesRepository().save(entry);
 
-      context.gridFsTemplate().store(contentInputStream(), entry.getFullRpmFilename()).save();
+      context.gridFsTemplate().store(simpleInputStream(), entry.getFullRpmFilename()).save();
     }
-  }
-
-  private ByteArrayInputStream contentInputStream() {
-    return new ByteArrayInputStream("Content".getBytes());
   }
 
   private static YumEntry entry(String name, String version, String release, String arch) {

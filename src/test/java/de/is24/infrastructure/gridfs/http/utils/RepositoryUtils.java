@@ -17,6 +17,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.HttpContext;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,5 +95,9 @@ public final class RepositoryUtils {
   public static HttpClientBuilder getHttpClientBuilderWithoutRedirecting() {
     RequestConfig requestConfig = RequestConfig.custom().setRedirectsEnabled(false).build();
     return getHttpClientBuilder().setDefaultRequestConfig(requestConfig);
+  }
+
+  public static ByteArrayInputStream simpleInputStream() {
+    return new ByteArrayInputStream("Content".getBytes());
   }
 }
