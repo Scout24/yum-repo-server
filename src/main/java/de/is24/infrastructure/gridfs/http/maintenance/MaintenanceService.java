@@ -22,7 +22,6 @@ import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 import static java.util.stream.Collectors.toSet;
@@ -60,7 +58,8 @@ public class MaintenanceService {
 
   @Autowired
   public MaintenanceService(TaskScheduler taskScheduler, YumEntriesRepository yumEntriesRepository,
-                            FileStorageService fileStorageService, MongoTemplate mongoTemplate, GridFsOperations gridFsTemplate) {
+                            FileStorageService fileStorageService, MongoTemplate mongoTemplate,
+                            GridFsOperations gridFsTemplate) {
     this.taskScheduler = taskScheduler;
     this.yumEntriesRepository = yumEntriesRepository;
     this.fileStorageService = fileStorageService;
@@ -126,8 +125,9 @@ public class MaintenanceService {
 
   private Set<YumPackageReducedView> filterRPMsFromPropagationChain(Filter filter, String targetRepo,
                                                                     String sourceRepo) {
-    Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(yumEntriesRepository.findByRepo(
-      targetRepo));
+    Map<String, Map<String, YumPackage>> newestTargetPackages = findNewestPackages(
+      yumEntriesRepository.findByRepo(
+        targetRepo));
     List<YumEntry> sourceRepoEntries = yumEntriesRepository.findByRepo(sourceRepo);
     return filterRPMs(filter, newestTargetPackages,
       sourceRepoEntries);
@@ -143,7 +143,7 @@ public class MaintenanceService {
       YumPackage newestPackageInTargetRepo = getMatchingYumPackageByNameAndArchIfAny(newestTargetPackagesByNameAndArch,
         yumPackage);
       if (filter.select(newestPackageInTargetRepo, yumPackage)) {
-        LOGGER.info(".. {}", filter.getFilterDescription());
+        LOGGER.info("found a {} version of {}", filter.getFilterDescription(), yumPackage.getName());
         result.add(new YumPackageReducedView(yumPackage));
       }
     }
