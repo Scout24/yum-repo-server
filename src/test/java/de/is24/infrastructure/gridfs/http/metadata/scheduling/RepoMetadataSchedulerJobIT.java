@@ -7,11 +7,10 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.springframework.scheduling.TaskScheduler;
-
 import java.net.UnknownHostException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-
+import java.util.concurrent.TimeUnit;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,10 +38,13 @@ public class RepoMetadataSchedulerJobIT {
     MetadataService metadataService = context.metadataService();
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
     ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
-    TaskScheduler taskScheduler = mock(TaskScheduler.class);
-    doReturn(scheduledFuture).when(taskScheduler).scheduleWithFixedDelay(any(Runnable.class), anyLong());
-    metadataScheduler = new RepoMetadataScheduler(context.repoEntriesRepository(), metadataService, primaryDetector,
-      taskScheduler,
+    ScheduledExecutorService scheduledExecutorService = mock(ScheduledExecutorService.class);
+    doReturn(scheduledFuture).when(scheduledExecutorService)
+    .scheduleWithFixedDelay(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class));
+    metadataScheduler = new RepoMetadataScheduler(context.repoEntriesRepository(),
+      metadataService,
+      primaryDetector,
+      scheduledExecutorService,
       DELAY);
   }
 

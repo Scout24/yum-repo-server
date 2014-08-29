@@ -8,6 +8,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
 import de.is24.infrastructure.gridfs.http.security.MethodSecurityConfig;
+import de.is24.infrastructure.gridfs.http.security.UserAuthorities;
 import de.is24.infrastructure.gridfs.http.security.WebSecurityConfig;
 import de.is24.util.monitoring.CorePlugin;
 import de.is24.util.monitoring.InApplicationMonitor;
@@ -34,15 +35,18 @@ import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.data.mongodb.tx.MongoTxProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.security.concurrent.DelegatingSecurityContextScheduledExecutorService;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
-
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.regex.Pattern;
-
 import static com.mongodb.WriteConcern.NORMAL;
 import static com.mongodb.WriteConcern.REPLICAS_SAFE;
 
@@ -53,13 +57,14 @@ import static com.mongodb.WriteConcern.REPLICAS_SAFE;
 @EnableMBeanExport
 @EnableMongoRepositories
 @EnableScheduling
-@Import({PropertyConfig.class, WebSecurityConfig.class, MethodSecurityConfig.class})
+@Import({ PropertyConfig.class, WebSecurityConfig.class, MethodSecurityConfig.class })
 public class AppConfig extends AbstractMongoConfiguration {
   private static final Logger LOGGER = LoggerFactory.getLogger(AppConfig.class);
 
   private static final int CLUSTER_SIZE = 3;
   public static final String SEPARATOR = ",";
   private static final Pattern SEPARATOR_PATTERN = Pattern.compile(SEPARATOR);
+  public static final String METADATA_SCHEDULER = "metadata.scheduler";
 
   @Autowired
   Environment env;
@@ -235,16 +240,25 @@ public class AppConfig extends AbstractMongoConfiguration {
   }
 
   @Bean
-  public ThreadPoolTaskScheduler taskScheduler() {
-    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-    scheduler.setPoolSize(schedulerPoolSize);
-    scheduler.setThreadGroupName("metadata.scheduler");
-    setupMonitorForQueueSize(scheduler);
-    return scheduler;
+  public ScheduledExecutorService scheduledExecutorService() {
+    ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(schedulerPoolSize);
+
+    setupMonitorForQueueSize(scheduledThreadPoolExecutor);
+
+    SecurityContext context = SecurityContextHolder.getContext();
+    context.setAuthentication(
+      new PreAuthenticatedAuthenticationToken(METADATA_SCHEDULER + ".user",
+        "no credentials",
+        UserAuthorities.USER_AUTHORITIES));
+
+    ScheduledExecutorService scheduledExecutorService = new DelegatingSecurityContextScheduledExecutorService(
+      scheduledThreadPoolExecutor,
+      context);
+    return scheduledExecutorService;
   }
 
-  private void setupMonitorForQueueSize(final ThreadPoolTaskScheduler scheduler) {
-    inApplicationMonitor().registerStateValue(new QueueSizeValueProvider(scheduler));
+  private void setupMonitorForQueueSize(final ScheduledThreadPoolExecutor scheduler) {
+    inApplicationMonitor().registerStateValue(new QueueSizeValueProvider(scheduler, METADATA_SCHEDULER));
   }
 
 }

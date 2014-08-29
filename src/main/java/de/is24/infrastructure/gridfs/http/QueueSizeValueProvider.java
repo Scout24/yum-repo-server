@@ -1,25 +1,25 @@
 package de.is24.infrastructure.gridfs.http;
 
 import de.is24.util.monitoring.StateValueProvider;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
 final class QueueSizeValueProvider extends StateValueProvider {
-  private final ThreadPoolTaskScheduler scheduler;
+  private final ScheduledThreadPoolExecutor executor;
+  private String queueName;
 
-  QueueSizeValueProvider(ThreadPoolTaskScheduler scheduler) {
-    this.scheduler = scheduler;
+  QueueSizeValueProvider(ScheduledThreadPoolExecutor executor, String queueName) {
+    this.executor = executor;
+    this.queueName = queueName;
   }
 
   @Override
   public long getValue() {
-    final ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) scheduler.getScheduledExecutor();
     return executor.getQueue().size();
   }
 
   @Override
   public String getName() {
-    return scheduler.getThreadGroup().getName() + ".queueSize";
+    return queueName + ".queueSize";
   }
 }

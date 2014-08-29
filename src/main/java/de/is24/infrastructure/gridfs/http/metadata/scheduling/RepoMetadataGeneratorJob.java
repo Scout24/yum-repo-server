@@ -2,14 +2,19 @@ package de.is24.infrastructure.gridfs.http.metadata.scheduling;
 
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
+import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.TaskScheduler;
-
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-
+import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.PRINCIPAL;
+import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.REMOTE_HOST;
+import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.SERVER_NAME;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
 import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
 import static org.apache.commons.lang.builder.ToStringBuilder.reflectionToString;
@@ -27,11 +32,11 @@ public class RepoMetadataGeneratorJob implements Runnable {
 
   @SuppressWarnings("unchecked")
   public RepoMetadataGeneratorJob(String name, MetadataService metadataService, MongoPrimaryDetector primaryDetector,
-                                  TaskScheduler taskScheduler, int delayInSec) {
+                                  ScheduledExecutorService scheduledExecutorService, int delayInSec) {
     this.name = name;
     this.metadataService = metadataService;
     this.primaryDetector = primaryDetector;
-    this.scheduledFuture = taskScheduler.scheduleWithFixedDelay(this, delayInSec * 1000);
+    this.scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(this, delayInSec, delayInSec, SECONDS);
   }
 
   public String getName() {
@@ -56,10 +61,21 @@ public class RepoMetadataGeneratorJob implements Runnable {
   private void doRun() {
     LOG.debug("Scheduled generation for repository: {}", name);
     try {
+      MDC.put(REMOTE_HOST, this.getClass().getName());
+      MDC.put(SERVER_NAME, "localhost");
+
+      Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+      MDC.put(PRINCIPAL, (authentication != null) ? authentication.getPrincipal() : "none");
+
       metadataService.generateYumMetadataIfNecessary(name);
     } catch (SQLException | IOException e) {
       LOG.error("Metadata generation for repository {} failed.", name, e);
+    } finally {
+      MDC.remove(SERVER_NAME);
+      MDC.remove(PRINCIPAL);
+      MDC.remove(REMOTE_HOST);
     }
+
   }
 
   @Override

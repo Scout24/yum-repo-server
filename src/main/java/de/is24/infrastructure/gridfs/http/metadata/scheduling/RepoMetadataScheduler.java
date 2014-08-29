@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static java.util.stream.Collectors.toSet;
@@ -30,7 +31,7 @@ public class RepoMetadataScheduler {
   private final RepoEntriesRepository repo;
   private final MetadataService metadataService;
   private final MongoPrimaryDetector primaryDetector;
-  private final TaskScheduler taskScheduler;
+  private final ScheduledExecutorService scheduledExecutorService;
   private final int delayInSec;
   private Map<String, RepoMetadataGeneratorJob> repoJobs;
 
@@ -38,12 +39,12 @@ public class RepoMetadataScheduler {
   public RepoMetadataScheduler(RepoEntriesRepository repo,
                                MetadataService metadataService,
                                MongoPrimaryDetector primaryDetector,
-                               TaskScheduler taskScheduler,
+                               ScheduledExecutorService scheduledExecutorService,
                                @Value("${scheduler.delay:10}") int delayInSec) {
     this.repo = repo;
     this.metadataService = metadataService;
     this.primaryDetector = primaryDetector;
-    this.taskScheduler = taskScheduler;
+    this.scheduledExecutorService = scheduledExecutorService;
     this.delayInSec = delayInSec;
     this.repoJobs = new HashMap<>();
   }
@@ -75,7 +76,7 @@ public class RepoMetadataScheduler {
   public void createRepoJob(String name) {
     if (!repoJobs.containsKey(name)) {
       repoJobs.put(name,
-        new RepoMetadataGeneratorJob(name, metadataService, primaryDetector, taskScheduler, delayInSec));
+        new RepoMetadataGeneratorJob(name, metadataService, primaryDetector, scheduledExecutorService, delayInSec));
       LOG.info("Added scheduling job for repository: {}", name);
     }
   }

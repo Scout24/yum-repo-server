@@ -21,18 +21,18 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ScheduledExecutorService;
+import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.PRINCIPAL;
+import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.REMOTE_HOST;
+import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.SERVER_NAME;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 import static java.util.stream.Collectors.toSet;
@@ -47,7 +47,7 @@ public class MaintenanceService {
   private final Filter propagatableRpmFilter = new PropagatableRpmFilter();
 
   private YumPackageVersionComparator versionComparator = new YumPackageVersionComparator();
-  private TaskScheduler taskScheduler;
+  private ScheduledExecutorService scheduledExecutorService;
 
 
   private YumEntriesRepository yumEntriesRepository;
@@ -63,11 +63,12 @@ public class MaintenanceService {
 
 
   @Autowired
-  public MaintenanceService(TaskScheduler taskScheduler, YumEntriesRepository yumEntriesRepository,
+  public MaintenanceService(ScheduledExecutorService scheduledExecutorService,
+                            YumEntriesRepository yumEntriesRepository,
                             FileStorageService fileStorageService, StorageService storageService,
                             MongoTemplate mongoTemplate,
                             GridFsOperations gridFsTemplate) {
-    this.taskScheduler = taskScheduler;
+    this.scheduledExecutorService = scheduledExecutorService;
     this.yumEntriesRepository = yumEntriesRepository;
     this.fileStorageService = fileStorageService;
     this.storageService = storageService;
@@ -89,10 +90,7 @@ public class MaintenanceService {
     DeleteObsoleteRPMsJob job = new DeleteObsoleteRPMsJob(sourceRepo,
       targetRepo);
 
-    SecurityContext context = SecurityContextHolder.getContext();
-    DelegatingSecurityContextRunnable wrappedJob = new DelegatingSecurityContextRunnable(job, context);
-
-    taskScheduler.schedule(wrappedJob, new Date());
+    scheduledExecutorService.submit(job);
     LOGGER.info("triggered delete obsolete RPMs in propagation chain from {} to {}", sourceRepo, targetRepo);
   }
 
@@ -238,8 +236,6 @@ public class MaintenanceService {
   }
 
   private class DeleteObsoleteRPMsJob implements Runnable {
-    public static final String JOB_CLASS = "job.class";
-    public static final String JOB_START = "job.start";
     private final String sourceRepo;
     private final String propagationTargetRepo;
 
@@ -252,13 +248,14 @@ public class MaintenanceService {
     @Override
     public void run() {
       try {
-        MDC.put(JOB_CLASS, this.getClass().getName());
-        MDC.put(JOB_START, new Date());
-
+        MDC.put(REMOTE_HOST, this.getClass().getName());
+        MDC.put(SERVER_NAME, "localhost");
+        MDC.put(PRINCIPAL, (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         deleteObsoleteRPMs(propagationTargetRepo, sourceRepo);
       } finally {
-        MDC.remove(JOB_CLASS);
-        MDC.remove(JOB_START);
+        MDC.remove(SERVER_NAME);
+        MDC.remove(PRINCIPAL);
+        MDC.remove(REMOTE_HOST);
       }
     }
   }

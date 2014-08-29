@@ -4,10 +4,9 @@ import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.scheduling.TaskScheduler;
-
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-
+import java.util.concurrent.TimeUnit;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
@@ -21,12 +20,11 @@ import static org.mockito.Mockito.when;
 public class RepoMetadataGeneratorJobTest {
   private static final String REPO_NAME = "any-repo";
   private static final int DELAY = 12;
-  private static final long DELAY_IN_MS = DELAY * 1000;
 
   private MetadataService service;
   private MongoPrimaryDetector detector;
   private RepoMetadataGeneratorJob job;
-  private TaskScheduler taskScheduler;
+  private ScheduledExecutorService scheduledExecutorService;
   private ScheduledFuture<?> scheduledFuture;
 
 
@@ -36,9 +34,10 @@ public class RepoMetadataGeneratorJobTest {
     service = mock(MetadataService.class);
     detector = mock(MongoPrimaryDetector.class);
     scheduledFuture = mock(ScheduledFuture.class);
-    taskScheduler = mock(TaskScheduler.class);
-    doReturn(scheduledFuture).when(taskScheduler).scheduleWithFixedDelay(any(Runnable.class), anyLong());
-    job = new RepoMetadataGeneratorJob(REPO_NAME, service, detector, taskScheduler, DELAY);
+    scheduledExecutorService = mock(ScheduledExecutorService.class);
+    doReturn(scheduledFuture).when(scheduledExecutorService)
+    .scheduleWithFixedDelay(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class));
+    job = new RepoMetadataGeneratorJob(REPO_NAME, service, detector, scheduledExecutorService, DELAY);
   }
 
   @Test
@@ -65,7 +64,10 @@ public class RepoMetadataGeneratorJobTest {
 
   @Test
   public void registerItselfAsDelayedScheduledTask() throws Exception {
-    verify(taskScheduler).scheduleWithFixedDelay(eq(job), eq(DELAY_IN_MS));
+    verify(scheduledExecutorService).scheduleWithFixedDelay(eq(job),
+      eq((long) DELAY),
+      eq((long) DELAY),
+      eq(TimeUnit.SECONDS));
   }
 
   @Test

@@ -6,27 +6,26 @@ import de.is24.util.monitoring.tools.DoNothingReportVisitor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import de.is24.util.monitoring.InApplicationMonitor;
 import de.is24.util.monitoring.StateValueProvider;
+import java.util.concurrent.ScheduledExecutorService;
 
 
 public class AppConfigTest {
   private AppConfig appConfig;
-  private ThreadPoolTaskScheduler taskScheduler;
+  private ScheduledExecutorService scheduledExecutorService;
 
   @Before
   public void setUp() {
     appConfig = new AppConfig();
     appConfig.schedulerPoolSize = 1;
 
-    taskScheduler = appConfig.taskScheduler();
-    taskScheduler.initialize();
+    scheduledExecutorService = appConfig.scheduledExecutorService();
   }
 
   @After
   public void tearDown() {
-    taskScheduler.shutdown();
+    scheduledExecutorService.shutdown();
   }
 
   @Test
