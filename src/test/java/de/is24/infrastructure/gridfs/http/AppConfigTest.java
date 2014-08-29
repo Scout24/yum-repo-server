@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import de.is24.infrastructure.gridfs.http.security.UserAuthorities;
+import de.is24.util.monitoring.TestingInApplicationMonitor;
 import de.is24.util.monitoring.tools.DoNothingReportVisitor;
 import org.junit.After;
 import org.junit.Before;
@@ -23,6 +24,7 @@ public class AppConfigTest {
 
   @Before
   public void setUp() {
+    TestingInApplicationMonitor.resetInstanceForTesting();
     appConfig = new AppConfig();
     appConfig.schedulerPoolSize = 1;
 

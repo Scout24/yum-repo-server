@@ -143,7 +143,7 @@
     <dependency>
       <groupId>de.is24.common</groupId>
       <artifactId>appmon4j-core</artifactId>
-      <version>1.48</version>
+      <version>1.58</version>
         <exclusions>
             <exclusion>
                 <artifactId>commons-io</artifactId>
@@ -151,6 +151,26 @@
             </exclusion>
         </exclusions>
     </dependency>
+      <dependency>
+          <groupId>de.is24.common</groupId>
+          <artifactId>appmon4j-testutil</artifactId>
+          <version>1.58</version>
+          <exclusions>
+              <exclusion>
+                  <artifactId>commons-io</artifactId>
+                  <groupId>commons-io</groupId>
+              </exclusion>
+              <exclusion>
+                  <artifactId>guava</artifactId>
+                  <groupId>com.google.guava</groupId>
+              </exclusion>
+              <exclusion>
+                  <artifactId>joda-time</artifactId>
+                  <groupId>joda-time</groupId>
+              </exclusion>
+          </exclusions>
+          <scope>test</scope>
+      </dependency>
     <dependency>
       <groupId>de.is24.common</groupId>
       <artifactId>appmon4j-spring</artifactId>
