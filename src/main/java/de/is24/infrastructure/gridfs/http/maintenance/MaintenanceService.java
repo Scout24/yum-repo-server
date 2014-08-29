@@ -22,6 +22,9 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.security.concurrent.DelegatingSecurityContextRunnable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,7 +88,11 @@ public class MaintenanceService {
   public void triggerDeletionOfObsoleteRPMs(String targetRepo, String sourceRepo) {
     DeleteObsoleteRPMsJob job = new DeleteObsoleteRPMsJob(sourceRepo,
       targetRepo);
-    taskScheduler.schedule(job, new Date());
+
+    SecurityContext context = SecurityContextHolder.getContext();
+    DelegatingSecurityContextRunnable wrappedJob = new DelegatingSecurityContextRunnable(job, context);
+
+    taskScheduler.schedule(wrappedJob, new Date());
     LOGGER.info("triggered delete obsolete RPMs in propagation chain from {} to {}", sourceRepo, targetRepo);
   }
 
