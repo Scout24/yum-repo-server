@@ -128,7 +128,11 @@ public class MaintenanceService {
       FileDescriptor descriptor = new FileDescriptor(sourceRepo, strings[0], strings[1]);
       LOGGER.info("delete obsolete RPM {} obsoleted by a RPM in {}", descriptor.getPath(), targetRepo);
 
-      storageService.delete(descriptor);
+      try {
+        storageService.delete(descriptor);
+      } catch (RuntimeException e) {
+        LOGGER.warn("oops", e);
+      }
     }
   }
 
@@ -252,7 +256,9 @@ public class MaintenanceService {
         MDC.put(SERVER_NAME, "localhost");
         MDC.put(PRINCIPAL, (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         deleteObsoleteRPMs(propagationTargetRepo, sourceRepo);
+        LOGGER.info("finished deleting Obsolete RPMs without Exception");
       } finally {
+        LOGGER.info("will unset MDC");
         MDC.remove(SERVER_NAME);
         MDC.remove(PRINCIPAL);
         MDC.remove(REMOTE_HOST);

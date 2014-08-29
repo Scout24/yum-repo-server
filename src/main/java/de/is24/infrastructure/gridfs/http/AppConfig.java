@@ -7,6 +7,7 @@ import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.gridfs.GridFS;
+import de.is24.infrastructure.gridfs.http.security.AuthenticationDetails;
 import de.is24.infrastructure.gridfs.http.security.MethodSecurityConfig;
 import de.is24.infrastructure.gridfs.http.security.UserAuthorities;
 import de.is24.infrastructure.gridfs.http.security.WebSecurityConfig;
@@ -246,10 +247,13 @@ public class AppConfig extends AbstractMongoConfiguration {
     setupMonitorForQueueSize(scheduledThreadPoolExecutor);
 
     SecurityContext context = SecurityContextHolder.getContext();
+    PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
+      METADATA_SCHEDULER + ".user",
+      "no credentials",
+      UserAuthorities.USER_AUTHORITIES);
+    authentication.setDetails(new AuthenticationDetails());
     context.setAuthentication(
-      new PreAuthenticatedAuthenticationToken(METADATA_SCHEDULER + ".user",
-        "no credentials",
-        UserAuthorities.USER_AUTHORITIES));
+      authentication);
 
     ScheduledExecutorService scheduledExecutorService = new DelegatingSecurityContextScheduledExecutorService(
       scheduledThreadPoolExecutor,
