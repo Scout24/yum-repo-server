@@ -4,6 +4,7 @@ import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.metadata.MetadataService;
 import de.is24.infrastructure.gridfs.http.metadata.RepoEntriesRepository;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
+import de.is24.infrastructure.gridfs.http.utils.MDCHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class RepoMetadataScheduler {
   @Scheduled(cron = "${scheduler.update.cron:*/30 * * * * *}")
   public void update() {
     LOG.debug("Checking for updates in scheduled repository definitions.");
-    try {
+    try (MDCHelper mdcHelper = new MDCHelper(this.getClass())) {
       Set<String> repoNamesToSchedule = repo.findByType(SCHEDULED).stream().map(RepoEntry::getName).collect(toSet());
       repoNamesToSchedule.forEach(this::createRepoJob);
       removeJobsNotFoundInDb(repoNamesToSchedule);
