@@ -4,13 +4,12 @@ import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
-import java.io.Closeable;
 import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.PRINCIPAL;
 import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.REMOTE_HOST;
 import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.SERVER_NAME;
 
 
-public class MDCHelper implements Closeable {
+public class MDCHelper implements AutoCloseable {
   private static final Logger LOGGER = LoggerFactory.getLogger(MDCHelper.class);
 
   public MDCHelper(Class callerClass) {
