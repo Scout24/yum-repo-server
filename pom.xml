@@ -149,6 +149,10 @@
                 <artifactId>commons-io</artifactId>
                 <groupId>commons-io</groupId>
             </exclusion>
+            <exclusion>
+                <groupId>aopalliance</groupId>
+                <artifactId>aopalliance</artifactId>
+            </exclusion>
         </exclusions>
     </dependency>
       <dependency>
@@ -167,6 +171,10 @@
               <exclusion>
                   <artifactId>joda-time</artifactId>
                   <groupId>joda-time</groupId>
+              </exclusion>
+              <exclusion>
+                  <groupId>de.flapdoodle.embed</groupId>
+                  <artifactId>de.flapdoodle.embed.process</artifactId>
               </exclusion>
           </exclusions>
           <scope>test</scope>
