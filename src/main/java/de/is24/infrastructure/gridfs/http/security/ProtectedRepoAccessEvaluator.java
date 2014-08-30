@@ -10,12 +10,10 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -33,11 +31,12 @@ public class ProtectedRepoAccessEvaluator {
 
   @Autowired
   public ProtectedRepoAccessEvaluator(
-      @Value("${security.protectedRepos:}") String protectedRepos,
-      @Value("${security.protectedRepoWhiteListedIpRanges:}") String protectedRepoWhiteListedIpRanges) {
+    @Value("${security.protectedRepos:}") String protectedRepos,
+    @Value("${security.protectedRepoWhiteListedIpRanges:}") String protectedRepoWhiteListedIpRanges) {
     this.protectedRepos = synchronizedSet(ipRanges(protectedRepos));
     if (isNotBlank(protectedRepoWhiteListedIpRanges)) {
-      whiteListedIpRanges.addAll(ipRanges(protectedRepoWhiteListedIpRanges).stream().map(IpRange::new).collect(toList()));
+      whiteListedIpRanges.addAll(
+        ipRanges(protectedRepoWhiteListedIpRanges).stream().map(IpRange::new).collect(toList()));
     }
   }
 
@@ -52,9 +51,17 @@ public class ProtectedRepoAccessEvaluator {
   public boolean isAllowed(FileDescriptor fileDescriptor, Authentication authentication) {
     boolean isWebCall = false;
     HostName remoteHostName = null;
-    if (authentication != null) {
-      isWebCall = true;
-      remoteHostName = ((AuthenticationDetails) authentication.getDetails()).getRemoteHost();
+    if ((authentication != null) && (authentication.getDetails() instanceof AuthenticationDetails)) {
+      AuthenticationDetails authenticationDetails = (AuthenticationDetails) (authentication.getDetails());
+      isWebCall = authenticationDetails.isWebRequest();
+      remoteHostName = authenticationDetails.getRemoteHost();
+    } else {
+      if ((authentication == null) || (authentication.getDetails() == null)) {
+        LOGGER.warn("encountered null authentication or null authentication details");
+      } else {
+        LOGGER.warn("encountered unexpected authentication details type {}",
+          authentication.getDetails().getClass().getName());
+      }
     }
 
     if (isWebCall && !fileDescriptor.getArch().equals("repodata") &&
