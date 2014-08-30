@@ -10,8 +10,8 @@ import de.is24.infrastructure.gridfs.http.rpm.version.YumPackageVersionComparato
 import de.is24.infrastructure.gridfs.http.storage.FileDescriptor;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageItem;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
+import de.is24.infrastructure.gridfs.http.utils.MDCHelper;
 import de.is24.util.monitoring.spring.TimeMeasurement;
-import org.apache.log4j.MDC;
 import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
-import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.PRINCIPAL;
-import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.REMOTE_HOST;
-import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.SERVER_NAME;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 import static java.util.stream.Collectors.toSet;
@@ -251,17 +247,9 @@ public class MaintenanceService {
 
     @Override
     public void run() {
-      try {
-        MDC.put(REMOTE_HOST, this.getClass().getName());
-        MDC.put(SERVER_NAME, "localhost");
-        MDC.put(PRINCIPAL, (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+      try(MDCHelper helper = new MDCHelper(this.getClass())) {
         deleteObsoleteRPMs(propagationTargetRepo, sourceRepo);
         LOGGER.info("finished deleting Obsolete RPMs without Exception");
-      } finally {
-        LOGGER.info("will unset MDC");
-        MDC.remove(SERVER_NAME);
-        MDC.remove(PRINCIPAL);
-        MDC.remove(REMOTE_HOST);
       }
     }
   }
