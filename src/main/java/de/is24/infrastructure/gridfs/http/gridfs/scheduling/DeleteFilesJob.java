@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.gridfs.scheduling;
 import com.google.common.annotations.VisibleForTesting;
 import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
+import de.is24.infrastructure.gridfs.http.utils.MDCHelper;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,6 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -73,7 +73,7 @@ public class DeleteFilesJob {
 
   private void doRemoveFilesMarkedAsDeleted(Date now) {
     executionsSinceStartUp.incrementAndGet();
-    try {
+    try(MDCHelper helper = new MDCHelper(this.getClass())) {
       fileStorageService.removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(now, -minuetsToWaitForActualDelete));
     } catch (Exception ex) {
       failureSinceStartUp.incrementAndGet();
