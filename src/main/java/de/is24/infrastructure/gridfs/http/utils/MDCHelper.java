@@ -27,7 +27,6 @@ public class MDCHelper implements AutoCloseable {
 
   @Override
   public void close() {
-    LOGGER.info("will unset MDC");
     MDC.remove(SERVER_NAME);
     MDC.remove(PRINCIPAL);
     MDC.remove(REMOTE_HOST);
