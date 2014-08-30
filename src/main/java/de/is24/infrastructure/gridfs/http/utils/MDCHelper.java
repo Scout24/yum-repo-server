@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.utils;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.PRINCIPAL;
 import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.REMOTE_HOST;
@@ -15,7 +16,13 @@ public class MDCHelper implements AutoCloseable {
   public MDCHelper(Class callerClass) {
     MDC.put(REMOTE_HOST, callerClass.getName());
     MDC.put(SERVER_NAME, "localhost");
-    MDC.put(PRINCIPAL, (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      MDC.put(PRINCIPAL, (String) authentication.getPrincipal());
+    } else {
+      MDC.put(PRINCIPAL, "no authentication set");
+    }
   }
 
   @Override
