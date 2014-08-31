@@ -6,12 +6,15 @@ import com.mongodb.WriteConcern;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.springframework.data.mongodb.tx.MongoTxTextContext.TX_TEST_PROFILE;
 
 @ContextConfiguration(classes = { MongoTxTextContext.class })
 @RunWith(SpringJUnit4ClassRunner.class)
+@ActiveProfiles(TX_TEST_PROFILE)
 public class MongoTxAspectIT {
   @Autowired
   private MongoTxTestInterface mongoTxTestInterface;

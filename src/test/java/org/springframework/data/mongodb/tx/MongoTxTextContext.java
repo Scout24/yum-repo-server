@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 
 import java.net.UnknownHostException;
@@ -19,7 +20,11 @@ import java.net.UnknownHostException;
 @ComponentScan(basePackages = { "org.springframework.data.mongodb.tx" })
 @Configuration
 @EnableAspectJAutoProxy
+@Profile(MongoTxTextContext.TX_TEST_PROFILE)
 public class MongoTxTextContext {
+
+  public static final String TX_TEST_PROFILE = "txTest";
+
   @Bean
   public Mongo mongo() throws UnknownHostException {
     return new MongoTxProxy(new ServerAddress("localhost", mongoProcessHolder().getMongoPort()), mongoOptions());
