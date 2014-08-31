@@ -1,34 +1,37 @@
 package de.is24.infrastructure.gridfs.http;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import de.is24.infrastructure.gridfs.http.security.UserAuthorities;
+import de.is24.util.monitoring.InApplicationMonitor;
+import de.is24.util.monitoring.StateValueProvider;
 import de.is24.util.monitoring.TestingInApplicationMonitor;
 import de.is24.util.monitoring.tools.DoNothingReportVisitor;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import de.is24.util.monitoring.InApplicationMonitor;
-import de.is24.util.monitoring.StateValueProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 
-public class AppConfigTest {
-  private AppConfig appConfig;
+
+public class SchedulingConfigTest {
+  private SchedulingConfig schedulingConfig;
   private ScheduledExecutorService scheduledExecutorService;
 
   @Before
   public void setUp() {
     TestingInApplicationMonitor.resetInstanceForTesting();
-    appConfig = new AppConfig();
-    appConfig.schedulerPoolSize = 1;
+    schedulingConfig = new SchedulingConfig();
+    schedulingConfig.inApplicationMonitor = TestingInApplicationMonitor.getInstance();
+    schedulingConfig.schedulerPoolSize = 1;
 
-    scheduledExecutorService = appConfig.scheduledExecutorService();
+    scheduledExecutorService = schedulingConfig.scheduledExecutorService();
   }
 
   @After
