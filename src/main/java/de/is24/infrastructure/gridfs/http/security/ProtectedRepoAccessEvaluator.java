@@ -10,10 +10,12 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
 import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -56,31 +58,49 @@ public class ProtectedRepoAccessEvaluator {
       isWebCall = authenticationDetails.isWebRequest();
       remoteHostName = authenticationDetails.getRemoteHost();
     } else {
-      if ((authentication == null) || (authentication.getDetails() == null)) {
-        LOGGER.warn("encountered null authentication or null authentication details");
-      } else {
-        LOGGER.warn("encountered unexpected authentication details type {}",
-          authentication.getDetails().getClass().getName());
-      }
+      logUnknownAuthentication(authentication);
     }
 
-    if (isWebCall && !fileDescriptor.getArch().equals("repodata") &&
-        protectedRepos.contains(fileDescriptor.getRepo())) {
-      LOGGER.info("check access permission for {} to {}", remoteHostName, fileDescriptor.getPath());
-      if (remoteHostName.isIp()) {
-        LOGGER.debug("..is IP...");
-        if (!isAllowedIp(remoteHostName.getName())) {
-          LOGGER.info("... ip not in whitelist: deny");
-          return false;
-        }
-      } else if (!fileDescriptor.getFilename().contains(remoteHostName.getShortName())) {
-        LOGGER.info("... not ip, not matching: deny");
+    if (isNotAllowedForWebCallOnProtectedRepo(fileDescriptor, isWebCall, remoteHostName)) {
         return false;
-      }
     }
     LOGGER.debug("...allowed.");
 
     return true;
+  }
+
+  public boolean isNotAllowedForWebCallOnProtectedRepo(FileDescriptor fileDescriptor, boolean isWebCall, HostName remoteHostName) {
+    return isWebCallOnProtectedRepo(fileDescriptor, isWebCall) &&
+        !isAllowedForWebCallOnProtectedRepo(fileDescriptor, remoteHostName);
+  }
+
+  private boolean isWebCallOnProtectedRepo(FileDescriptor fileDescriptor, boolean isWebCall) {
+    return isWebCall && !fileDescriptor.getArch().equals("repodata") &&
+        protectedRepos.contains(fileDescriptor.getRepo());
+  }
+
+  public boolean isAllowedForWebCallOnProtectedRepo(FileDescriptor fileDescriptor, HostName remoteHostName) {
+    LOGGER.info("check access permission for {} to {}", remoteHostName, fileDescriptor.getPath());
+    if (remoteHostName.isIp()) {
+      LOGGER.debug("..is IP...");
+      if (!isAllowedIp(remoteHostName.getName())) {
+        LOGGER.info("... ip not in whitelist: deny");
+        return false;
+      }
+    } else if (!fileDescriptor.getFilename().contains(remoteHostName.getShortName())) {
+      LOGGER.info("... not ip, not matching: deny");
+      return false;
+    }
+    return true;
+  }
+
+  public void logUnknownAuthentication(Authentication authentication) {
+    if ((authentication == null) || (authentication.getDetails() == null)) {
+      LOGGER.warn("encountered null authentication or null authentication details");
+    } else {
+      LOGGER.warn("encountered unexpected authentication details type {}",
+        authentication.getDetails().getClass().getName());
+    }
   }
 
   private boolean isAllowedIp(String ip) {

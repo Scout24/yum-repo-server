@@ -5,7 +5,6 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.infrastructure.gridfs.http.utils.MDCHelper;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
@@ -13,8 +12,11 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
+
+import static org.apache.commons.lang.time.DateUtils.addMinutes;
 
 
 @ManagedResource
@@ -74,7 +76,7 @@ public class DeleteFilesJob {
   private void doRemoveFilesMarkedAsDeleted(Date now) {
     executionsSinceStartUp.incrementAndGet();
     try(MDCHelper helper = new MDCHelper(this.getClass())) {
-      fileStorageService.removeFilesMarkedAsDeletedBefore(DateUtils.addMinutes(now, -minuetsToWaitForActualDelete));
+      fileStorageService.removeFilesMarkedAsDeletedBefore(addMinutes(now, -minuetsToWaitForActualDelete));
     } catch (Exception ex) {
       failureSinceStartUp.incrementAndGet();
       lastStackTrace = ExceptionUtils.getFullStackTrace(ex);
