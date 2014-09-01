@@ -75,12 +75,14 @@ public class DeleteFilesJob {
 
   private void doRemoveFilesMarkedAsDeleted(Date now) {
     executionsSinceStartUp.incrementAndGet();
-    try(MDCHelper helper = new MDCHelper(this.getClass())) {
-      fileStorageService.removeFilesMarkedAsDeletedBefore(addMinutes(now, -minuetsToWaitForActualDelete));
-    } catch (Exception ex) {
-      failureSinceStartUp.incrementAndGet();
-      lastStackTrace = ExceptionUtils.getFullStackTrace(ex);
-      throw ex;
-    }
+    new MDCHelper(this.getClass()).run(() -> {
+      try {
+        fileStorageService.removeFilesMarkedAsDeletedBefore(addMinutes(now, -minuetsToWaitForActualDelete));
+      } catch (Exception ex) {
+        failureSinceStartUp.incrementAndGet();
+        lastStackTrace = ExceptionUtils.getFullStackTrace(ex);
+        throw ex;
+      }
+    });
   }
 }
