@@ -5,10 +5,12 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import de.is24.infrastructure.gridfs.http.utils.MDCHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
 import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
@@ -55,11 +57,13 @@ public class RepoMetadataGeneratorJob implements Runnable {
 
   private void doRun() {
     LOG.debug("Scheduled generation for repository: {}", name);
-    try(MDCHelper mdcHelper = new MDCHelper(this.getClass())) {
-      metadataService.generateYumMetadataIfNecessary(name);
-    } catch (SQLException | IOException e) {
-      LOG.error("Metadata generation for repository {} failed.", name, e);
-    }
+    new MDCHelper(this.getClass()).run(() -> {
+      try {
+        metadataService.generateYumMetadataIfNecessary(name);
+      } catch (SQLException | IOException e) {
+        LOG.error("Metadata generation for repository {} failed.", name, e);
+      }
+    });
   }
 
   @Override

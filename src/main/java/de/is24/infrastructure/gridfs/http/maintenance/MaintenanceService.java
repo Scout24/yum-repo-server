@@ -22,6 +22,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.stereotype.Service;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ScheduledExecutorService;
+
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.GRIDFS_FILES_COLLECTION;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.YUM_ENTRY_COLLECTION;
 import static java.util.stream.Collectors.toSet;
@@ -247,10 +249,10 @@ public class MaintenanceService {
 
     @Override
     public void run() {
-      try(MDCHelper helper = new MDCHelper(this.getClass())) {
+      new MDCHelper(this.getClass()).run(() -> {
         deleteObsoleteRPMs(propagationTargetRepo, sourceRepo);
         LOGGER.info("finished deleting Obsolete RPMs without Exception");
-      }
+      });
     }
   }
 

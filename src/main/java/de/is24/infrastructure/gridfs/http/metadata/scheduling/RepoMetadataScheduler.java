@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -53,13 +52,15 @@ public class RepoMetadataScheduler {
   @Scheduled(cron = "${scheduler.update.cron:*/30 * * * * *}")
   public void update() {
     LOG.debug("Checking for updates in scheduled repository definitions.");
-    try (MDCHelper mdcHelper = new MDCHelper(this.getClass())) {
-      Set<String> repoNamesToSchedule = repo.findByType(SCHEDULED).stream().map(RepoEntry::getName).collect(toSet());
-      repoNamesToSchedule.forEach(this::createRepoJob);
-      removeJobsNotFoundInDb(repoNamesToSchedule);
-    } catch (Exception e) {
-      LOG.error(e.getMessage());
-    }
+    new MDCHelper(this.getClass()).run(() -> {
+      try {
+        Set<String> repoNamesToSchedule = repo.findByType(SCHEDULED).stream().map(RepoEntry::getName).collect(toSet());
+        repoNamesToSchedule.forEach(this::createRepoJob);
+        removeJobsNotFoundInDb(repoNamesToSchedule);
+      } catch (Exception e) {
+        LOG.error(e.getMessage());
+      }
+    });
   }
 
   private void removeJobsNotFoundInDb(Set<String> repoNamesToSchedule) {

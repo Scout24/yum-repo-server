@@ -9,9 +9,24 @@ import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.REMOTE_HOST;
 import static de.is24.infrastructure.gridfs.http.log4j.MDCFilter.SERVER_NAME;
 
 
-public class MDCHelper implements AutoCloseable {
+public class MDCHelper {
+
+  private final Class callerClass;
 
   public MDCHelper(Class callerClass) {
+    this.callerClass = callerClass;
+  }
+
+  public void run(Runnable action) {
+    prepareMDC();
+    try {
+      action.run();
+    } finally {
+      disposeMDC();
+    }
+  }
+
+  public void prepareMDC() {
     MDC.put(REMOTE_HOST, callerClass.getName());
     MDC.put(SERVER_NAME, "localhost");
 
@@ -23,8 +38,7 @@ public class MDCHelper implements AutoCloseable {
     }
   }
 
-  @Override
-  public void close() {
+  public void disposeMDC() {
     MDC.remove(SERVER_NAME);
     MDC.remove(PRINCIPAL);
     MDC.remove(REMOTE_HOST);
