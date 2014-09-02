@@ -8,6 +8,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -21,6 +22,7 @@ public class StatusControllerWithInactiveDatabaseIT extends AbstractContainerAnd
   MongoPasswordManager passwordManager;
 
   @Test
+  @DirtiesContext
   public void statusPageIsPresentWithInactiveDB() throws Throwable {
     passwordManager.setWrongPassword();
     try {
