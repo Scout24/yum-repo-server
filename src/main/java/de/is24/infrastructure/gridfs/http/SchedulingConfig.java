@@ -1,5 +1,8 @@
 package de.is24.infrastructure.gridfs.http;
 
+import de.is24.infrastructure.gridfs.http.monitoring.ActiveJobsValueProvider;
+import de.is24.infrastructure.gridfs.http.monitoring.PoolSizeValueProvider;
+import de.is24.infrastructure.gridfs.http.monitoring.QueueSizeValueProvider;
 import de.is24.infrastructure.gridfs.http.security.AuthenticationDetails;
 import de.is24.infrastructure.gridfs.http.security.UserAuthorities;
 import de.is24.util.monitoring.InApplicationMonitor;
@@ -12,14 +15,13 @@ import org.springframework.security.concurrent.DelegatingSecurityContextSchedule
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+
 
 @Configuration
 @EnableScheduling
 public class SchedulingConfig {
-
   private static final String METADATA_SCHEDULER = "metadata.scheduler";
 
   @Value("${scheduler.poolSize:10}")
@@ -31,23 +33,25 @@ public class SchedulingConfig {
   @Bean
   public ScheduledExecutorService scheduledExecutorService() {
     ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(schedulerPoolSize);
-    setupMonitorForQueueSize(scheduledThreadPoolExecutor);
+    setupMonitor(scheduledThreadPoolExecutor);
     return new DelegatingSecurityContextScheduledExecutorService(scheduledThreadPoolExecutor, getSecurityContext());
   }
 
   public SecurityContext getSecurityContext() {
     SecurityContext context = SecurityContextHolder.getContext();
     PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(
-        METADATA_SCHEDULER + ".user",
-        "no credentials",
-        UserAuthorities.USER_AUTHORITIES);
+      METADATA_SCHEDULER + ".user",
+      "no credentials",
+      UserAuthorities.USER_AUTHORITIES);
     authentication.setDetails(new AuthenticationDetails());
     context.setAuthentication(
-        authentication);
+      authentication);
     return context;
   }
 
-  private void setupMonitorForQueueSize(final ScheduledThreadPoolExecutor scheduler) {
+  private void setupMonitor(final ScheduledThreadPoolExecutor scheduler) {
     inApplicationMonitor.registerStateValue(new QueueSizeValueProvider(scheduler, METADATA_SCHEDULER));
+    inApplicationMonitor.registerStateValue(new PoolSizeValueProvider(scheduler, METADATA_SCHEDULER));
+    inApplicationMonitor.registerStateValue(new ActiveJobsValueProvider(scheduler, METADATA_SCHEDULER));
   }
 }

@@ -1,25 +1,25 @@
-package de.is24.infrastructure.gridfs.http;
+package de.is24.infrastructure.gridfs.http.monitoring;
 
 import de.is24.util.monitoring.StateValueProvider;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 
-final class QueueSizeValueProvider extends StateValueProvider {
+public final class ActiveJobsValueProvider extends StateValueProvider {
   private final ScheduledThreadPoolExecutor executor;
   private String queueName;
 
-  QueueSizeValueProvider(ScheduledThreadPoolExecutor executor, String queueName) {
+  public ActiveJobsValueProvider(ScheduledThreadPoolExecutor executor, String queueName) {
     this.executor = executor;
     this.queueName = queueName;
   }
 
   @Override
   public long getValue() {
-    return executor.getQueue().size();
+    return executor.getActiveCount();
   }
 
   @Override
   public String getName() {
-    return queueName + ".queueSize";
+    return queueName + ".activeCount";
   }
 }
