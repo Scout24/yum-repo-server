@@ -10,11 +10,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -47,6 +45,20 @@ public class SchedulingConfigTest {
   }
 
   @Test
+  public void taskSchedulerRegistersPoolSizeValueProvider() throws Exception {
+    QueueSizeVisitor queueSizeVisitor = new QueueSizeVisitor();
+    InApplicationMonitor.getInstance().getCorePlugin().reportInto(queueSizeVisitor);
+    assertThat(queueSizeVisitor.knowsPoolSizeState(), is(true));
+  }
+
+  @Test
+  public void taskSchedulerRegistersActiveCountValueProvider() throws Exception {
+    QueueSizeVisitor queueSizeVisitor = new QueueSizeVisitor();
+    InApplicationMonitor.getInstance().getCorePlugin().reportInto(queueSizeVisitor);
+    assertThat(queueSizeVisitor.knowsActiveCountState(), is(true));
+  }
+
+  @Test
   public void scheduledRunnablesGetASecurityContextSet() throws Exception {
     ContextValidatingRunnable task = new ContextValidatingRunnable();
     Future<?> taskFuture = scheduledExecutorService.submit(task);
@@ -62,17 +74,30 @@ public class SchedulingConfigTest {
 
   private final class QueueSizeVisitor extends DoNothingReportVisitor {
     private boolean knowsQueueSizeState = false;
+    private boolean knowsPoolSizeState = false;
+    private boolean knowsActiveCountState = false;
 
 
     public boolean knowsQueueSizeState() {
       return knowsQueueSizeState;
     }
 
+    public boolean knowsPoolSizeState() {
+      return knowsPoolSizeState;
+    }
+
+    public boolean knowsActiveCountState() {
+      return knowsActiveCountState;
+    }
 
     @Override
     public void reportStateValue(StateValueProvider stateValueProvider) {
       if ("metadata.scheduler.queueSize".equals(stateValueProvider.getName())) {
         knowsQueueSizeState = true;
+      } else if ("metadata.scheduler.poolSize".equals(stateValueProvider.getName())) {
+        knowsPoolSizeState = true;
+      } else if ("metadata.scheduler.activeCount".equals(stateValueProvider.getName())) {
+        knowsActiveCountState = true;
       }
     }
 
