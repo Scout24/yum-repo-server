@@ -3,7 +3,7 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%--@elvariable id="repo" type="de.is24.infrastructure.gridfs.http.domain.RepoEntry"--%>
 <div>
-    <ul class="tablelist name-value-pairs">
+    <ul class="tableList name-value-pairs">
         <li>
             <span class="label">Name</span>
             <span class="value" id="yumRepoName" name="${repo.name}">${repo.name}</span>
@@ -23,16 +23,20 @@
             <span class="value"><tags:date date="${repo.lastMetadataGeneration}" /></span>
         </li>
         <li>
-          <span class="label">Max. Keep RPMs</span>
-          <span class="value"><span id="maxKeepRpmsValue" name="${repo.name}">${repo.maxKeepRpms}</span><div id="maxKeepRpmsSlider"></div></span>
+            <span class="label">Max. Keep RPMs</span>
+            <span class="value"><span id="maxKeepRpmsValue" name="${repo.name}">${repo.maxKeepRpms}</span><div id="maxKeepRpmsSlider"></div></span>
         </li>
         <li>
-		      <span class="label thin">Tags</span>
+		  <span class="label thin">Tags</span>
           <span>
             <span id="tags" style="display:none"><c:forEach items="${repo.tags}" var="tag"><span class="tag" style="margin-right:5px">${tag}</span></c:forEach></span>
             <input id="tagsInput" type="text" />
             <button id="saveTagButton" class="submit" onclick="return yum.resetTags();" style="margin-left:7px;">Save</button>
           </span>
+        </li>
+        <li>
+            <span class="label">Max. Days RPMs</span>
+            <span class="value"><span id="maxDaysRpmsValue" name="${repo.name}">${repo.maxDaysRpms}</span><div id="maxDaysRpmsSlider"></div></span>
         </li>
     </ul>
 </div>

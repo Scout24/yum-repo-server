@@ -1,6 +1,7 @@
 package de.is24.infrastructure.gridfs.http.repos;
 
 import com.mongodb.AggregationOutput;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.metadata.YumEntriesRepository;
@@ -8,6 +9,8 @@ import de.is24.infrastructure.gridfs.http.rpm.version.CachingVersionDBObjectComp
 import de.is24.infrastructure.gridfs.http.storage.FileStorageService;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import org.bson.types.ObjectId;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +20,7 @@ import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
@@ -35,6 +39,8 @@ public class RepoCleaner {
   public static final String REPO_KEY = "repo";
   private static final Logger LOG = LoggerFactory.getLogger(RepoCleaner.class);
   public static final String VERSION_KEY = "version";
+  public static final String TIME_KEY = "time";
+  public static final String TIME_BUILD_KEY = "build";
   public static final String FILE_KEY = "file";
   public static final String FILENAME_KEY = "filename";
   public static final String ITEMS_KEY = "items";
@@ -42,7 +48,7 @@ public class RepoCleaner {
   private final YumEntriesRepository entriesRepository;
   private final FileStorageService fileStorageService;
   private final RepoService repoService;
-  private final CachingVersionDBObjectComparator comparator = new CachingVersionDBObjectComparator();
+  private final CachingVersionDBObjectComparator comparatorVersion = new CachingVersionDBObjectComparator();
 
   /* for CGLIB */
   protected RepoCleaner() {
@@ -61,37 +67,69 @@ public class RepoCleaner {
     this.repoService = repoService;
   }
 
-  @ManagedOperation
-  public boolean cleanup(String reponame, int maxKeepRpm) {
-    if (maxKeepRpm > 0) {
-      LOG.info("Cleaning up repository {} and keep {} rpms at maximum ...", reponame, maxKeepRpm);
+    @ManagedOperation
+    public boolean cleanByMaxNum(String reponame, int maxValue) {
+        if (maxValue > 0) {
+            LOG.info("Cleaning up repository {} and keep {} rpms at maximum ...", reponame, maxValue);
 
-      AggregationOutput aggregation = aggregateAllRpmNamesInRepoThatHaveMoreThanMaxKeepEntries(reponame, maxKeepRpm);
-      boolean filesDeleted = false;
+            AggregationOutput aggregation = aggregateAllRpmNamesInRepoThatHaveMoreThanMaxKeepEntries(reponame, maxValue);
+            boolean filesDeleted = false;
 
-      for (DBObject aggregatedArtifact : aggregation.results()) {
-        for (DBObject itemToDelete : oldestItemsToDelete(maxKeepRpm, getItemsFromAggregate(aggregatedArtifact))) {
-          ObjectId fileId = (ObjectId) itemToDelete.get(FILE_KEY);
-          if (fileId != null) {
-            entriesRepository.delete(fileId);
+            for (DBObject aggregatedArtifact : aggregation.results()) {
+                for (DBObject itemToDelete : oldestItemsToDeleteByVersion(maxValue, getItemsFromAggregate(aggregatedArtifact))) {
+                    ObjectId fileId = (ObjectId) itemToDelete.get(FILE_KEY);
+                    if (fileId != null) {
+                        entriesRepository.delete(fileId);
 
-            final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
-            fileStorageService.markForDeletionByPath(path);
-            filesDeleted = true;
-            LOG.info("Mark file {} as deleted during cleanup.", path);
-          }
+                        final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
+                        fileStorageService.markForDeletionByPath(path);
+                        filesDeleted = true;
+                        LOG.info("Mark file {} as deleted during cleanup.", path);
+                    }
+                }
+            }
+
+            LOG.info("Clean up for repository {} finished.", reponame);
+
+            if (filesDeleted) {
+                repoService.createOrUpdate(reponame);
+                return true;
+            }
         }
-      }
-
-      LOG.info("Clean up for repository {} finished.", reponame);
-
-      if (filesDeleted) {
-        repoService.createOrUpdate(reponame);
-        return true;
-      }
+        return false;
     }
-    return false;
-  }
+
+    @ManagedOperation
+    public boolean cleanByMaxDays(String reponame, int maxValue) {
+        if (maxValue > 0) {
+            LOG.info("Cleaning up repository {} and keep rpms newer than {} days ...", reponame, maxValue);
+
+            AggregationOutput aggregation = aggregateAllRpmNamesInRepoByTime(reponame);
+            boolean filesDeleted = false;
+
+            for (DBObject aggregatedArtifact : aggregation.results()) {
+                for (DBObject itemToDelete : oldestItemsToDeleteByDays(maxValue, getItemsFromAggregate(aggregatedArtifact))) {
+                    ObjectId fileId = (ObjectId) itemToDelete.get(FILE_KEY);
+                    if (fileId != null) {
+                        entriesRepository.delete(fileId);
+
+                        final String path = reponame + "/" + itemToDelete.get(FILENAME_KEY);
+                        fileStorageService.markForDeletionByPath(path);
+                        filesDeleted = true;
+                        LOG.info("Mark file {} as deleted during cleanup.", path);
+                    }
+                }
+            }
+
+            LOG.info("Clean up for repository {} finished.", reponame);
+
+            if (filesDeleted) {
+                repoService.createOrUpdate(reponame);
+                return true;
+            }
+        }
+        return false;
+    }
 
   @SuppressWarnings("unchecked")
   private List<DBObject> getItemsFromAggregate(final DBObject aggregatedArtifact) {
@@ -100,8 +138,20 @@ public class RepoCleaner {
 
   @ManagedOperation
   public boolean cleanup(String reponame) {
-    RepoEntry repoEntry = repoService.ensureEntry(reponame, STATIC, SCHEDULED);
-    return cleanup(reponame, repoEntry.getMaxKeepRpms());
+   RepoEntry repoEntry = repoService.ensureEntry(reponame, STATIC, SCHEDULED);
+   return (cleanByMaxNum(reponame, repoEntry.getMaxKeepRpms()) | cleanByMaxDays(reponame, repoEntry.getMaxDaysRpms()));
+  }
+
+  private AggregationOutput aggregateAllRpmNamesInRepoByTime(String reponame) {
+    BasicDBObject repoMatch = match(where(REPO_KEY).is(reponame));
+    BasicDBObject groupArtifactNames = groupBy(field("name", "yumPackage.name"), field("arch", "yumPackage.arch")).push(
+      ITEMS_KEY,
+      field(TIME_KEY, "yumPackage.time"),
+      field(FILE_KEY, "_id"),
+      field(FILENAME_KEY, "yumPackage.location.href"))
+      .build();
+
+      return mongo.getCollection("yum.entries").aggregate(repoMatch, groupArtifactNames);
   }
 
   private AggregationOutput aggregateAllRpmNamesInRepoThatHaveMoreThanMaxKeepEntries(String reponame, int maxKeepRpm) {
@@ -119,8 +169,22 @@ public class RepoCleaner {
     return mongo.getCollection("yum.entries").aggregate(pipeline);
   }
 
-  private List<DBObject> oldestItemsToDelete(int maxKeepRpm, List<DBObject> items) {
-    sort(items, (DBObject obj1, DBObject obj2) -> comparator.compare(obj1.get(VERSION_KEY), obj2.get(VERSION_KEY)));
+  private List<DBObject> oldestItemsToDeleteByVersion(int maxKeepRpm, List<DBObject> items) {
+    sort(items, (DBObject obj1, DBObject obj2) -> comparatorVersion.compare(obj1.get(VERSION_KEY), obj2.get(VERSION_KEY)));
     return items.subList(0, items.size() - maxKeepRpm);
+  }
+
+  private List<DBObject> oldestItemsToDeleteByDays(int maxDaysRpm, List<DBObject> items) {
+    DateTime startDate = new DateTime().minusDays(maxDaysRpm).withZoneRetainFields(DateTimeZone.UTC);
+    List<DBObject> newList = new LinkedList<>();
+    for (DBObject item : items) {
+      BasicDBObject aux = (BasicDBObject) item.get(TIME_KEY);
+      Long itemTime = aux.getLong(TIME_BUILD_KEY);
+      DateTime itemDateTime = new DateTime(itemTime * 1000L).withZoneRetainFields(DateTimeZone.UTC);
+      if (itemDateTime.isBefore(startDate)) {
+        newList.add(item);
+      }
+    }
+    return newList;
   }
 }

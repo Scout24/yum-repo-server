@@ -149,6 +149,18 @@ public class RepoService {
   }
 
   @ManagedOperation
+  public void setMaxDaysRpms(String reponame, int maxDaysRpms) {
+      if (maxDaysRpms < 0) {
+          throw new BadRequestException("You cannot keep RPMs for a negative amount of days");
+      }
+
+      RepoEntry repoEntry = ensureEntry(reponame, STATIC, SCHEDULED);
+      repoEntry.setMaxDaysRpms(maxDaysRpms);
+      entriesRepository.save(repoEntry);
+      LOG.info("Set maxDaysRpms of repository {} to {}", reponame, maxDaysRpms);
+  }
+
+  @ManagedOperation
   public void createVirtualRepo(String reponame, String destination) {
     validateRepoName(reponame);
 

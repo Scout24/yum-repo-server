@@ -25,6 +25,8 @@ public class RepoEntry {
 
   public static final int DEFAULT_MAX_KEEP_RPMS = 1;
 
+  public static final int DEFAULT_MAX_DAYS_RPMS = 0;
+
   private RepoType type;
 
   private Date lastModified;
@@ -40,6 +42,8 @@ public class RepoEntry {
   private Set<String> tags = new HashSet<>();
 
   private int maxKeepRpms = DEFAULT_MAX_KEEP_RPMS;
+
+  private int maxDaysRpms = DEFAULT_MAX_DAYS_RPMS;
 
   private String hashOfEntries;
 
@@ -134,8 +138,16 @@ public class RepoEntry {
     return maxKeepRpms;
   }
 
+  public int getMaxDaysRpms() {
+    return maxDaysRpms;
+  }
+
   public void setMaxKeepRpms(int maxKeepRpms) {
     this.maxKeepRpms = maxKeepRpms;
+  }
+
+  public void setMaxDaysRpms(int maxDaysRpms) {
+    this.maxDaysRpms = maxDaysRpms;
   }
 
   public String getHashOfEntries() {
@@ -158,6 +170,7 @@ public class RepoEntry {
       .append("undeletable", undeletable)
       .append("tags", tags)
       .append("maxKeepRpms", maxKeepRpms)
+      .append("maxDaysRpms", maxDaysRpms)
       .append("hashOfEntries", hashOfEntries)
       .toString();
   }

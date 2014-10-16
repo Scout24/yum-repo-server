@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.repository.support.MongoRepositoryFactor
 
 import java.io.IOException;
 
+import static de.is24.infrastructure.gridfs.http.domain.RepoEntry.DEFAULT_MAX_DAYS_RPMS;
 import static de.is24.infrastructure.gridfs.http.domain.RepoEntry.DEFAULT_MAX_KEEP_RPMS;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.mongo.IntegrationTestContext.mongoTemplate;
@@ -104,6 +105,13 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
   }
 
   @Test
+  public void modifyMaxDaysRpms() throws Exception {
+    RepoEntry repoEntry = updateRepoEntry("/maxDaysRpms", "3");
+    assertThat(repoEntry, notNullValue());
+    assertThat(repoEntry.getMaxDaysRpms(), is(3));
+  }
+
+  @Test
   public void createStaticRepo() throws Exception {
     String reponame = uniqueRepoName();
     HttpPost post = new HttpPost(deploymentURL + "/repo/");
@@ -116,6 +124,7 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
 
     assertFalse(isEmpty(repoEntriesRepository.findByName(reponame)));
     thenMaxKeepRpmsHasDefaultValue(reponame);
+    thenMaxDaysRpmsHasDefaultValue(reponame);
   }
 
   private RepoEntry updateRepoEntry(String propertyUrl, String entity) throws IOException {
@@ -135,6 +144,9 @@ public class RepositoryControllerIT extends AbstractContainerAndMongoDBStarter {
     assertThat(repoEntriesRepository.findByName(reponame).get(0).getMaxKeepRpms(), is(DEFAULT_MAX_KEEP_RPMS));
   }
 
+  private void thenMaxDaysRpmsHasDefaultValue(String reponame) {
+    assertThat(repoEntriesRepository.findByName(reponame).get(0).getMaxDaysRpms(), is(DEFAULT_MAX_DAYS_RPMS));
+  }
 
   private void thenStatusCreatedForEntity(HttpEntity entity) throws IOException {
     HttpPost post = new HttpPost(deploymentURL + "/repo/" + uniqueRepoName());

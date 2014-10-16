@@ -81,6 +81,10 @@ window.yum = {
     yum.setRepoProperty(reponame, 'maxKeepRpms', value);
   },
 
+  setMaxDaysRpms : function(reponame, value) {
+    yum.setRepoProperty(reponame, 'maxDaysRpms', value);
+  },
+
   setRepoProperty : function(reponame, property, value) {
     $.ajax({
       type : 'PUT',
@@ -132,6 +136,25 @@ window.yum = {
       });
       if ( keepRpmsValue.text() === 0){
           keepRpmsValue.text("ALL");
+      }
+
+      var daysRpmsSlider = $('#maxDaysRpmsSlider');
+      var daysRpmsValue = $('#maxDaysRpmsValue');
+      daysRpmsSlider.slider({
+        min: 0,
+        max: 30,
+        value: daysRpmsValue.text(),
+        slide: function( event, ui ) {
+            var value = ui.value;
+            if ( value == 0){
+                value = "NEVER";
+            }
+            daysRpmsValue.text(value);
+          yum.setMaxDaysRpms(daysRpmsValue.attr('name'), ui.value);
+        }
+      });
+      if ( daysRpmsValue.text() == 0){
+          daysRpmsValue.text("NEVER");
       }
   },
 
