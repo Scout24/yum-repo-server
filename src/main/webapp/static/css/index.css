@@ -123,6 +123,11 @@ span img.sortIcon {
 
 button.submit {
   float: left;
+  height: 27px;
+}
+
+#token-input-tagsInput {
+    height: 27px;
 }
 
 ul.tablelist li {
