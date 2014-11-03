@@ -3,7 +3,7 @@
     "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
 <urlrewrite>
   <rule>
-    <from>^/repo/(.*rhel-[56])([\.\d]+|Server)(.*)$</from>
+    <from>^/repo/(.*rhel-[567])([\.\d]*|Server)(.*)$</from>
     <to>/repo/$1X$3</to>
   </rule>
 </urlrewrite>
