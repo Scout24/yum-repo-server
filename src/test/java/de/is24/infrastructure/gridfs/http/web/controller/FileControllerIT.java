@@ -9,10 +9,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
+
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.RPM_FILE_SIZE;
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static java.lang.String.format;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -25,6 +28,7 @@ import static org.hamcrest.core.Is.is;
 
 
 public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
+  private static final int[] RHEL_VERSION_NUMBERS = {5, 6, 7};
   private String repoUrl;
   private String repoName;
 
@@ -106,26 +110,26 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
 
   @Test
   public void hasDownloadedWholeFile() throws Exception {
-    HttpGet get = new HttpGet(repoUrl + "/noarch/test-artifact-1.2-1.noarch.rpm");
-
-    HttpResponse response = httpClient.execute(get);
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
-    assertThat(response.getEntity().getContentLength(), is((long) RPM_FILE_SIZE));
-    assertThat(response.getFirstHeader("Content-Length").getValue(), is(Integer.toString(RPM_FILE_SIZE)));
-    assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
+    checkRpmDownload(repoUrl);
   }
 
   @Test
   public void downloadFileWithRewriteRule() throws Exception {
     String repoPrefix = deploymentURL + "/repo/" + uniqueRepoName();
-    uploadRpm(repoPrefix + "-rhel-6X-test", RPM_FILE.getPath());
+    for (int rhelVersionNumber : RHEL_VERSION_NUMBERS) {
+      uploadRpm(format("%s-rhel-%dX-test", repoPrefix, rhelVersionNumber), RPM_FILE.getPath());
+      checkRpmDownload(format("%s-rhel-%d-test", repoPrefix, rhelVersionNumber));
+      checkRpmDownload(format("%s-rhel-%d.5-test", repoPrefix, rhelVersionNumber));
+    }
+  }
 
-    HttpGet get = new HttpGet(repoPrefix + "-rhel-6.5-test/noarch/test-artifact-1.2-1.noarch.rpm");
-
+  public void checkRpmDownload(String repo) throws IOException {
+    HttpGet get = new HttpGet(repo + "/noarch/test-artifact-1.2-1.noarch.rpm");
     HttpResponse response = httpClient.execute(get);
     assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
     assertThat(response.getEntity().getContentLength(), is((long) RPM_FILE_SIZE));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is(Integer.toString(RPM_FILE_SIZE)));
     assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
+    consume(response.getEntity());
   }
 }
