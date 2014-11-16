@@ -106,7 +106,7 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
       }
     }
 
-    log.debug("Host {} is not a white-listed host");
+    log.debug("Host {} is not a white-listed host", hostName.getName());
     return false;
   }
 }
