@@ -3,6 +3,8 @@ package de.is24.infrastructure.gridfs.http.security;
 import de.is24.infrastructure.gridfs.http.utils.HostName;
 import de.is24.infrastructure.gridfs.http.utils.HostnameResolver;
 import de.is24.infrastructure.gridfs.http.utils.WildcardToRegexConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jmx.export.annotation.ManagedAttribute;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,6 +24,7 @@ import static org.springframework.util.StringUtils.trimAllWhitespace;
 
 @ManagedResource
 public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
+  public static final Logger log = LoggerFactory.getLogger(WhiteListAuthenticationFilter.class);
   public static final String WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY = "security.whitelist.modification.enabled";
   public static final String BASIC_AUTH_PREFIX = "Basic ";
 
@@ -73,6 +76,7 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
     this.whiteListedHosts = whiteListedHosts;
     Set<String> whiteListedHostsStrings = commaDelimitedListToSet(trimAllWhitespace(whiteListedHosts));
     this.whiteListedHostPatterns = whiteListedHostsStrings.stream().map(wildcardToRegexConverter::convert).collect(toSet());
+    log.debug("Detected from {} following patterns: {}", whiteListedHosts, whiteListedHostPatterns);
   }
 
   protected String getUsernameFrom(HttpServletRequest request, String defaultUsername) {
@@ -95,10 +99,14 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
 
   protected boolean isWhiteListedHost(HostName hostName) {
     for (Pattern whiteListedHostPattern : whiteListedHostPatterns) {
+      log.debug("Matching {} against pattern {}", hostName.getName(), whiteListedHostPattern);
       if (whiteListedHostPattern.matcher(hostName.getName()).matches()) {
+        log.debug("{} matches pattern {}", hostName.getName(), whiteListedHostPattern);
         return true;
       }
     }
+
+    log.debug("Host {} is not a white-listed host");
     return false;
   }
 }

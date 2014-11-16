@@ -40,9 +40,11 @@ public class HostnameResolver implements AuthenticationDetailsSource<HttpServlet
       for (int i = ips.length - 1; i >= 0; i--) {
         String ip = ips[i];
         if (i == 0 || !loadBalancerIPs.contains(ip)) {
+          LOGGER.debug("Request comes from known proxy or load balancer: {}", ip);
           return hostname(ip);
         }
       }
+      LOGGER.debug("Multi proxy request comes from known proxy, but X-Forwarded-For header contains unknown second proxy: {}", request.getHeader(X_FORWARDED_FOR));
     }
 
     return hostname(request.getRemoteHost());
