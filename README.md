@@ -181,7 +181,7 @@ that have already downloaded an old *repomd.xml* with references to old database
     Comma separated host list of hosts that are allowed to perform write operations via REST API without authentication.
     Wildcards are possible like : devxyz*.bla.blu.
     
-*   *security.loadbalancer.ips*
+*   *loadbalancer.ips*
 
     Comma separated list of proxy server IPs (e.g. load balancers) that sets the
 [X-Forwarded-For http header](http://en.wikipedia.org/wiki/X-Forwarded-For). If the requests comes from such an IP the
