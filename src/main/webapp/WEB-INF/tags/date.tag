@@ -3,7 +3,7 @@
 <%@attribute name="date" required="true" type="java.util.Date" %>
 <c:choose>
     <c:when test="${date eq null}">
-        unknwon
+        unknown
     </c:when>
     <c:otherwise>
         <fmt:formatDate type="both" value="${date}" />
