@@ -3,7 +3,23 @@
     "http://www.tuckey.org/res/dtds/urlrewrite4.0.dtd">
 <urlrewrite>
   <rule>
+    <!-- 
+        RHEL, CentOS, Scientific Linux in different version use a different schema
+        for the $releasever variable in yum repo definitions. It could be something
+        like 5.6 or like 6Server etc.
+        We map all these to read 5X or 6X so that the same YUM repo can work for
+        all RHEL-compatible distros and so that we don't have to create different
+        YUM repos for the patch levels.
+    -->
     <from>^/repo/(.*rhel-[567])([\.\d]*|Server)(-.*)$</from>
     <to>/repo/$1X$3</to>
+  </rule>
+  <rule>
+    <!-- 
+        Provide a rhel-latest variant to automatically use the YUM repo of latest RHEL version.
+        Should be updated when changing the above rule to reflect the latest version.
+    -->
+    <from>^/repo/(.*)rhel-latest(-.*)$</from>
+    <to>/repo/$1rhel-7X$2</to>
   </rule>
 </urlrewrite>

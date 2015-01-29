@@ -123,6 +123,13 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     }
   }
 
+  @Test
+  public void downloadFileWithRewriteRuleRHELLatestSeven() throws Exception {
+    String repoPrefix = deploymentURL + "/repo/" + uniqueRepoName();
+    uploadRpm(format("%s-rhel-7X-test", repoPrefix), RPM_FILE.getPath());
+    checkRpmDownload(format("%s-rhel-latest-test", repoPrefix));
+  }
+
   public void checkRpmDownload(String repo) throws IOException {
     HttpGet get = new HttpGet(repo + "/noarch/test-artifact-1.2-1.noarch.rpm");
     HttpResponse response = httpClient.execute(get);
