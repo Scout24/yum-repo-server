@@ -36,8 +36,7 @@ The yum-repo-server is licensed under the [GPLv3](http://www.gnu.org/licenses/qu
 
 ## Getting started using Vagrant
 
-You can use Jan Collijs' [Vagrant Yum Repo Server recipe](https://github.com/visibilityspots/vagrant-yum-repo-server)
-to start a local server in a [Vagrant](http://www.vagrantup.com/) box.
+You can use Jan Collijs' [Vagrant Yum Repo Server recipe](https://github.com/visibilityspots/vagrant-puppet/tree/yum-repo-server) to start a local server in a [Vagrant](http://www.vagrantup.com/) box.
 
 ## Getting started locally
 
