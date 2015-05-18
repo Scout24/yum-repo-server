@@ -199,7 +199,7 @@ window.yum = {
           type : 'DELETE',
           async: false,
           cache : false,
-          url : repoPath+"/"+rpmHref,
+          url : (repoPath != '' ? repoPath + "/" : '') + rpmHref,
           success: function () {
               $('#'+target).remove();
           },
@@ -207,7 +207,17 @@ window.yum = {
               alert('deleting file failed : ' + status);
           }
       });
+      return false;
     },
+
+  deleteSavelyRPM: function(target, repoPath, rpmHref) {
+      if (window.confirm('Do you really want to delete ' + rpmHref + '?') == true) {
+          yum.deleteRPM(target, repoPath, rpmHref);
+      }
+
+      return false;
+  },
+
   deleteObsoleteRPMs: function(targetRepo,sourceRepo) {
     $.ajax({
       type : 'DELETE',

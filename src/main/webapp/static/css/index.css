@@ -195,6 +195,14 @@ li span.size {
 	background-color: #E6E6E6;
 }
 
+.tablelist li:HOVER .show-on-mouseover {
+    display: inline;
+}
+
+.show-on-mouseover {
+    display: none;
+}
+
 li.virtual {
 	background-color: #F6F6F6;
 }
