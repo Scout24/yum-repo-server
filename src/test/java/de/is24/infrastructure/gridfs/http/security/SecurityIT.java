@@ -2,7 +2,10 @@ package de.is24.infrastructure.gridfs.http.security;
 
 import de.is24.infrastructure.gridfs.http.web.boot.AbstractContainerAndMongoDBStarter;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,14 +22,17 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static org.apache.commons.lang.StringUtils.substringBefore;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
 
 public class SecurityIT extends AbstractContainerAndMongoDBStarter {
   public static final String RANDOM_STRING = "foobar";
+  public static final String DOMAIN_SEPERATOR = ".";
   private String repoUrl;
   private String myProtectedRPM;
   private String anotherHostsProtectedRPM;
@@ -54,11 +60,28 @@ public class SecurityIT extends AbstractContainerAndMongoDBStarter {
   }
 
   @Test
-  public void denyDownloadOfOtherHostsProtectedRPM() throws Exception {
+  public void denyUnauthenticaedDownloadOfProtectedRPM() throws Exception {
+    HttpGet get = new HttpGet(repoUrl + "/noarch/" + anotherHostsProtectedRPM);
+
+    HttpClient httpClientWithoutAuthentication = HttpClientBuilder.create().build();
+    HttpResponse response = httpClientWithoutAuthentication.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_UNAUTHORIZED));
+  }
+
+  @Test
+  public void allowDownloadOfProtectedRPMForAuthenticatedUser() throws Exception {
     HttpGet get = new HttpGet(repoUrl + "/noarch/" + anotherHostsProtectedRPM);
 
     HttpResponse response = httpClient.execute(get);
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_FORBIDDEN));
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
+  }
+
+  @Test
+  public void allowDeletionOfProtectedRPMToAuthenticatedUsers() throws Exception {
+    HttpDelete delete = new HttpDelete(repoUrl + "/noarch/" + anotherHostsProtectedRPM);
+
+    HttpResponse response = httpClient.execute(delete);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_NO_CONTENT));
   }
 
   private String getMyShortHostName() throws UnknownHostException {
@@ -70,12 +93,7 @@ public class SecurityIT extends AbstractContainerAndMongoDBStarter {
     } else {
       myHostName = InetAddress.getLocalHost().getHostName();
     }
-
-    int dotIndex = myHostName.indexOf(".");
-    if (dotIndex >= 0) {
-      myHostName = myHostName.substring(0, dotIndex);
-    }
-    return myHostName;
+    return substringBefore(myHostName, DOMAIN_SEPERATOR);
   }
 
   private String buildProtectedRPMForMyHostName() throws IOException, NoSuchAlgorithmException {

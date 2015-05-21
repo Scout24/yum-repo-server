@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -51,35 +52,52 @@ public class ProtectedRepoAccessEvaluator {
   }
 
   public boolean isAllowed(FileDescriptor fileDescriptor, Authentication authentication) {
-    boolean isWebCall = false;
-    HostName remoteHostName = null;
-    if ((authentication != null) && (authentication.getDetails() instanceof AuthenticationDetails)) {
-      AuthenticationDetails authenticationDetails = (AuthenticationDetails) (authentication.getDetails());
-      isWebCall = authenticationDetails.isWebRequest();
-      remoteHostName = authenticationDetails.getRemoteHost();
-    } else {
-      logUnknownAuthentication(authentication);
+    if (isAuthenticatedUser(authentication)) {
+      LOGGER.debug("...allowed because authenticated user.");
+      return true;
     }
 
-    if (isNotAllowedForWebCallOnProtectedRepo(fileDescriptor, isWebCall, remoteHostName)) {
-        return false;
+    if (isBackendCall(authentication)) {
+      LOGGER.debug("...allowed because backend call.");
+      return true;
     }
-    LOGGER.debug("...allowed.");
 
+    if (isNotCallOnProtectedRepo(fileDescriptor)) {
+      LOGGER.debug("...allowed because unprotected repo.");
+      return true;
+    }
+
+    HostName remoteHost = ((AuthenticationDetails) (authentication.getDetails())).getRemoteHost();
+    if (isAllowedWebCallOnProtectedRepo(fileDescriptor, remoteHost)) {
+      LOGGER.debug("...allowed because authorized call to protected repo.");
+      return true;
+    }
+
+    return false;
+  }
+
+  public boolean isBackendCall(Authentication authentication) {
+    if (hasAuthenticationDetails(authentication)) {
+      return !((AuthenticationDetails) (authentication.getDetails())).isWebRequest();
+    }
+
+    logUnknownAuthentication(authentication);
     return true;
   }
 
-  public boolean isNotAllowedForWebCallOnProtectedRepo(FileDescriptor fileDescriptor, boolean isWebCall, HostName remoteHostName) {
-    return isWebCallOnProtectedRepo(fileDescriptor, isWebCall) &&
-        !isAllowedForWebCallOnProtectedRepo(fileDescriptor, remoteHostName);
+  private boolean isAuthenticatedUser(Authentication authentication) {
+    return authentication != null && authentication instanceof UsernamePasswordAuthenticationToken;
   }
 
-  private boolean isWebCallOnProtectedRepo(FileDescriptor fileDescriptor, boolean isWebCall) {
-    return isWebCall && !fileDescriptor.getArch().equals("repodata") &&
-        protectedRepos.contains(fileDescriptor.getRepo());
+  private static boolean hasAuthenticationDetails(Authentication authentication) {
+    return (authentication != null) && (authentication.getDetails() instanceof AuthenticationDetails);
   }
 
-  public boolean isAllowedForWebCallOnProtectedRepo(FileDescriptor fileDescriptor, HostName remoteHostName) {
+  private boolean isNotCallOnProtectedRepo(FileDescriptor fileDescriptor) {
+    return fileDescriptor.getArch().equals("repodata") || !protectedRepos.contains(fileDescriptor.getRepo());
+  }
+
+  public boolean isAllowedWebCallOnProtectedRepo(FileDescriptor fileDescriptor, HostName remoteHostName) {
     LOGGER.info("check access permission for {} to {}", remoteHostName, fileDescriptor.getPath());
     if (remoteHostName.isIp()) {
       LOGGER.debug("..is IP...");

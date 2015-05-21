@@ -6,9 +6,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.context.request.RequestContextHolder;
 
+import static de.is24.infrastructure.gridfs.http.security.UserAuthorities.USER_AUTHORITIES;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.springframework.security.core.authority.AuthorityUtils.createAuthorityList;
@@ -113,6 +115,18 @@ public class ProtectedRepoAccessEvaluatorTest {
   public void allowAccessToFilesForInternalCallsInProtectedRepos() throws Exception {
     boolean allowed = patternEvaluator.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, null);
     assertThat(allowed, is(true));
+  }
+
+  @Test
+  public void allowAccessToProtectedRepoRPMsForAuthenticatedUsers() throws Exception {
+    boolean allowed = patternEvaluator.isAllowed(PROTECTED_NOARCH_RPM_FOR_DEVXYZ01_DESCRIPTOR, authticatedUser());
+    assertThat(allowed, is(true));
+  }
+
+  private Authentication authticatedUser() {
+    final UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("username", "password", USER_AUTHORITIES);
+    authentication.setDetails(new AuthenticationDetails(new HostName("localhost")));
+    return authentication;
   }
 
 
