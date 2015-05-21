@@ -258,6 +258,7 @@ public class StorageService {
   private void delete(FileStorageItem storageItem) {
     yumEntriesRepository.delete((ObjectId) storageItem.getId());
     fileStorageService.delete(storageItem);
+    LOGGER.info("Deleted {}", storageItem.getFilename());
   }
 
   private YumPackage convertHeader(InputStream inputStream) throws InvalidRpmHeaderException {
