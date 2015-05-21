@@ -37,7 +37,7 @@ public class AbstractContainerAndMongoDBStarter {
   protected CloseableHttpClient httpClient;
 
   @Before
-  public void setDeploymentUrl() {
+  public void initHttpClient() {
     httpClient = getHttpClientBuilder().build();
   }
 
