@@ -67,7 +67,7 @@ public class SecurityIT extends AbstractContainerAndMongoDBStarter {
 
     HttpClient httpClientWithoutAuthentication = HttpClientBuilder.create().build();
     HttpResponse response = httpClientWithoutAuthentication.execute(get);
-    assertThat(response.getStatusLine().getStatusCode(), anyOf(is(SC_UNAUTHORIZED), is(SC_FORBIDDEN));
+    assertThat(response.getStatusLine().getStatusCode(), anyOf(is(SC_UNAUTHORIZED), is(SC_FORBIDDEN)));
   }
 
   @Test
