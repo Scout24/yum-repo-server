@@ -22,11 +22,13 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 
 import static de.is24.infrastructure.gridfs.http.web.RepoTestUtils.uploadRpm;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.apache.commons.lang.StringUtils.substringBefore;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.core.Is.is;
 
 
@@ -65,7 +67,7 @@ public class SecurityIT extends AbstractContainerAndMongoDBStarter {
 
     HttpClient httpClientWithoutAuthentication = HttpClientBuilder.create().build();
     HttpResponse response = httpClientWithoutAuthentication.execute(get);
-    assertThat(response.getStatusLine().getStatusCode(), is(SC_UNAUTHORIZED));
+    assertThat(response.getStatusLine().getStatusCode(), anyOf(is(SC_UNAUTHORIZED), is(SC_FORBIDDEN));
   }
 
   @Test
