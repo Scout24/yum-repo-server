@@ -73,7 +73,7 @@ public class AuthenticationIT extends AbstractContainerAndMongoDBStarter {
   @Test
   public void allowAccessForWhiteListedHost() throws Exception {
     whiteListAuthenticationFilter.setWhiteListedHosts("localhost");
-    givenCredentials("user", "wrong-password");
+    httpClient = getHttpClientBuilder().build();
 
     URL url = new URL(deleteUrl);
     HttpHost httpHost = new HttpHost(url.getHost(), url.getPort());

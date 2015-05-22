@@ -11,13 +11,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Base64;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static java.nio.charset.Charset.forName;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang.StringUtils.substringBefore;
 import static org.springframework.util.StringUtils.commaDelimitedListToSet;
 import static org.springframework.util.StringUtils.trimAllWhitespace;
 
@@ -26,7 +23,6 @@ import static org.springframework.util.StringUtils.trimAllWhitespace;
 public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
   public static final Logger log = LoggerFactory.getLogger(WhiteListAuthenticationFilter.class);
   public static final String WHITE_LISTED_HOSTS_MODIFCATION_ENABLED_KEY = "security.whitelist.modification.enabled";
-  public static final String BASIC_AUTH_PREFIX = "Basic ";
 
   private String whiteListedHosts;
   private Set<Pattern> whiteListedHostPatterns;
@@ -47,7 +43,11 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
   @Override
   protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
     HostName hostName = hostnameResolver.remoteHost(request);
-    return isWhiteListedHost(hostName) ? getUsernameFrom(request, hostName.getName()) : null;
+    if (!hasAuthHeader(request) && isWhiteListedHost(hostName)) {
+      return getUsernameFrom(request, hostName.getName());
+    }
+
+    return null;
   }
 
   @Override
@@ -80,21 +80,17 @@ public class WhiteListAuthenticationFilter extends AbstractPreAuthenticatedProce
   }
 
   protected String getUsernameFrom(HttpServletRequest request, String defaultUsername) {
-    String authorizationHeader = request.getHeader("Authorization");
     String usernameHeader = request.getHeader("Username");
-    if (authorizationHeader != null && authorizationHeader.startsWith(BASIC_AUTH_PREFIX)) {
-      return getBasicAuthUser(authorizationHeader);
-    } else if (usernameHeader != null) {
+    if (usernameHeader != null) {
       return usernameHeader;
     }
 
     return defaultUsername;
   }
 
-  private String getBasicAuthUser(String authorizationHeader) {
-    String base64Credentials = authorizationHeader.substring(BASIC_AUTH_PREFIX.length());
-    String credentials = new String(Base64.getDecoder().decode(base64Credentials), forName("UTF-8"));
-    return substringBefore(credentials, ":");
+  private boolean hasAuthHeader(HttpServletRequest request) {
+    String authorizationHeader = request.getHeader("Authorization");
+    return authorizationHeader != null;
   }
 
   protected boolean isWhiteListedHost(HostName hostName) {

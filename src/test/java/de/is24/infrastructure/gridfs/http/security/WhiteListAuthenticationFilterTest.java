@@ -104,14 +104,6 @@ public class WhiteListAuthenticationFilterTest {
   }
 
   @Test
-  public void setBasicAuthUsernameAsPrincipalForWhitelistedHosts() throws Exception {
-    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
-    MockHttpServletRequest request = request(ARBITRARY_IP);
-    request.addHeader("Authorization", BASE64_AUTH_STRING);
-    assertThat(filter.getPreAuthenticatedPrincipal(request), is("foo"));
-  }
-
-  @Test
   public void setUsernameHeaderAsPrincipalForWhitelistedHosts() throws Exception {
     WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
     MockHttpServletRequest request = request(ARBITRARY_IP);
@@ -124,6 +116,14 @@ public class WhiteListAuthenticationFilterTest {
     WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
     MockHttpServletRequest request = request(ARBITRARY_IP);
     assertThat(filter.getPreAuthenticatedPrincipal(request), is(ARBITRARY_IP));
+  }
+
+  @Test
+  public void denyWhiteListedHostIfBasicAuthHeaderIsGiven() {
+    WhiteListAuthenticationFilter filter = createFilter(ARBITRARY_IP);
+    MockHttpServletRequest request = request(ARBITRARY_IP);
+    request.addHeader("Authorization", BASE64_AUTH_STRING);
+    assertThat(filter.getPreAuthenticatedPrincipal(request), nullValue());
   }
 
   private WhiteListAuthenticationFilter createFilter(String whiteListedHosts) {
