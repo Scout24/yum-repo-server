@@ -13,12 +13,12 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
-
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static java.util.stream.Collectors.toSet;
 
@@ -34,6 +34,7 @@ public class RepoMetadataScheduler {
   private final ScheduledExecutorService scheduledExecutorService;
   private final int delayInSec;
   private Map<String, RepoMetadataGeneratorJob> repoJobs;
+  private Object semaphore = new Object();
 
   @Autowired
   public RepoMetadataScheduler(RepoEntriesRepository repo,
@@ -46,7 +47,7 @@ public class RepoMetadataScheduler {
     this.primaryDetector = primaryDetector;
     this.scheduledExecutorService = scheduledExecutorService;
     this.delayInSec = delayInSec;
-    this.repoJobs = new HashMap<>();
+    this.repoJobs = new ConcurrentHashMap<>();
   }
 
   @Scheduled(cron = "${scheduler.update.cron:*/30 * * * * *}")
@@ -54,11 +55,14 @@ public class RepoMetadataScheduler {
     LOG.debug("Checking for updates in scheduled repository definitions.");
     new MDCHelper(this.getClass()).run(() -> {
       try {
-        Set<String> repoNamesToSchedule = repo.findByType(SCHEDULED).stream().map(RepoEntry::getName).collect(toSet());
-        repoNamesToSchedule.forEach(this::createRepoJob);
+        Set<String> repoNamesToSchedule = repo.findByType(SCHEDULED)
+          .stream()
+          .map(RepoEntry::getName)
+          .collect(toSet());
+        repoNamesToSchedule.forEach(this::ensureRunningRepoJob);
         removeJobsNotFoundInDb(repoNamesToSchedule);
       } catch (Exception e) {
-        LOG.error(e.getMessage());
+        LOG.error("while updating scheduled repo jobs", e);
       }
     });
   }
@@ -67,25 +71,45 @@ public class RepoMetadataScheduler {
     repoJobs.keySet().stream().filter(repoName -> !repoNamesToSchedule.contains(repoName)).forEach(this::removeRepoJob);
   }
 
-  @ManagedOperation
   public void removeRepoJob(String repoName) {
-    repoJobs.get(repoName).deactivate();
-    repoJobs.remove(repoName);
+    synchronized (semaphore) {
+      RepoMetadataGeneratorJob removed = repoJobs.remove(repoName);
+      if (removed != null) {
+        removed.deactivate();
+      }
+    }
     LOG.info("Removed scheduling job for repository: {}", repoName);
   }
 
-  @ManagedOperation
-  public void createRepoJob(String name) {
-    if (!repoJobs.containsKey(name)) {
-      repoJobs.put(name,
-        new RepoMetadataGeneratorJob(name, metadataService, primaryDetector, scheduledExecutorService, delayInSec));
-      LOG.info("Added scheduling job for repository: {}", name);
+  public void ensureRunningRepoJob(String name) {
+    synchronized (semaphore) {
+      removeJobIfBroken(name);
+      if (!isJobPresent(name)) {
+        repoJobs.put(name,
+          new RepoMetadataGeneratorJob(name, metadataService, primaryDetector, scheduledExecutorService, delayInSec));
+        LOG.info("Added scheduling job for repository: {}", name);
+      }
     }
+  }
+
+  // expects caller to synchronize on semaphore
+  private void removeJobIfBroken(String name) {
+    RepoMetadataGeneratorJob repoMetadataGeneratorJob = repoJobs.get(name);
+    if ((repoMetadataGeneratorJob != null) && repoMetadataGeneratorJob.isNotScheduledAnyLonger()) {
+      LOG.info("will remove not any longer scheduled repo metadata generator job for {}", name);
+      removeRepoJob(name);
+    }
+  }
+
+  private boolean isJobPresent(String name) {
+    return repoJobs.get(name) != null;
   }
 
   @ManagedOperation
   public Map<String, RepoMetadataGeneratorJob> getRepoJobs() {
-    return repoJobs;
+    // we do not want external Changes to interfere with our synchronizations, so we do not allow modifications.
+    // And we rely on ConcurrentHashMap to handle concurrent reads.
+    return Collections.unmodifiableMap(repoJobs);
   }
 
 }
