@@ -10,8 +10,6 @@ import java.sql.SQLException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
-import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
 import static org.apache.commons.lang.builder.ToStringBuilder.reflectionToString;
 import static org.apache.commons.lang.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
@@ -66,12 +64,15 @@ public class RepoMetadataGeneratorJob implements Runnable {
 
   @Override
   public boolean equals(Object o) {
-    return reflectionEquals(this, o);
+    if (o instanceof RepoMetadataGeneratorJob) {
+      return ((RepoMetadataGeneratorJob) o).name.equals(name);
+    }
+    return false;
   }
 
   @Override
   public int hashCode() {
-    return reflectionHashCode(this);
+    return name.hashCode();
   }
 
   @Override
