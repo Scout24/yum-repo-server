@@ -9,11 +9,9 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.COMPLEX_RPM_FILE_NAME;
 import static de.is24.infrastructure.gridfs.http.utils.RpmUtils.streamOf;
@@ -79,7 +77,6 @@ public class MetadataServiceIT {
   @Test
   public void cleanupOldMetadata() throws Exception {
     String reponame = uniqueRepoName();
-    service.setOutdatedMetaDataSurvivalTime(5);
 
     Object sqliteFileId = givenSomeSqliteFileFromOneHourAgo(reponame);
 
@@ -101,9 +98,10 @@ public class MetadataServiceIT {
   }
 
   private FileStorageItem findSqLiteFile(String reponame,
-                                      String givenSqliteFilenameInfix) {
-    List<FileStorageItem> storageItems = context.fileStorageService().findByPrefix(reponame + "/repodata/" + givenSqliteFilenameInfix);
-    return !storageItems.isEmpty() ? storageItems.get(0) : null;
+                                         String givenSqliteFilenameInfix) {
+    List<FileStorageItem> storageItems = context.fileStorageService()
+      .findByPrefix(reponame + "/repodata/" + givenSqliteFilenameInfix);
+    return (!storageItems.isEmpty()) ? storageItems.get(0) : null;
   }
 
   private void assertRepoMdXml() {
