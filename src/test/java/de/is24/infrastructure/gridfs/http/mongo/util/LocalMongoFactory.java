@@ -27,7 +27,7 @@ import static de.is24.infrastructure.gridfs.http.utils.retry.RetryUtils.execute;
 public class LocalMongoFactory {
   private static final String TEMP_DIR = new PlatformTempDir().asFile().getAbsolutePath();
   @VisibleForTesting
-  static final FixedPath MONGO_DOWNLOAD_FOLDER = new FixedPath(TEMP_DIR + File.separator + ".embedded-mongo");
+  static final FixedPath MONGO_DOWNLOAD_FOLDER = new FixedPath(TEMP_DIR + File.separator + "embedded-mongo");
   private static final Logger LOGGER = Logger.getLogger(LocalMongoFactory.class.getCanonicalName());
 
   @VisibleForTesting
