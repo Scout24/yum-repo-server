@@ -3,25 +3,10 @@ dist
 deb_dist
 !.gitignore
 target
-*.pyc
-*.egg-info
 *.iml
 *~
 
-# ignoe virtualenv ve
-/ve
-
-# ignoring coverage data file
-.coverage
-
-# ignoring pycharm meta data
-.idea
-
-# ignoring virtual environment directory
-ve
-
 # ignore eclipse project files
-/.pydevproject
 /.project
 
 # embedded mongo for testing
