@@ -11,6 +11,9 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.config.IRuntimeConfig;
+import de.flapdoodle.embed.process.config.store.HttpProxyFactory;
+import de.flapdoodle.embed.process.config.store.IProxyFactory;
+import de.flapdoodle.embed.process.config.store.NoProxyFactory;
 import de.flapdoodle.embed.process.io.directories.FixedPath;
 import de.flapdoodle.embed.process.io.directories.PlatformTempDir;
 import de.flapdoodle.embed.process.io.progress.LoggingProgressListener;
@@ -37,6 +40,7 @@ public class LocalMongoFactory {
       .defaultsForCommand(MongoD) //
       .progressListener(new LoggingProgressListener(LOGGER, Level.INFO)) //
       .downloadPath("https://fastdl.mongodb.org/") //
+      .proxyFactory(proxyForEnvironment()) //
       .artifactStorePath(MONGO_DOWNLOAD_FOLDER); //
     de.flapdoodle.embed.process.store.ArtifactStoreBuilder download =
       new ArtifactStoreBuilder() //
@@ -48,6 +52,19 @@ public class LocalMongoFactory {
       .defaultsWithLogger(MongoD, LOGGER) //
       .artifactStore(download).build();
     return MongodStarter.getInstance(runtimeConfig);
+  }
+
+  private static IProxyFactory proxyForEnvironment() {
+    if (isHttpProxyEnabled()) {
+       return new HttpProxyFactory(System.getProperty("http.proxyHost"), Integer.valueOf(System.getProperty("http.proxyPort")));
+    }
+    else {
+      return new NoProxyFactory();
+    }
+  }
+
+  private static boolean isHttpProxyEnabled() {
+    return System.getProperty("http.proxyHost") != null && System.getProperty("http.proxyPort") != null;
   }
 
   public static MongoProcessHolder createMongoProcess() throws Throwable {
