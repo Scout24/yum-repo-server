@@ -4,6 +4,7 @@ deb_dist
 !.gitignore
 target
 *.iml
+.idea
 *~
 
 # ignore eclipse project files
