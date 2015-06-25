@@ -36,7 +36,7 @@ public class LocalMongoFactory {
       new DownloadConfigBuilder() //
       .defaultsForCommand(MongoD) //
       .progressListener(new LoggingProgressListener(LOGGER, Level.INFO)) //
-      .downloadPath("http://fastdl.mongodb.org/") //
+      .downloadPath("https://fastdl.mongodb.org/") //
       .artifactStorePath(MONGO_DOWNLOAD_FOLDER); //
     de.flapdoodle.embed.process.store.ArtifactStoreBuilder download =
       new ArtifactStoreBuilder() //
