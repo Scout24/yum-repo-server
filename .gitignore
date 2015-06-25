@@ -23,3 +23,6 @@ ve
 # ignore eclipse project files
 /.pydevproject
 /.project
+
+# embedded mongo for testing
+embedmongo.log
