@@ -383,3 +383,9 @@ td {
 }
 /* FILE TABLE END */
 
+/* changelog TABLE BEGIN */
+span table.changelog {
+	line-height: 20px;
+}
+
+/* changelog TABLE END */

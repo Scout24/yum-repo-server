@@ -110,5 +110,36 @@
                 </table>
             </span>
         </li>
+
+        <jsp:useBean id="dateValue" class="java.util.Date"/>
+        <li>
+            <span class="label"><a href="#" onclick="$('table.changelog').toggleClass('hidden'); return false;">Changelog</a></span>
+            <span class="value big">
+                <table class="changelog hidden">
+                    <thead>
+                    <tr>
+                        <th>Author</th>
+                        <th>Date</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Message</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${model.changeLogs}" var="changelog">
+                        <tr>
+                            <td>${changelog.author}</td>
+                            <jsp:setProperty name="dateValue" property="time" value="${changelog.date * 1000}"/>
+                            <td><fmt:formatDate value="${dateValue}" pattern="MM/dd/yyyy"/></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><pre>${changelog.message}</pre></td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </span>
+        </li>
+
     </ul>
 </div>
