@@ -82,7 +82,7 @@
         </li>
        
         <li>
-            <span class="label"><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">${fn:length(model.packageDirs)} Files (click to view)</a></span>
+            <span class="label"><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">${fn:length(model.packageDirs)} dirs may contain files (click to view)</a></span>
             <span class="value big">
                 <table class="files hidden">
                     <thead>
@@ -100,8 +100,7 @@
                         <c:forEach items="${dir.files}" var="file">
                             <tr>
                                 <td>
-                                    ${dir.name}/${file.name}
-                                    <c:if test="${file.type == DIR}">(dir)</c:if>
+                                    ${dir.name}/${file.name} (${file.type})
                                 </td>
                             </tr>
                         </c:forEach>
