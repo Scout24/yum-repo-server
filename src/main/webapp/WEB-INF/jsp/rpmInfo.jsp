@@ -113,7 +113,7 @@
 
         <jsp:useBean id="dateValue" class="java.util.Date"/>
         <li>
-            <span class="label"><a href="#" onclick="$('table.changelog').toggleClass('hidden'); return false;">${fn:lenght(model.changeLogs)} Changelog entries (click to view)</a></span>
+            <span class="label"><a href="#" onclick="$('table.changelog').toggleClass('hidden'); return false;">${fn:length(model.changeLogs)} Changelog entries (click to view)</a></span>
             <span class="value big">
                 <table class="changelog hidden">
                     <thead>
