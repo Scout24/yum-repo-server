@@ -82,7 +82,7 @@
         </li>
        
         <li>
-            <span class="label"><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">Files</a></span>
+            <span class="label"><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">${fn:length(model.packageDirs)} Files (click to view)</a></span>
             <span class="value big">
                 <table class="files hidden">
                     <thead>
@@ -113,7 +113,7 @@
 
         <jsp:useBean id="dateValue" class="java.util.Date"/>
         <li>
-            <span class="label"><a href="#" onclick="$('table.changelog').toggleClass('hidden'); return false;">Changelog</a></span>
+            <span class="label"><a href="#" onclick="$('table.changelog').toggleClass('hidden'); return false;">${fn:lenght(model.changeLogs)} Changelog entries (click to view)</a></span>
             <span class="value big">
                 <table class="changelog hidden">
                     <thead>
