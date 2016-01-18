@@ -14,20 +14,18 @@ import java.util.concurrent.TimeUnit;
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.SCHEDULED;
 import static de.is24.infrastructure.gridfs.http.utils.RepositoryUtils.uniqueRepoName;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 
-public class RepoMetadataSchedulerJobIT {
+public class RepoMetadataSchedulerIT {
   public static final int DELAY = 10;
 
   private RepoMetadataScheduler metadataScheduler;
+  private ScheduledFuture<?> scheduledFuture;
 
   @ClassRule
   public static IntegrationTestContext context = new IntegrationTestContext();
@@ -37,16 +35,18 @@ public class RepoMetadataSchedulerJobIT {
   public void setUp() throws UnknownHostException {
     MetadataService metadataService = context.metadataService();
     MongoPrimaryDetector primaryDetector = new MongoPrimaryDetector(context.getMongo());
-    ScheduledFuture<?> scheduledFuture = mock(ScheduledFuture.class);
     ScheduledExecutorService scheduledExecutorService = mock(ScheduledExecutorService.class);
+    scheduledFuture = mock(ScheduledFuture.class);
     doReturn(scheduledFuture).when(scheduledExecutorService)
     .scheduleWithFixedDelay(any(Runnable.class), anyLong(), anyLong(), any(TimeUnit.class));
+
     metadataScheduler = new RepoMetadataScheduler(context.repoEntriesRepository(),
       metadataService,
       primaryDetector,
       scheduledExecutorService,
       DELAY);
   }
+
 
   @Test
   public void createNewJobForConfiguredRepos() throws Exception {
@@ -66,6 +66,22 @@ public class RepoMetadataSchedulerJobIT {
 
     assertThat(jobBeforeSecondUpdate, sameInstance(jobAfterSecondUpdate));
   }
+
+  @Test
+  // reproduces github issue #59 internal issue DATA-4843
+  public void replaceJobsNotScheduledAnyLonger() throws Exception {
+    givenFailingFutureMock();
+
+    String repoName = givenSchedulerWithOneRunningJob();
+
+    RepoMetadataGeneratorJob jobBeforeSecondUpdate = metadataScheduler.getRepoJobs().get(repoName);
+    metadataScheduler.update();
+
+    RepoMetadataGeneratorJob jobAfterSecondUpdate = metadataScheduler.getRepoJobs().get(repoName);
+
+    assertThat(jobBeforeSecondUpdate, not(sameInstance(jobAfterSecondUpdate)));
+  }
+
 
   @Test
   public void removeJobAfterRemovedFromDB() throws Exception {
@@ -88,6 +104,12 @@ public class RepoMetadataSchedulerJobIT {
     context.repoEntriesRepository().save(entry);
     metadataScheduler.update();
     return repoName;
+  }
+
+
+  private void givenFailingFutureMock() {
+    doReturn(true).when(scheduledFuture).isDone();
+
   }
 
 }

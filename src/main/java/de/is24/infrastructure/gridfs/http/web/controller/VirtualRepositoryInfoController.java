@@ -1,5 +1,6 @@
 package de.is24.infrastructure.gridfs.http.web.controller;
 
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesHashCalculator;
 import de.is24.util.monitoring.spring.TimeMeasurement;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.repos.RepositoryInfoProvider;
@@ -14,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class VirtualRepositoryInfoController extends AbstractRepositoryInfoController {
   @Autowired
   public VirtualRepositoryInfoController(RepositoryInfoProvider virtualRepositoryInfoProvider,
-                                         RepoService repoService) {
-    super(virtualRepositoryInfoProvider, repoService, false);
+                                         RepoService repoService, YumEntriesHashCalculator yumEntriesHashCalculator) {
+    super(virtualRepositoryInfoProvider, repoService, yumEntriesHashCalculator, false);
   }
 
 

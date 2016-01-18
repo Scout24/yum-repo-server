@@ -82,7 +82,7 @@
         </li>
        
         <li>
-            <span class="label"><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">Files</a></span>
+            <span class="label"><a href="#" onclick="$('table.files').toggleClass('hidden'); return false;">${fn:length(model.packageDirs)} dirs may contain files (click to view)</a></span>
             <span class="value big">
                 <table class="files hidden">
                     <thead>
@@ -100,8 +100,7 @@
                         <c:forEach items="${dir.files}" var="file">
                             <tr>
                                 <td>
-                                    ${dir.name}/${file.name}
-                                    <c:if test="${file.type == DIR}">(dir)</c:if>
+                                    ${dir.name}/${file.name} (${file.type})
                                 </td>
                             </tr>
                         </c:forEach>
@@ -110,5 +109,36 @@
                 </table>
             </span>
         </li>
+
+        <jsp:useBean id="dateValue" class="java.util.Date"/>
+        <li>
+            <span class="label"><a href="#" onclick="$('table.changelog').toggleClass('hidden'); return false;">${fn:length(model.changeLogs)} Changelog entries (click to view)</a></span>
+            <span class="value big">
+                <table class="changelog hidden">
+                    <thead>
+                    <tr>
+                        <th>Author</th>
+                        <th>Date</th>
+                    </tr>
+                    <tr>
+                        <th colspan="2">Message</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach items="${model.changeLogs}" var="changelog">
+                        <tr>
+                            <td>${changelog.author}</td>
+                            <jsp:setProperty name="dateValue" property="time" value="${changelog.date * 1000}"/>
+                            <td><fmt:formatDate value="${dateValue}" pattern="MM/dd/yyyy"/></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><pre>${changelog.message}</pre></td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </span>
+        </li>
+
     </ul>
 </div>

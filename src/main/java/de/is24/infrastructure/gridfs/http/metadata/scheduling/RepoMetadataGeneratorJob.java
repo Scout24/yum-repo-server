@@ -5,15 +5,11 @@ import de.is24.infrastructure.gridfs.http.mongo.MongoPrimaryDetector;
 import de.is24.infrastructure.gridfs.http.utils.MDCHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
-import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
 import static org.apache.commons.lang.builder.ToStringBuilder.reflectionToString;
 import static org.apache.commons.lang.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
@@ -68,12 +64,15 @@ public class RepoMetadataGeneratorJob implements Runnable {
 
   @Override
   public boolean equals(Object o) {
-    return reflectionEquals(this, o);
+    if (o instanceof RepoMetadataGeneratorJob) {
+      return ((RepoMetadataGeneratorJob) o).name.equals(name);
+    }
+    return false;
   }
 
   @Override
   public int hashCode() {
-    return reflectionHashCode(this);
+    return name.hashCode();
   }
 
   @Override
@@ -90,5 +89,14 @@ public class RepoMetadataGeneratorJob implements Runnable {
 
   public boolean isActive() {
     return active;
+  }
+
+  /**
+   * return true if this job is not actively scheduled any longer. This state might change to true if exception
+   * is encountered while processing this job
+   * @return true if this job will not any longer be scheduled
+   */
+  public boolean isNotScheduledAnyLonger() {
+    return scheduledFuture.isDone();
   }
 }

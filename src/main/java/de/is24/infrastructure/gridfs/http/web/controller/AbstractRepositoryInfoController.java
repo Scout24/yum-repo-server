@@ -7,8 +7,10 @@ import de.is24.infrastructure.gridfs.http.domain.RepoEntry;
 import de.is24.infrastructure.gridfs.http.domain.SizeProvider;
 import de.is24.infrastructure.gridfs.http.domain.SortField;
 import de.is24.infrastructure.gridfs.http.domain.SortOrder;
+import de.is24.infrastructure.gridfs.http.metadata.YumEntriesHashCalculator;
 import de.is24.infrastructure.gridfs.http.repos.RepoService;
 import de.is24.infrastructure.gridfs.http.repos.RepositoryInfoProvider;
+import de.is24.infrastructure.gridfs.http.web.domain.RepositoryInfo;
 import org.joda.time.DateTime;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,9 +32,8 @@ import static de.is24.infrastructure.gridfs.http.domain.SortOrder.none;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang.WordUtils.capitalize;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
-import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
+import static org.springframework.http.MediaType.*;
+import static org.springframework.util.ObjectUtils.nullSafeEquals;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 
@@ -43,12 +44,14 @@ public abstract class AbstractRepositoryInfoController {
   public static final String SEARCH_BY = "searchBy";
   protected final RepositoryInfoProvider infoProvider;
   protected final RepoService repoService;
+  protected final YumEntriesHashCalculator yumEntriesHashCalculator;
   protected final boolean isStatic;
 
-  protected AbstractRepositoryInfoController(RepositoryInfoProvider infoProvider, RepoService repoService,
+  protected AbstractRepositoryInfoController(RepositoryInfoProvider infoProvider, RepoService repoService, YumEntriesHashCalculator yumEntriesHashCalculator,
                                              boolean isStatic) {
     this.infoProvider = infoProvider;
     this.repoService = repoService;
+    this.yumEntriesHashCalculator = yumEntriesHashCalculator;
     this.isStatic = isStatic;
   }
 
@@ -119,6 +122,15 @@ public abstract class AbstractRepositoryInfoController {
   public ModelAndView getRepoInfo(@PathVariable("repoName") String repoName) {
     RepoEntry repoEntry = repoService.ensureEntry(repoName, infoProvider.getValidRepoTypes());
     return new ModelAndView(getRepositoryInfoViewName(), "repo", repoEntry);
+  }
+
+  @RequestMapping(value = "/{repoName}/info.json", method = GET, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public RepositoryInfo getRepoInfoJson(@PathVariable("repoName") String repoName) {
+    final RepoEntry repoEntry = repoService.ensureEntry(repoName, infoProvider.getValidRepoTypes());
+    final boolean needsMetadataUpdate = (!nullSafeEquals(repoEntry.getHashOfEntries(), yumEntriesHashCalculator.hashForRepo(repoName)));
+
+    return new RepositoryInfo(repoEntry, needsMetadataUpdate);
   }
 
   @RequestMapping(value = "/{repoName}", method = GET, produces = APPLICATION_JSON_VALUE)

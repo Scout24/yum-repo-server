@@ -23,14 +23,12 @@ import org.springframework.data.mongodb.tx.MongoTx;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import static java.io.File.createTempFile;
 import static java.util.Arrays.asList;
 import static org.springframework.util.ObjectUtils.nullSafeEquals;
@@ -59,7 +57,6 @@ public class MetadataService {
   private final InApplicationMonitor inApplicationMonitor;
   private final FileStorageService fileStorageService;
   private File tmpDir;
-  private int outdatedMetaDataSurvivalTime;
 
   //only for cglib proxy
   public MetadataService() {
@@ -74,7 +71,8 @@ public class MetadataService {
   }
 
   @Autowired
-  public MetadataService(StorageService gridFs, FileStorageService fileStorageService, YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
+  public MetadataService(StorageService gridFs, FileStorageService fileStorageService,
+                         YumEntriesRepository entriesRepository, RepoMdGenerator repoMdGenerator,
                          RepoService repoService, RepoCleaner repoCleaner,
                          YumEntriesHashCalculator entriesHashCalculator,
                          InApplicationMonitor inApplicationMonitor) {
@@ -141,7 +139,8 @@ public class MetadataService {
     Date startTime = new Date();
 
     List<YumEntry> entries = entriesRepository.findByRepo(reponame);
-    inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_FIND_ENTRIES + reponame, start,
+    inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_FIND_ENTRIES + reponame,
+      start,
       System.currentTimeMillis());
 
 
@@ -157,7 +156,8 @@ public class MetadataService {
     start = System.currentTimeMillis();
     repoMdGenerator.generateRepoMdXml(reponame, dbData);
     inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_GENERATE_REPOMDXML + reponame,
-      start, System.currentTimeMillis());
+      start,
+      System.currentTimeMillis());
 
     repoService.updateLastMetadataGeneration(reponame, startTime, calculatedHashOfEntries);
 
@@ -174,14 +174,16 @@ public class MetadataService {
       dbGenerator.createDb(tempDbFile, entries);
       current = System.currentTimeMillis();
       inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_CREATE_DB + dbGenerator.getName() + "." + reponame,
-        start, current);
+        start,
+        current);
       start = current;
 
       Data data = storageService.storeRepodataDbBz2(reponame, tempDbFile, dbGenerator.getName());
       data.setType(dbGenerator.getName() + "_db");
 
       inApplicationMonitor.addTimerMeasurement(METADATA_SERVICE_STORE_DB + dbGenerator.getName() + "." + reponame,
-        start, System.currentTimeMillis());
+        start,
+        System.currentTimeMillis());
 
       return data;
     } finally {
@@ -197,8 +199,4 @@ public class MetadataService {
     }
   }
 
-  @Value("${metdata.outdated.survival.time:5}")
-  public void setOutdatedMetaDataSurvivalTime(int outdatedMetaDataSurvivalTime) {
-    this.outdatedMetaDataSurvivalTime = outdatedMetaDataSurvivalTime;
-  }
 }

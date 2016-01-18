@@ -15,11 +15,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import static de.is24.infrastructure.gridfs.http.domain.RepoType.VIRTUAL;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -32,19 +30,16 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 @RequestMapping("/repo/virtual")
 @TimeMeasurement
 public class VirtualRepositoryController {
-  private final StorageService gridFs;
   private final RepoService repoService;
   private final FileController fileController;
 
   public VirtualRepositoryController() {
-    this.gridFs = null;
     this.repoService = null;
     this.fileController = null;
   }
 
   @Autowired
-  public VirtualRepositoryController(StorageService gridFs, RepoService repoService, FileController fileController) {
-    this.gridFs = gridFs;
+  public VirtualRepositoryController(RepoService repoService, FileController fileController) {
     this.repoService = repoService;
     this.fileController = fileController;
   }

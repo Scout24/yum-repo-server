@@ -17,7 +17,7 @@ public class TrailingSlashRedirectHandlerInterceptor extends HandlerInterceptorA
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
     ServletUriComponentsBuilder builder = fromRequest(request);
     String path = builder.build().getPath();
-    if (isGetRequest(request) && isRepoRequestOrArch(path) && isNotWildcardExtensionMatching(request)) {
+    if (isGetRequest(request) && isRepoRequestOrArch(path) && isNotWildcardExtensionMatching(request) && !isFileRequest(path)) {
       builder.replacePath(path + '/');
       String location = builder.build().toString();
       response.setStatus(MOVED_PERMANENTLY.value());
@@ -35,6 +35,10 @@ public class TrailingSlashRedirectHandlerInterceptor extends HandlerInterceptorA
 
   private boolean isRepoRequestOrArch(String path) {
     return path.matches("^/repo(/virtual)?(/([^/]+)(/[^/]+)?)?$");
+  }
+
+  private boolean isFileRequest(String path) {
+    return path.matches("^.*\\.(html|json)?$");
   }
 
   private boolean isGetRequest(HttpServletRequest request) {
