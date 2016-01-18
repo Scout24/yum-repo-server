@@ -9,8 +9,6 @@ import de.flapdoodle.embed.mongo.MongodProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.UnknownHostException;
-
 import static com.mongodb.BasicDBObjectBuilder.start;
 
 
@@ -30,11 +28,7 @@ public class MongoProcessHolder {
     this.mongodExecutable = mongodExecutable;
     this.mongodProcess = mongodProcess;
     this.mongoPort = mongoPort;
-    try {
-      this.adminMongo = new MongoClient("localhost", mongoPort);
-    } catch (UnknownHostException e) {
-      throw new IllegalArgumentException("Could not resolve MongoDB host", e);
-    }
+    this.adminMongo = new MongoClient("localhost", mongoPort);
 
     updateDbUser(true, MONGO_PASSWORD);
     setSystemProperties();

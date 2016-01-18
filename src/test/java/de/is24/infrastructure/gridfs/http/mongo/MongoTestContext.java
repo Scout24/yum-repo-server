@@ -7,7 +7,6 @@ import de.is24.infrastructure.gridfs.http.mongo.util.MongoProcessHolder;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
-import java.net.UnknownHostException;
 
 
 public class MongoTestContext implements TestRule {
@@ -47,10 +46,7 @@ public class MongoTestContext implements TestRule {
 
   public Mongo getMongo() {
     checkMongoIsRunning();
-    try {
-      return new MongoClient("localhost", getPort());
-    } catch (UnknownHostException e) {
-      throw new IllegalStateException("Could not resolve 'localhost'", e);
-    }
+
+    return new MongoClient("localhost", getPort());
   }
 }

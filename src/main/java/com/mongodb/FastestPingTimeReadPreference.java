@@ -1,5 +1,9 @@
 package com.mongodb;
 
+import com.mongodb.connection.ClusterDescription;
+import com.mongodb.connection.ServerDescription;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,9 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 import static java.lang.Float.compare;
-import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 
 public class FastestPingTimeReadPreference extends ReadPreference {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(FastestPingTimeReadPreference.class);
 
   @Override
@@ -18,13 +23,13 @@ public class FastestPingTimeReadPreference extends ReadPreference {
   }
 
   @Override
-  public DBObject toDBObject() {
-    return new BasicDBObject("mode", getName());
+  public String getName() {
+    return "nearestNode";
   }
 
   @Override
-  public String getName() {
-    return "nearestNode";
+  public BsonDocument toDocument() {
+    return new BsonDocument("mode", new BsonString(getName()));
   }
 
   @Override
@@ -44,12 +49,12 @@ public class FastestPingTimeReadPreference extends ReadPreference {
           buffer.append("[");
           buffer.append(node.getAddress().getHost());
           buffer.append("/");
-          buffer.append(node.getAverageLatencyNanos());
+          buffer.append(node.getRoundTripTimeNanos());
           buffer.append("] ");
         }
       }
 
-      String choosenNode = nearestNode.getAddress().getHost() + "/" + nearestNode.getAverageLatencyNanos();
+      String choosenNode = nearestNode.getAddress().getHost() + "/" + nearestNode.getRoundTripTimeNanos();
       LOGGER.trace("take {} as mongodb host. other {}", choosenNode, buffer.toString());
     } else {
       if (LOGGER.isDebugEnabled()) {
@@ -57,7 +62,7 @@ public class FastestPingTimeReadPreference extends ReadPreference {
           (nearestNode == null) ? "--" : nearestNode.getAddress().getHost());
       }
     }
-    return asList(nearestNode);
+    return singletonList(nearestNode);
   }
 
 
@@ -75,7 +80,7 @@ public class FastestPingTimeReadPreference extends ReadPreference {
     if (nodeA == null) {
       return nodeB;
     }
-    if (compare(nodeA.getAverageLatencyNanos(), nodeB.getAverageLatencyNanos()) > 0) {
+    if (compare(nodeA.getRoundTripTimeNanos(), nodeB.getRoundTripTimeNanos()) > 0) {
       return nodeB;
     }
     return nodeA;

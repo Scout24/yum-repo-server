@@ -1,5 +1,8 @@
 package com.mongodb;
 
+import com.mongodb.connection.ClusterDescription;
+import com.mongodb.connection.ServerDescription;
+import com.mongodb.connection.ServerType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -7,14 +10,14 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Random;
 
-import static com.mongodb.ClusterConnectionMode.Multiple;
-import static com.mongodb.ClusterConnectionMode.Single;
-import static com.mongodb.ClusterType.ReplicaSet;
-import static com.mongodb.ClusterType.StandAlone;
-import static com.mongodb.ServerConnectionState.Connected;
-import static com.mongodb.ServerDescription.builder;
-import static com.mongodb.ServerType.ReplicaSetOther;
-import static com.mongodb.ServerType.ReplicaSetSecondary;
+import static com.mongodb.connection.ClusterConnectionMode.MULTIPLE;
+import static com.mongodb.connection.ClusterConnectionMode.SINGLE;
+import static com.mongodb.connection.ClusterType.REPLICA_SET;
+import static com.mongodb.connection.ClusterType.STANDALONE;
+import static com.mongodb.connection.ServerConnectionState.CONNECTED;
+import static com.mongodb.connection.ServerDescription.builder;
+import static com.mongodb.connection.ServerType.REPLICA_SET_OTHER;
+import static com.mongodb.connection.ServerType.REPLICA_SET_SECONDARY;
 import static java.lang.Math.round;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -35,7 +38,7 @@ public class FastestPingTimeReadPreferenceTest {
 
   @Test
   public void getNullWhenNoReplicaSetsAvailable() {
-    ClusterDescription clusterDescription = new ClusterDescription(Single, StandAlone, Collections.<ServerDescription>emptyList());
+    ClusterDescription clusterDescription = new ClusterDescription(SINGLE, STANDALONE, Collections.<ServerDescription>emptyList());
     assertThat(testedObject.choose(clusterDescription), is(nullValue()));
   }
 
@@ -45,7 +48,7 @@ public class FastestPingTimeReadPreferenceTest {
     ServerDescription node2 = createServerDescriptionWithPingtime(9.99f);
     ServerDescription node3 = createServerDescriptionWithPingtime(11.0f);
 
-    ClusterDescription clusterDescription = new ClusterDescription(Multiple, ReplicaSet, asList(node1, node2, node3));
+    ClusterDescription clusterDescription = new ClusterDescription(MULTIPLE, REPLICA_SET, asList(node1, node2, node3));
 
     assertThat(testedObject.choose(clusterDescription).get(0), is(node2));
 
@@ -57,18 +60,18 @@ public class FastestPingTimeReadPreferenceTest {
     ServerDescription node2 = createServerDescriptionWithPingtime(10.0f);
     ServerDescription node3 = createServerDescriptionWithPingtime(11.0f);
 
-    ClusterDescription clusterDescription = new ClusterDescription(Multiple, ReplicaSet, asList(node1, node2, node3));
+    ClusterDescription clusterDescription = new ClusterDescription(MULTIPLE, REPLICA_SET, asList(node1, node2, node3));
 
     assertThat(testedObject.choose(clusterDescription).get(0), isOneOf(node1, node2));
   }
 
   @Test
   public void getNotTheNodeWhichIsInStartupMode() throws UnknownHostException {
-    ServerDescription node1 = createServerDescriptionWithPingtime("127.0.0.1", 0.1f, ReplicaSetOther);
+    ServerDescription node1 = createServerDescriptionWithPingtime("127.0.0.1", 0.1f, REPLICA_SET_OTHER);
     ServerDescription node2 = createServerDescriptionWithPingtime("127.0.0.1", 0.5f);
     ServerDescription node3 = createServerDescriptionWithPingtime(11.0f);
 
-    ClusterDescription clusterDescription = new ClusterDescription(Multiple, ReplicaSet, asList(node1, node2, node3));
+    ClusterDescription clusterDescription = new ClusterDescription(MULTIPLE, REPLICA_SET, asList(node1, node2, node3));
 
     assertThat(testedObject.choose(clusterDescription).get(0), is(node2));
   }
@@ -78,7 +81,7 @@ public class FastestPingTimeReadPreferenceTest {
   }
 
   private ServerDescription createServerDescriptionWithPingtime(String hostname, float pingTime) throws UnknownHostException {
-    return createServerDescriptionWithPingtime(hostname, pingTime, ReplicaSetSecondary);
+    return createServerDescriptionWithPingtime(hostname, pingTime, REPLICA_SET_SECONDARY);
   }
 
   private ServerDescription createServerDescriptionWithPingtime(String hostname, float pingTime, ServerType type)
@@ -87,9 +90,9 @@ public class FastestPingTimeReadPreferenceTest {
         .address(new ServerAddress(hostname, new Random()
         .nextInt(5000) + 1024))
         .setName("name")
-        .averageLatency(round(pingTime * 1000), NANOSECONDS)
+        .roundTripTime(round(pingTime * 1000), NANOSECONDS)
         .ok(true)
-        .state(Connected)
+        .state(CONNECTED)
         .type(type);
     return builder.build();
   }

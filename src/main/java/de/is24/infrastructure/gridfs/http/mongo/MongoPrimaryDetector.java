@@ -52,11 +52,8 @@ public class MongoPrimaryDetector {
     if (masterServer == null) {
       return null;
     }
-    try {
-      return masterServer.getSocketAddress().getAddress();
-    } catch (UnknownHostException e) {
-      return null;
-    }
+
+    return masterServer.getSocketAddress().getAddress();
   }
 
   @ManagedOperation
