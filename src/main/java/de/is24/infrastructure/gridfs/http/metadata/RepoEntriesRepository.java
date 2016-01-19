@@ -5,6 +5,7 @@ import de.is24.infrastructure.gridfs.http.domain.RepoType;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.MongoRepository;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -23,13 +24,13 @@ public interface RepoEntriesRepository extends MongoRepository<RepoEntry, Object
 
   List<RepoEntry> findByType(RepoType type, Sort sort);
 
-  List<RepoEntry> findByTypeAndNameStartsWith(RepoType type, String reponame);
+  List<RepoEntry> findByTypeAndNameMatchesRegex(RepoType type, String repoNameRegex);
 
-  List<RepoEntry> findByTypeInAndNameStartsWithAndTagsContainsAndLastModifiedIsBetween(Set<RepoType> repoTypes,
-                                                                                       String name, String tag,
+  List<RepoEntry> findByTypeInAndNameMatchesRegexAndTagsContainsAndLastModifiedIsBetween(Set<RepoType> repoTypes,
+                                                                                       String repoNameRegex, String tag,
                                                                                        Date newerDate, Date olderDate);
 
-  List<RepoEntry> findByTypeInAndNameStartsWithAndLastModifiedIsBetween(Set<RepoType> repoTypes, String name,
+  List<RepoEntry> findByTypeInAndNameMatchesRegexAndLastModifiedIsBetween(Set<RepoType> repoTypes, String repoNameRegex,
                                                                         Date newerDate, Date olderDate);
 
   RepoEntry findFirstByName(String reponame);

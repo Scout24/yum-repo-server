@@ -142,7 +142,7 @@ public class VirtualRepositoryInfoProvider implements RepositoryInfoProvider {
 
   @Override
   public List<RepoEntry> find(String repoNameRegex) {
-    return entriesRepository.findByTypeAndNameStartsWith(VIRTUAL, repoNameRegex);
+    return entriesRepository.findByTypeAndNameMatchesRegex(VIRTUAL, repoNameRegex);
   }
 
   @Override

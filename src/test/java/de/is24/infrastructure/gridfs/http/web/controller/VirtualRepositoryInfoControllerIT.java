@@ -77,7 +77,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.is(HttpServletResponse.SC_OK));
+    assertThat(response.getStatusLine().getStatusCode(), is(HttpServletResponse.SC_OK));
     assertThat(content, containsString(givenReponame));
   }
 
@@ -87,7 +87,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.is(HttpServletResponse.SC_OK));
+    assertThat(response.getStatusLine().getStatusCode(), is(HttpServletResponse.SC_OK));
     assertThat(content, not(containsString(givenReponame)));
   }
 
@@ -97,7 +97,7 @@ public class VirtualRepositoryInfoControllerIT extends RepositoryInfoControllerI
     HttpResponse response = httpClient.execute(get);
 
     String content = EntityUtils.toString(response.getEntity());
-    assertThat(response.getStatusLine().getStatusCode(), CoreMatchers.is(HttpServletResponse.SC_OK));
+    assertThat(response.getStatusLine().getStatusCode(), is(HttpServletResponse.SC_OK));
     assertThat(content, containsString(givenReponame));
     assertThat(content, containsString(givenStaticReponame));
   }

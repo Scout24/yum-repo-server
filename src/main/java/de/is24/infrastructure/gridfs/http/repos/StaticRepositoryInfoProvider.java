@@ -239,7 +239,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   @TimeMeasurement
   public List<RepoEntry> find(String repoNameRegex, String tag, Date newer, Date older) {
     return entriesRepository //
-      .findByTypeInAndNameStartsWithAndTagsContainsAndLastModifiedIsBetween(STATIC_TYPES, repoNameRegex, tag, newer,
+      .findByTypeInAndNameMatchesRegexAndTagsContainsAndLastModifiedIsBetween(STATIC_TYPES, repoNameRegex, tag, newer,
         older);
   }
 
@@ -247,7 +247,7 @@ public class StaticRepositoryInfoProvider implements RepositoryInfoProvider {
   @TimeMeasurement
   public List<RepoEntry> find(String repoNameRegex, Date newer, Date older) {
     return entriesRepository //
-      .findByTypeInAndNameStartsWithAndLastModifiedIsBetween(STATIC_TYPES, repoNameRegex, newer, older);
+      .findByTypeInAndNameMatchesRegexAndLastModifiedIsBetween(STATIC_TYPES, repoNameRegex, newer, older);
   }
 
   private List<FileInfo> adaptFiles(Iterator<DBObject> itr) {

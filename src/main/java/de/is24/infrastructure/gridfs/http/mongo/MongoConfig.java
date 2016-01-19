@@ -3,6 +3,7 @@ package de.is24.infrastructure.gridfs.http.mongo;
 import com.mongodb.FastestPingTimeReadPreference;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
@@ -12,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.authentication.UserCredentials;
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
@@ -24,8 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static com.mongodb.WriteConcern.NORMAL;
-import static com.mongodb.WriteConcern.REPLICAS_SAFE;
+import static com.mongodb.MongoCredential.createCredential;
+import static com.mongodb.WriteConcern.ACKNOWLEDGED;
+import static com.mongodb.WriteConcern.W2;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.compile;
 
 @Configuration
@@ -58,7 +61,7 @@ public class MongoConfig extends AbstractMongoConfiguration {
   @Bean
   @Override
   public Mongo mongo() throws UnknownHostException {
-    return new MongoTxProxy(getReplicatSet(), mongoOptions());
+    return new MongoTxProxy(getReplicatSet(), getCredentials(), mongoOptions());
   }
 
   @Bean
@@ -107,10 +110,10 @@ public class MongoConfig extends AbstractMongoConfiguration {
 
   private WriteConcern getWriteConcern() {
     if (mongoDBServerList.contains(SEPARATOR)) {
-      return REPLICAS_SAFE;
+      return W2;
     }
 
-    return NORMAL;
+    return ACKNOWLEDGED;
   }
 
   private List<ServerAddress> getReplicatSet() throws UnknownHostException {
@@ -132,12 +135,11 @@ public class MongoConfig extends AbstractMongoConfiguration {
     return mongoDBName;
   }
 
-  @Override
-  protected UserCredentials getUserCredentials() {
+  protected List<MongoCredential> getCredentials() {
     if (mongoDBUsername != null) {
-      return new UserCredentials(mongoDBUsername, mongoDBPassword);
+      return singletonList(createCredential(mongoDBUsername, mongoDBName, mongoDBPassword.toCharArray()));
     }
 
-    return null;
+    return emptyList();
   }
 }

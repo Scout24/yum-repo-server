@@ -28,6 +28,7 @@ import static de.is24.infrastructure.gridfs.http.domain.RepoType.STATIC;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.field;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.groupBy;
 import static de.is24.infrastructure.gridfs.http.mongo.MongoAggregationBuilder.match;
+import static java.util.Arrays.asList;
 import static java.util.Collections.sort;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -151,7 +152,7 @@ public class RepoCleaner {
       field(FILENAME_KEY, "yumPackage.location.href"))
       .build();
 
-      return mongo.getCollection("yum.entries").aggregate(repoMatch, groupArtifactNames);
+      return mongo.getCollection("yum.entries").aggregate(asList(repoMatch, groupArtifactNames));
   }
 
   private AggregationOutput aggregateAllRpmNamesInRepoThatHaveMoreThanMaxKeepEntries(String reponame, int maxKeepRpm) {
