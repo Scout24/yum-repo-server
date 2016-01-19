@@ -7,6 +7,7 @@ import org.bson.BsonString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -36,8 +37,8 @@ public class FastestPingTimeReadPreference extends ReadPreference {
   public List<ServerDescription> choose(ClusterDescription clusterDescription) {
     final Set<ServerDescription> nodeSet = clusterDescription.getAll();
 
-    if (nodeSet.isEmpty()) {
-      return null;
+    if (nodeSet.size() < 2) {
+      return new ArrayList<>(nodeSet);
     }
 
     final ServerDescription nearestNode = selectNearestQueryableNode(nodeSet);

@@ -14,6 +14,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
+import javax.servlet.FilterRegistration;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -95,13 +96,17 @@ public class AppInitializer implements WebApplicationInitializer {
   }
 
   private void registerSecurityFilter(ServletContext servletContext) {
-    servletContext.addFilter("springSecurityFilterChain", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
+    FilterRegistration.Dynamic filter = servletContext.addFilter("springSecurityFilterChain", new DelegatingFilterProxy());
+    if (filter != null) {
+      filter.addMappingForUrlPatterns(of(REQUEST, FORWARD), false, ALL_URLS);
+    }
   }
 
   private void registerContentTypeFilter(ServletContext servletContext) {
-    servletContext.addFilter("formEncodedContentTypeFilter", new DelegatingFilterProxy())
-    .addMappingForUrlPatterns(of(REQUEST), false, ALL_URLS);
+    FilterRegistration.Dynamic filter = servletContext.addFilter("formEncodedContentTypeFilter", new DelegatingFilterProxy());
+    if (filter != null) {
+      filter.addMappingForUrlPatterns(of(REQUEST), false, ALL_URLS);
+    }
   }
 
   private void registerMDCFilter(ServletContext servletContext) {

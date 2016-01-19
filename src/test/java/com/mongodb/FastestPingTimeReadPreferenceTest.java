@@ -7,24 +7,26 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.net.UnknownHostException;
-import java.util.Collections;
 import java.util.Random;
 
 import static com.mongodb.connection.ClusterConnectionMode.MULTIPLE;
 import static com.mongodb.connection.ClusterConnectionMode.SINGLE;
 import static com.mongodb.connection.ClusterType.REPLICA_SET;
 import static com.mongodb.connection.ClusterType.STANDALONE;
+import static com.mongodb.connection.ClusterType.UNKNOWN;
 import static com.mongodb.connection.ServerConnectionState.CONNECTED;
+import static com.mongodb.connection.ServerConnectionState.CONNECTING;
 import static com.mongodb.connection.ServerDescription.builder;
 import static com.mongodb.connection.ServerType.REPLICA_SET_OTHER;
 import static com.mongodb.connection.ServerType.REPLICA_SET_SECONDARY;
 import static java.lang.Math.round;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
-import static org.hamcrest.core.IsNull.nullValue;
 
 
 public class FastestPingTimeReadPreferenceTest {
@@ -37,9 +39,9 @@ public class FastestPingTimeReadPreferenceTest {
   }
 
   @Test
-  public void getNullWhenNoReplicaSetsAvailable() {
-    ClusterDescription clusterDescription = new ClusterDescription(SINGLE, STANDALONE, Collections.<ServerDescription>emptyList());
-    assertThat(testedObject.choose(clusterDescription), is(nullValue()));
+  public void getEmptyListWhenNoReplicaSetsAvailable() {
+    ClusterDescription clusterDescription = new ClusterDescription(SINGLE, STANDALONE, emptyList());
+    assertThat(testedObject.choose(clusterDescription), is(emptyList()));
   }
 
   @Test
@@ -76,6 +78,22 @@ public class FastestPingTimeReadPreferenceTest {
     assertThat(testedObject.choose(clusterDescription).get(0), is(node2));
   }
 
+  @Test
+  public void selectNotOkNodeIfThereIsOnlyOneAvailable() throws Exception {
+    ServerDescription node = builder()
+        .address(new ServerAddress("127.0.0.1", new Random().nextInt(5000) + 1024))
+        .setName("name")
+        .roundTripTime(1000, NANOSECONDS)
+        .ok(false)
+        .state(CONNECTING)
+        .type(ServerType.STANDALONE)
+        .build();
+
+    ClusterDescription clusterDescription = new ClusterDescription(MULTIPLE, UNKNOWN, singletonList(node));
+
+    assertThat(testedObject.choose(clusterDescription).get(0), is(node));
+  }
+
   private ServerDescription createServerDescriptionWithPingtime(float pingTime) throws UnknownHostException {
     return createServerDescriptionWithPingtime("127.0.0.1", pingTime);
   }
@@ -86,14 +104,14 @@ public class FastestPingTimeReadPreferenceTest {
 
   private ServerDescription createServerDescriptionWithPingtime(String hostname, float pingTime, ServerType type)
                                                    throws UnknownHostException {
-    ServerDescription.Builder builder = builder()
+    return builder()
         .address(new ServerAddress(hostname, new Random()
         .nextInt(5000) + 1024))
         .setName("name")
         .roundTripTime(round(pingTime * 1000), NANOSECONDS)
         .ok(true)
         .state(CONNECTED)
-        .type(type);
-    return builder.build();
+        .type(type)
+        .build();
   }
 }

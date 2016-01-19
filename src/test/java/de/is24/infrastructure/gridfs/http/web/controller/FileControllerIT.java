@@ -24,6 +24,7 @@ import static javax.servlet.http.HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATI
 import static org.apache.http.util.EntityUtils.consume;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hamcrest.core.Is.is;
 
 
@@ -51,7 +52,7 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     HttpResponse response = httpClient.execute(get);
     assertThat(response.getStatusLine().getStatusCode(), is(SC_PARTIAL_CONTENT));
     assertThat(response.getEntity().getContentLength(), is(1024L));
-    assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
+    assertThat(response.getFirstHeader("Content-Type").getValue(), startsWith("application/x-rpm"));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is("1024"));
   }
 
@@ -81,7 +82,7 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     HttpResponse response = httpClient.execute(get);
     assertThat(response.getStatusLine().getStatusCode(), is(SC_PARTIAL_CONTENT));
     assertThat(response.getEntity().getContentLength(), is(524L));
-    assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
+    assertThat(response.getFirstHeader("Content-Type").getValue(), startsWith("application/x-rpm"));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is("524"));
   }
 
@@ -136,7 +137,7 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
     assertThat(response.getEntity().getContentLength(), is((long) RPM_FILE_SIZE));
     assertThat(response.getFirstHeader("Content-Length").getValue(), is(Integer.toString(RPM_FILE_SIZE)));
-    assertThat(response.getFirstHeader("Content-Type").getValue(), is("application/x-rpm"));
+    assertThat(response.getFirstHeader("Content-Type").getValue(), startsWith("application/x-rpm"));
     consume(response.getEntity());
   }
 }
