@@ -8,9 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 import static java.lang.Float.compare;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 public class FastestPingTimeReadPreference extends ReadPreference {
@@ -34,17 +34,18 @@ public class FastestPingTimeReadPreference extends ReadPreference {
 
   @Override
   public List<ServerDescription> choose(ClusterDescription clusterDescription) {
-    final Set<ServerDescription> nodeSet = clusterDescription.getAll();
+    List<ServerDescription> nodes = clusterDescription.getAnyPrimaryOrSecondary();
 
-    if (nodeSet.isEmpty()) {
-      return null;
+    ServerDescription nearestNode = selectNearestQueryableNode(nodes);
+
+    if (nearestNode == null) {
+      LOGGER.debug("Could not find any mongodb server.");
+      return emptyList();
     }
-
-    final ServerDescription nearestNode = selectNearestQueryableNode(nodeSet);
 
     if (LOGGER.isTraceEnabled()) {
       StringBuilder buffer = new StringBuilder();
-      for (ServerDescription node : nodeSet) {
+      for (ServerDescription node : nodes) {
         if (!node.equals(nearestNode)) {
           buffer.append("[");
           buffer.append(node.getAddress().getHost());
@@ -53,23 +54,21 @@ public class FastestPingTimeReadPreference extends ReadPreference {
           buffer.append("] ");
         }
       }
-
       String choosenNode = nearestNode.getAddress().getHost() + "/" + nearestNode.getRoundTripTimeNanos();
       LOGGER.trace("take {} as mongodb host. other {}", choosenNode, buffer.toString());
     } else {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("take {} as mongodb host",
-          (nearestNode == null) ? "--" : nearestNode.getAddress().getHost());
+        LOGGER.debug("take {} as mongodb host", nearestNode.getAddress().getHost());
       }
     }
     return singletonList(nearestNode);
   }
 
 
-  private static ServerDescription selectNearestQueryableNode(final Set<ServerDescription> nodeSet) {
+  private static ServerDescription selectNearestQueryableNode(final List<ServerDescription> nodeSet) {
     ServerDescription nearest = null;
     for (ServerDescription node : nodeSet) {
-      if (isQueryable(node)) {
+      if (node.isOk()) {
         nearest = calculateNearest(nearest, node);
       }
     }
@@ -84,9 +83,5 @@ public class FastestPingTimeReadPreference extends ReadPreference {
       return nodeB;
     }
     return nodeA;
-  }
-
-  private static boolean isQueryable(final ServerDescription node) {
-    return node.isOk() && (node.isSecondary() || node.isPrimary());
   }
 }

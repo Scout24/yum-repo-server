@@ -20,14 +20,15 @@ import static com.mongodb.connection.ServerType.REPLICA_SET_OTHER;
 import static com.mongodb.connection.ServerType.REPLICA_SET_SECONDARY;
 import static java.lang.Math.round;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.isOneOf;
-import static org.hamcrest.core.IsNull.nullValue;
 
 
 public class FastestPingTimeReadPreferenceTest {
+
   private FastestPingTimeReadPreference testedObject;
 
   @Before
@@ -37,9 +38,9 @@ public class FastestPingTimeReadPreferenceTest {
   }
 
   @Test
-  public void getNullWhenNoReplicaSetsAvailable() {
+  public void getEmptyListWhenNoReplicaSetsAvailable() {
     ClusterDescription clusterDescription = new ClusterDescription(SINGLE, STANDALONE, Collections.<ServerDescription>emptyList());
-    assertThat(testedObject.choose(clusterDescription), is(nullValue()));
+    assertThat(testedObject.choose(clusterDescription), is(emptyList()));
   }
 
   @Test
