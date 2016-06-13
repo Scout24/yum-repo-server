@@ -26,7 +26,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
 import org.springframework.data.mongodb.tx.MongoTx;
-import org.springframework.http.MediaType;
 import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -58,6 +57,9 @@ import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.METADAT
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.REPO_KEY;
 import static de.is24.infrastructure.gridfs.http.mongo.DatabaseStructure.SHA256_KEY;
 import static de.is24.infrastructure.gridfs.http.security.Permission.HAS_DESCRIPTOR_READ_PERMISSION;
+import static de.is24.infrastructure.gridfs.http.web.MediaTypes.BZ2_CONTENT_TYPE;
+import static de.is24.infrastructure.gridfs.http.web.MediaTypes.CONTENT_TYPE_APPLICATION_X_GPG;
+import static de.is24.infrastructure.gridfs.http.web.MediaTypes.CONTENT_TYPE_APPLICATION_X_RPM;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.quote;
 import static java.util.stream.Collectors.toList;
@@ -76,9 +78,6 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 @Service
 public class GridFsFileStorageService implements FileStorageService {
   private static final Logger LOGGER = LoggerFactory.getLogger(GridFsFileStorageService.class);
-  public static final String CONTENT_TYPE_APPLICATION_X_RPM = "application/x-rpm";
-  public static final String CONTENT_TYPE_APPLICATION_X_GPG = "application/x-gpg";
-  private static final String BZ2_CONTENT_TYPE = new MediaType("application", "x-bzip2").toString();
   private static final String ENDS_WITH_RPM_REGEX = ".*\\.rpm$";
   private static final int MB = 1024 * 1024;
   private static final int FIVE_MB = 5 * MB;

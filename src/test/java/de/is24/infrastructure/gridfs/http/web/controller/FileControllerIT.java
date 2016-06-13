@@ -130,6 +130,20 @@ public class FileControllerIT extends AbstractContainerAndMongoDBStarter {
     checkRpmDownload(format("%s-rhel-latest-test", repoPrefix));
   }
 
+  @Test
+  public void setContentDispositionCorrect() throws Exception {
+    HttpGet get = new HttpGet(repoUrl + "/noarch/test-artifact-1.2-1.noarch.rpm");
+
+    HttpResponse response = httpClient.execute(get);
+    assertThat(response.getStatusLine().getStatusCode(), is(SC_OK));
+    assertThat(
+        response.getFirstHeader("Content-Disposition").getValue(),
+        is("attachment; filename=test-artifact-1.2-1.noarch.rpm")
+    );
+  }
+
+
+
   public void checkRpmDownload(String repo) throws IOException {
     HttpGet get = new HttpGet(repo + "/noarch/test-artifact-1.2-1.noarch.rpm");
     HttpResponse response = httpClient.execute(get);

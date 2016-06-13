@@ -19,9 +19,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static de.is24.infrastructure.gridfs.http.web.MediaTypes.APPLICATION_X_RPM;
 import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.util.regex.Pattern.compile;
@@ -69,7 +73,7 @@ public class FileController {
     HttpHeaders httpHeaders = new HttpHeaders();
     httpHeaders.setContentLength(resource.contentLength());
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm");
-    return new ResponseEntity<>(resource, withContentType(httpHeaders, resource), OK);
+    return new ResponseEntity<>(resource, withContentHeaders(httpHeaders, resource), OK);
   }
 
   @RequestMapping(value = "/{repo}/{arch}/{filename:.+}", method = GET, headers = { "Range" })
@@ -99,7 +103,7 @@ public class FileController {
     }
 
     InApplicationMonitor.getInstance().incrementCounter(getClass().getName() + ".get.rpm-range");
-    return new ResponseEntity<>(resource, withContentType(rangeHeaders(resource), resource),
+    return new ResponseEntity<>(resource, withContentHeaders(rangeHeaders(resource), resource),
       PARTIAL_CONTENT);
   }
 
@@ -111,10 +115,13 @@ public class FileController {
     }
   }
 
-  private HttpHeaders withContentType(HttpHeaders httpHeaders, BoundedGridFsResource resource) {
+  private HttpHeaders withContentHeaders(HttpHeaders httpHeaders, BoundedGridFsResource resource) {
     if (isNotBlank(resource.getContentType())) {
       httpHeaders.setContentType(valueOf(resource.getContentType()));
     }
+
+    String disposition = APPLICATION_X_RPM.equals(httpHeaders.getContentType()) ? "attachment" : "inline";
+    httpHeaders.set("Content-Disposition", disposition + "; filename=" + new File(resource.getFilename()).getName());
     return httpHeaders;
   }
 
