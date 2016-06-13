@@ -148,6 +148,7 @@ public class FileControllerTest extends AbstractControllerTest {
     when(storageItem.getInputStream()).thenReturn(new ByteArrayInputStream(content.getBytes()));
     when(storageItem.getSize()).thenReturn((long) content.length());
     when(storageItem.getContentType()).thenReturn("application/x-rpm");
+    when(storageItem.getFilename()).thenReturn("files/test/file.rpm");
     return storageItem;
   }
 }
