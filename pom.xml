@@ -12,6 +12,14 @@
     <url>http://www.immobilienscout24.de/</url>
   </organization>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>miredot</id>
+      <name>MireDot Releases</name>
+      <url>http://nexus.qmino.com/content/repositories/miredot</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -32,7 +40,7 @@
   <prerequisites>
     <maven>2.2.1</maven>
   </prerequisites>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.mongodb</groupId>
@@ -43,12 +51,12 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-tx</artifactId>
       <version>${spring.version}</version>
-        <exclusions>
-            <exclusion>
-                <artifactId>commons-logging</artifactId>
-                <groupId>commons-logging</groupId>
-            </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-logging</artifactId>
+          <groupId>commons-logging</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -122,17 +130,17 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>17.0</version>
-    </dependency>    
+    </dependency>
     <dependency>
       <groupId>org.kohsuke</groupId>
       <artifactId>libpam4j</artifactId>
       <version>1.8</version>
-        <exclusions>
-            <exclusion>
-                <artifactId>jna</artifactId>
-                <groupId>net.java.dev.jna</groupId>
-            </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>jna</artifactId>
+          <groupId>net.java.dev.jna</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!-- add dependency jna explicitely to avoid conflict with test-dependency -->
     <dependency>
@@ -144,41 +152,41 @@
       <groupId>de.is24.common</groupId>
       <artifactId>appmon4j-core</artifactId>
       <version>1.58</version>
-        <exclusions>
-            <exclusion>
-                <artifactId>commons-io</artifactId>
-                <groupId>commons-io</groupId>
-            </exclusion>
-            <exclusion>
-                <groupId>aopalliance</groupId>
-                <artifactId>aopalliance</artifactId>
-            </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-io</artifactId>
+          <groupId>commons-io</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>aopalliance</groupId>
+          <artifactId>aopalliance</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
-      <dependency>
-          <groupId>de.is24.common</groupId>
-          <artifactId>appmon4j-testutil</artifactId>
-          <version>1.58</version>
-          <exclusions>
-              <exclusion>
-                  <artifactId>commons-io</artifactId>
-                  <groupId>commons-io</groupId>
-              </exclusion>
-              <exclusion>
-                  <artifactId>guava</artifactId>
-                  <groupId>com.google.guava</groupId>
-              </exclusion>
-              <exclusion>
-                  <artifactId>joda-time</artifactId>
-                  <groupId>joda-time</groupId>
-              </exclusion>
-              <exclusion>
-                  <groupId>de.flapdoodle.embed</groupId>
-                  <artifactId>de.flapdoodle.embed.process</artifactId>
-              </exclusion>
-          </exclusions>
-          <scope>test</scope>
-      </dependency>
+    <dependency>
+      <groupId>de.is24.common</groupId>
+      <artifactId>appmon4j-testutil</artifactId>
+      <version>1.58</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-io</artifactId>
+          <groupId>commons-io</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>guava</artifactId>
+          <groupId>com.google.guava</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>joda-time</artifactId>
+          <groupId>joda-time</groupId>
+        </exclusion>
+        <exclusion>
+          <groupId>de.flapdoodle.embed</groupId>
+          <artifactId>de.flapdoodle.embed.process</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>de.is24.common</groupId>
       <artifactId>appmon4j-spring</artifactId>
@@ -327,16 +335,16 @@
       <artifactId>mockito-core</artifactId>
       <version>1.9.5</version>
       <scope>test</scope>
-        <exclusions>
-            <exclusion>
-                <artifactId>hamcrest-core</artifactId>
-                <groupId>org.hamcrest</groupId>
-            </exclusion>
-            <exclusion>
-                <artifactId>objenesis</artifactId>
-                <groupId>org.objenesis</groupId>
-            </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>hamcrest-core</artifactId>
+          <groupId>org.hamcrest</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>objenesis</artifactId>
+          <groupId>org.objenesis</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -349,30 +357,30 @@
       <artifactId>httpclient</artifactId>
       <version>${httpclient.version}</version>
       <scope>test</scope>
-        <exclusions>
-            <exclusion>
-                <artifactId>commons-codec</artifactId>
-                <groupId>commons-codec</groupId>
-            </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-codec</artifactId>
+          <groupId>commons-codec</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
-	<dependency>
-		<groupId>org.apache.httpcomponents</groupId>
-		<artifactId>httpmime</artifactId>
-		<version>${httpclient.version}</version>
-		<scope>test</scope>
-	</dependency>    
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>${httpclient.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>de.flapdoodle.embed</groupId>
       <artifactId>de.flapdoodle.embed.mongo</artifactId>
       <version>1.50.2</version>
       <scope>test</scope>
-        <exclusions>
-            <exclusion>
-                <artifactId>commons-compress</artifactId>
-                <groupId>org.apache.commons</groupId>
-            </exclusion>
-        </exclusions>
+      <exclusions>
+        <exclusion>
+          <artifactId>commons-compress</artifactId>
+          <groupId>org.apache.commons</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -406,15 +414,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-    	<groupId>com.jayway.awaitility</groupId>
-    	<artifactId>awaitility</artifactId>
-    	<version>1.6.1</version>
-    	<scope>test</scope>
+      <groupId>com.jayway.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>1.6.1</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-       <groupId>org.easytesting</groupId>
-       <artifactId>fest-assert-core</artifactId>
-       <version>2.0M10</version>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert-core</artifactId>
+      <version>2.0M10</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -426,10 +434,10 @@
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>     
+            <artifactId>maven-surefire-plugin</artifactId>
             <version>${failsafe.plugin.version}</version>
             <configuration>
-              <skipTests>true</skipTests>              
+              <skipTests>true</skipTests>
             </configuration>
           </plugin>
           <plugin>
@@ -444,7 +452,7 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
-				          <systemPropertyVariables>
+                  <systemPropertyVariables>
                     <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
                     <remoteContainerUrl>${remote.container.url}</remoteContainerUrl>
                     <java.util.logging.config.file>${java.util.logging.config}</java.util.logging.config.file>
@@ -479,14 +487,14 @@
               <databaseDirectory>${project.build.directory}/mongo-dev</databaseDirectory>
               <logging>file</logging>
             </configuration>
-              <executions>
-                  <execution>
-                      <phase>install</phase>
-                      <goals>
-                          <goal>start</goal>
-                      </goals>
-                  </execution>
-              </executions>
+            <executions>
+              <execution>
+                <phase>install</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
           <plugin>
             <groupId>org.codehaus.cargo</groupId>
@@ -507,101 +515,101 @@
                 </deployable>
               </deployables>
             </configuration>
-              <executions>
-                  <execution>
-                      <phase>install</phase>
-                      <goals>
-                          <goal>run</goal>
-                      </goals>
-                  </execution>
-              </executions>
+            <executions>
+              <execution>
+                <phase>install</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>
     </profile>
-    
-  <profile>
+
+    <profile>
       <id>sonar-coverage</id>
       <activation>
-          <activeByDefault>false</activeByDefault>
+        <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
-          <sonar.sources>src/main/java,src/main/webapp</sonar.sources>
-          <sonar.exclusions>**/jquery*.js,**/jquery*.css,**/token-input*.css</sonar.exclusions>
-          <sonar.jacoco.reportPath>${project.build.directory}/jacoco-ut.exec</sonar.jacoco.reportPath>
-          <sonar.jacoco.itReportPath>${project.build.directory}/jacoco.exec</sonar.jacoco.itReportPath>
-          <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.sources>src/main/java,src/main/webapp</sonar.sources>
+        <sonar.exclusions>**/jquery*.js,**/jquery*.css,**/token-input*.css</sonar.exclusions>
+        <sonar.jacoco.reportPath>${project.build.directory}/jacoco-ut.exec</sonar.jacoco.reportPath>
+        <sonar.jacoco.itReportPath>${project.build.directory}/jacoco.exec</sonar.jacoco.itReportPath>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
       </properties>
       <build>
-          <plugins>
-              <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${failsafe.plugin.version}</version>
-                  <configuration>
-                      <argLine>${argLine}</argLine>
-                  </configuration>
-              </plugin>
-              <plugin>
-                  <groupId>org.jacoco</groupId>
-                  <artifactId>jacoco-maven-plugin</artifactId>
-                  <version>0.7.1.201405082137</version>
-                  <configuration>
-                      <append>true</append>
-                  </configuration>
-                  <executions>
-                      <execution>
-                          <id>jacoco-initialize</id>
-                          <goals>
-                              <goal>prepare-agent</goal>
-                          </goals>
-                      </execution>
-                      <execution>
-                          <id>jacoco-site</id>
-                          <phase>verify</phase>
-                          <goals>
-                              <goal>report</goal>
-                          </goals>
-                      </execution>
-                  </executions>
-              </plugin>
-              <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-antrun-plugin</artifactId>
-                  <version>1.7</version>
-                  <executions>
-                      <execution>
-                          <phase>pre-integration-test</phase>
-                          <id>copy-jacoco-report</id>
-                          <configuration>
-                              <target>
-                                  <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
-                                  <if>
-                                      <available file="${project.build.directory}/jacoco.exec" />
-                                      <then>
-                                          <move file="${project.build.directory}/jacoco.exec" 
-                                                tofile="${sonar.jacoco.reportPath}" verbose="true" />
-                                      </then>
-                                  </if>
-                              </target>
-                          </configuration>
-                          <goals>
-                              <goal>run</goal>
-                          </goals>
-                      </execution>
-                  </executions>
-                  <dependencies>
-                      <dependency>
-                          <groupId>ant-contrib</groupId>
-                          <artifactId>ant-contrib</artifactId>
-                          <version>20020829</version>
-                      </dependency>
-                  </dependencies>
-              </plugin>
-          </plugins>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${failsafe.plugin.version}</version>
+            <configuration>
+              <argLine>${argLine}</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.7.1.201405082137</version>
+            <configuration>
+              <append>true</append>
+            </configuration>
+            <executions>
+              <execution>
+                <id>jacoco-initialize</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>jacoco-site</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <phase>pre-integration-test</phase>
+                <id>copy-jacoco-report</id>
+                <configuration>
+                  <target>
+                    <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+                    <if>
+                      <available file="${project.build.directory}/jacoco.exec" />
+                      <then>
+                        <move file="${project.build.directory}/jacoco.exec"
+                              tofile="${sonar.jacoco.reportPath}" verbose="true" />
+                      </then>
+                    </if>
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>ant-contrib</groupId>
+                <artifactId>ant-contrib</artifactId>
+                <version>20020829</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
       </build>
-  </profile>
-    
+    </profile>
+
   </profiles>
 
   <build>
@@ -624,6 +632,36 @@
     </resources>
     <plugins>
       <plugin>
+        <groupId>com.qmino</groupId>
+        <artifactId>miredot-plugin</artifactId>
+        <version>1.6.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>restdoc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <license>
+            cHJvamVjdHxkZS5pczI0LmluZnJhc3RydWN0dXJlLmdyaWRmcy55dW0tcmVwby1zZXJ2ZXJ8MjAxOC0wMi0xNnx0cnVlfC0xI01Dd0NGSDRBMmJBeEs4YWdPcE50QnFidVhqRVlzZ0gzQWhSQjlmMlp3ZlR3YlVZMG5iUUc4M0hQVVA1L3RRPT0=
+          </license>
+          <restModel>
+            <restFramework>
+              <name>spring-mvc</name>
+            </restFramework>
+            <httpStatusCodes>
+              <httpStatusCode>
+                <httpCode>200</httpCode>
+                <document>get</document>
+                <defaultMessage>The service call has completed successfully.</defaultMessage>
+                <sticky>false</sticky>
+              </httpStatusCode>
+            </httpStatusCodes>
+          </restModel>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
@@ -643,7 +681,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${failsafe.plugin.version}</version> 
+        <version>${failsafe.plugin.version}</version>
         <configuration>
           <systemPropertyVariables>
             <embedded.mongodb.version>${embedded.mongodb.version}</embedded.mongodb.version>
