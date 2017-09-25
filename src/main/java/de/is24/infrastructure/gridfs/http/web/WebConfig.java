@@ -4,6 +4,7 @@ import de.is24.infrastructure.gridfs.http.web.exception.MessageAwareResponseStat
 import de.is24.infrastructure.gridfs.http.web.logging.LoggingHandlerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
@@ -16,11 +17,12 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
-
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Configuration
@@ -38,6 +40,13 @@ public class WebConfig extends WebMvcConfigurerAdapter {
     viewResolver.setSuffix(".jsp");
     viewResolver.setExposeContextBeansAsAttributes(true);
     return viewResolver;
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/static/images/**")
+    .addResourceLocations("/static/images/")
+    .setCacheControl(CacheControl.maxAge(2, TimeUnit.DAYS));
   }
 
   @Override
