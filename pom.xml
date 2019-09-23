@@ -20,7 +20,7 @@
     <spring.security.version>4.1.1.RELEASE</spring.security.version>
     <failsafe.plugin.version>2.17</failsafe.plugin.version>
     <shrinkwrap.resolver.version>2.0.0-beta-3</shrinkwrap.resolver.version>
-    <jackson.version>2.9.8</jackson.version>
+    <jackson.version>2.10.0.pr3</jackson.version>
     <embedded.mongodb.version>2.6.11</embedded.mongodb.version>
     <httpclient.version>4.5.7</httpclient.version>
     <aspectj.version>1.8.2</aspectj.version>
