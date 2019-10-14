@@ -17,7 +17,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <spring.version>4.2.4.RELEASE</spring.version>
-    <spring.security.version>4.1.1.RELEASE</spring.security.version>
+    <spring.security.version>5.2.0.RELEASE</spring.security.version>
     <failsafe.plugin.version>2.17</failsafe.plugin.version>
     <shrinkwrap.resolver.version>2.0.0-beta-3</shrinkwrap.resolver.version>
     <jackson.version>2.9.8</jackson.version>
